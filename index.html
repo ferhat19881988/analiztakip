@@ -276,11 +276,41 @@ input:focus,select:focus,textarea:focus,.input:focus{border-color:var(--primary-
   .app-shell,.container{padding-top:12px;padding-left:10px;padding-right:10px}.container{padding-bottom:calc(104px + env(safe-area-inset-bottom))}.login-wrap{padding:18px 10px;align-items:flex-start}.login-card{border-radius:24px}.login-hero{padding:24px 20px}.login-form-panel{padding:28px 18px}.login-form-panel h2{font-size:24px}.login-hero h1{font-size:25px}.login-logo-mark{width:82px;height:82px;border-radius:20px}.logo,.logo-box{width:56px;height:56px;min-width:56px;border-radius:18px}.brand{gap:10px}.brand h1{font-size:17px;white-space:normal}.brand p{font-size:12px;white-space:normal}.topbar{padding:10px 10px 4px}.topbar-inner{border-radius:22px}.app-shell>.topbar{align-items:flex-start;flex-direction:column}.app-shell>.topbar .btn{width:100%}.section-title h2{font-size:25px}.section-head h3{font-size:21px}.card,.login-card,.section-card,.student-hero,.entry-row,.task-card,.message-card,.course-line,.lesson-card,.topic-card,.thin-item,.day-card,.student-row{border-radius:20px}.section-card{padding:18px}.button-grid{grid-template-columns:1fr 1fr;gap:8px}.button-grid button,.btn,.primary,.secondary,.ghost,.danger-btn,.success-btn,.warning-btn{min-height:44px;padding:10px 11px;font-size:13px;white-space:normal}.bottom-nav .nav-inner{gap:7px;border-radius:24px}.nav-item{min-height:58px;border-radius:18px;font-size:11px}.nav-item b{font-size:18px}.wizard-steps{grid-template-columns:1fr}.student-row{align-items:flex-start}.avatar{width:48px;height:48px;min-width:48px}.tabs{padding-bottom:12px}.tab{padding:10px 13px;font-size:13px}
 }
 
+  
+
+/* ANALİZ, RAPORLAMA VE TAPLI KULLANIM GÜNCELLEMELERİ */
+.local-tabs,.detail-tabs,.admin-main-tabs,.admin-ops-tabs{
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 14px;
+  padding:7px;border:1px solid var(--line);border-radius:22px;background:rgba(248,250,252,.82);
+  box-shadow:var(--shadow-xs)
+}
+.local-tab,.detail-tab,.admin-tab-btn,.admin-ops-tab{
+  min-height:42px;border-radius:16px;padding:10px 13px;background:transparent;color:#475569;
+  font-size:13px;font-weight:900;letter-spacing:-.01em;transition:.16s ease;display:inline-flex;align-items:center;gap:7px
+}
+.local-tab:hover,.detail-tab:hover,.admin-tab-btn:hover,.admin-ops-tab:hover{background:#fff;color:var(--primary);box-shadow:var(--shadow-xs)}
+.local-tab.active,.detail-tab.active,.admin-tab-btn.active,.admin-ops-tab.active{
+  background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;box-shadow:0 12px 24px rgba(37,99,235,.22)
+}
+.detail-panel,.admin-tab-panel,.admin-ops-panel{display:none}.detail-panel.active,.admin-tab-panel.active,.admin-ops-panel.active{display:block}
+.student-detail-shell{display:grid;gap:14px}.student-head-card{padding:18px 20px;border-radius:26px;background:linear-gradient(135deg,#0f172a,#172554 55%,#1d4ed8);color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.student-head-card::after{content:"";position:absolute;right:-70px;top:-70px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.10)}
+.student-head-card h2{margin:0 0 7px;color:#fff;font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-.05em}.student-head-card p{margin:0;color:rgba(255,255,255,.78);font-weight:700}.student-head-card .badge{background:rgba(255,255,255,.16)!important;color:#fff!important;border-color:rgba(255,255,255,.25)!important}
+.metric-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}.mini-metric{border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.10);border-radius:18px;padding:12px;backdrop-filter:blur(10px)}.mini-metric small{display:block;color:rgba(255,255,255,.72);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.mini-metric strong{display:block;color:#fff;font-size:22px;font-weight:900;margin-top:4px;letter-spacing:-.04em}
+.analysis-grid{display:grid;grid-template-columns:minmax(280px,.95fr) minmax(320px,1.1fr);gap:14px;align-items:start}.pie-card{display:grid;place-items:center;padding:18px}.pie-chart{--chart:conic-gradient(#16a34a 0 0);width:min(245px,72vw);aspect-ratio:1;border-radius:50%;background:var(--chart);position:relative;box-shadow:inset 0 0 0 1px rgba(15,23,42,.05),0 18px 44px rgba(15,23,42,.10)}
+.pie-chart::after{content:"";position:absolute;inset:22%;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}.pie-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:2;color:var(--ink);font-weight:900}.pie-center span{display:block;color:var(--muted);font-size:12px;font-weight:800;margin-top:2px}.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}.legend span{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:900;color:#334155}.legend i{width:11px;height:11px;border-radius:4px;display:inline-block}.lg-good{background:#16a34a}.lg-bad{background:#dc2626}.lg-empty{background:#d97706}.lg-neutral{background:#2563eb}.lg-gray{background:#94a3b8}
+.analysis-filter-card{display:grid;gap:12px}.success-row{border:1px solid var(--line);border-radius:18px;padding:12px;background:#fff;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.success-row b{color:var(--ink);font-size:14px}.success-row .bar{height:9px}.success-pct{font-size:20px;font-weight:900;color:var(--primary);letter-spacing:-.04em}.risk-list{display:grid;gap:10px}.risk-card{border:1px solid var(--line);border-radius:18px;padding:13px;background:#fff}.risk-card.low{border-color:#fecaca;background:#fff7f7}.risk-card.good{border-color:#bbf7d0;background:#f2fff7}.risk-card.warn{border-color:#fed7aa;background:#fffaf2}.risk-card b{display:block;color:var(--ink);margin-bottom:4px}.risk-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.45;font-weight:700}.report-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.parent-report-card{border:1px solid var(--line);border-radius:24px;padding:18px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--shadow-xs)}.parent-report-card h3{margin:0 0 8px}.parent-report-card .big-label{font-size:34px;line-height:1;font-weight:900;letter-spacing:-.06em;color:var(--ink)}.parent-report-card .report-meta{color:var(--muted);font-size:12px;font-weight:800;margin-top:4px}.parent-report-card ul{margin:12px 0 0;padding-left:18px;color:#334155;font-weight:700;line-height:1.55}.capture-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.capture-actions button{min-height:38px;font-size:12px;padding:8px 10px}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:12px}.template-card{border:1px solid var(--line);border-radius:20px;background:#fff;text-align:left;padding:13px;min-height:78px;box-shadow:var(--shadow-xs);transition:.16s ease}.template-card:hover{border-color:#bfdbfe;box-shadow:0 16px 30px rgba(37,99,235,.12);transform:translateY(-1px)}.template-card strong{display:block;color:var(--ink);font-size:14px}.template-card span{display:block;color:var(--muted);font-size:12px;font-weight:800;line-height:1.35;margin-top:4px}.template-card.primary-template{background:linear-gradient(135deg,#eef4ff,#fff);border-color:#bfdbfe}.plan-summary-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid #dbeafe;border-radius:18px;background:#f8fbff;padding:12px;margin:10px 0}.plan-summary-row b{color:#1d4ed8}.day-total-pill{display:inline-flex;align-items:center;gap:5px;border:1px solid #dbeafe;background:#eef4ff;color:#1d4ed8;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900}.day-total-pill b{font-size:15px;color:#1d4ed8}.day-card h4{gap:10px}.day-card .field input[data-plan-key]{text-align:center;font-weight:900;background:#fbfdff}.day-card .field input[data-plan-key]:focus{background:#fff}
+.student-row.return-focus{outline:4px solid rgba(37,99,235,.14);border-color:#93c5fd}.btn-back-smart{background:#fff;border:1px solid rgba(255,255,255,.25);color:#fff!important}.student-toolbar-sticky{position:sticky;top:104px;z-index:18;background:rgba(244,247,251,.84);backdrop-filter:blur(12px);padding:8px 0;margin:-8px 0 10px}.student-toolbar-sticky .card{padding:10px 12px;border-radius:22px}
+@media(max-width:900px){.metric-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.analysis-grid,.report-cards{grid-template-columns:1fr}.student-toolbar-sticky{position:relative;top:auto}.local-tabs,.detail-tabs,.admin-main-tabs,.admin-ops-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.local-tabs::-webkit-scrollbar,.detail-tabs::-webkit-scrollbar,.admin-main-tabs::-webkit-scrollbar,.admin-ops-tabs::-webkit-scrollbar{display:none}.local-tab,.detail-tab,.admin-tab-btn,.admin-ops-tab{white-space:nowrap}}
+@media(max-width:620px){.metric-strip{grid-template-columns:1fr 1fr}.student-head-card{padding:16px}.mini-metric strong{font-size:19px}.success-row{grid-template-columns:1fr}.pie-card{padding:12px}.template-grid{grid-template-columns:1fr 1fr}.template-card{min-height:70px}.student-head-card .row{align-items:flex-start}}
+
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 <div id="toast" class="toast hidden"></div>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
@@ -320,7 +350,11 @@ const state = {
   teacher:null, teachers:[], students:[], lessons:structuredClone(DEFAULT_LESSONS),
   followClasses:[], tasks:[], activeTab:'dashboard', selectedStudent:null,
   range:null, loading:false, draftConfirm:null, editingTaskKey:null, adminOps:null,
-  taskWizardStep:1, adminOpsMap:{}
+  taskWizardStep:1, adminOpsMap:{},
+  studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
+  returnToStudentList:false,
+  studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü',
+  adminTab:'overview', adminOpsTab:'teachers', statsCache:{}
 };
 
 function esc(v){return String(v ?? '').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
@@ -656,21 +690,58 @@ async function deleteTask(key){if(!confirm('Bu görevlendirmeyi silmek istiyor m
 async function logAction(type,detail){try{await postJson('verianalizi001/ogretmenIslemleri',{type,detail,teacherId:state.teacher?.id||'',teacherName:state.teacher?.name||'',time:nowText()});}catch(e){}}
 
 async function loadStats(studentNo,start,end){
-  try{const root=await getJson(`verianalizi001/calismaKayitlari/${studentNo}`)||{}; let total=0,correct=0,wrong=0,empty=0,entryCount=0; const active=new Set(); const subjects={};
-    for(const rec of Object.values(root)){if(!rec||typeof rec!=='object') continue; const date=rec.tarih||rec.date||rec.tarihSaat||''; if(!dateInRange(date,start,end)) continue; const lesson=rec.ders||rec.lesson||'Genel'; const t=Number(rec.toplam??rec.toplamSoru??rec.total??0); const w=Number(rec.yanlis??rec.wrong??0); const e=Number(rec.bos??rec.empty??0); const c=Number(rec.dogru??rec.correct??Math.max(0,t-w-e)); total+=t; correct+=c; wrong+=w; empty+=e; entryCount++; const iso=isoFromAny(date); if(iso) active.add(iso); if(!subjects[lesson]) subjects[lesson]={lesson,total:0,correct:0,wrong:0,empty:0}; subjects[lesson].total+=t; subjects[lesson].correct+=c; subjects[lesson].wrong+=w; subjects[lesson].empty+=e;}
-    return {total,correct,wrong,empty,entryCount,activeDays:active.size,subjects:Object.values(subjects).sort((a,b)=>b.total-a.total)};
-  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[]};}
+  const cacheKey=`${studentNo}|${start}|${end}`;
+  if(state.statsCache?.[cacheKey]) return structuredClone(state.statsCache[cacheKey]);
+  try{
+    const root=await getJson(`verianalizi001/calismaKayitlari/${studentNo}`)||{};
+    let total=0,correct=0,wrong=0,empty=0,entryCount=0; const active=new Set();
+    const subjects={}, topics={}, subtopics={};
+    for(const rec of Object.values(root)){
+      if(!rec||typeof rec!=='object') continue;
+      const date=rec.dateKey||rec.tarih||rec.date||rec.tarihSaat||rec.createdAt||'';
+      if(!dateInRange(date,start,end)) continue;
+      const lesson=rec.ders||rec.lesson||rec.course||'Genel';
+      const topic=rec.anaKonu||rec.konu||rec.topic||rec.mainTopic||'Genel';
+      const subtopic=rec.altKonu||rec.alt||rec.subtopic||rec.subTopic||'Genel';
+      const t=Number(rec.toplam??rec.toplamSoru??rec.total??rec.soruSayisi??0);
+      const w=Number(rec.yanlis??rec.wrong??0);
+      const e=Number(rec.bos??rec.empty??0);
+      const c=Number(rec.dogru??rec.correct??Math.max(0,t-w-e));
+      total+=t; correct+=c; wrong+=w; empty+=e; entryCount++;
+      const iso=isoFromAny(date); if(iso) active.add(iso);
+      if(!subjects[lesson]) subjects[lesson]={lesson,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+      subjects[lesson].total+=t; subjects[lesson].correct+=c; subjects[lesson].wrong+=w; subjects[lesson].empty+=e; subjects[lesson].entryCount++;
+      const tk=`${lesson}|||${topic}`;
+      if(!topics[tk]) topics[tk]={lesson,topic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+      topics[tk].total+=t; topics[tk].correct+=c; topics[tk].wrong+=w; topics[tk].empty+=e; topics[tk].entryCount++;
+      const sk=`${lesson}|||${topic}|||${subtopic}`;
+      if(!subtopics[sk]) subtopics[sk]={lesson,topic,subtopic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+      subtopics[sk].total+=t; subtopics[sk].correct+=c; subtopics[sk].wrong+=w; subtopics[sk].empty+=e; subtopics[sk].entryCount++;
+    }
+    const result={
+      total,correct,wrong,empty,entryCount,activeDays:active.size,
+      subjects:Object.values(subjects).sort((a,b)=>b.total-a.total),
+      topics:Object.values(topics).sort((a,b)=>b.total-a.total),
+      subtopics:Object.values(subtopics).sort((a,b)=>b.total-a.total)
+    };
+    state.statsCache=state.statsCache||{}; state.statsCache[cacheKey]=structuredClone(result);
+    return result;
+  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[]};}
 }
 async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.tarih||rec?.date||rec?.tarihSaat||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
 async function loadFollowAlerts(start,end,mode='hafta'){
   if(!state.followClasses.length) return {configured:false,items:[]};
   const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).slice(0,220);
   const items=[];
-  for(const st of tracked){
-    const s=await loadStats(st.no,start,end);
-    if(s.entryCount===0) items.push({student:st,reason:mode==='gün'?'Bugün çalışma girişi yok':'Bu hafta veri girişi yok',level:'high'});
-    else if(mode==='hafta' && s.total<50) items.push({student:st,reason:`Haftalık toplam düşük: ${s.total} soru`,level:'mid'});
-    else if(mode==='gün' && s.total<20) items.push({student:st,reason:`Bugünkü çalışma düşük: ${s.total} soru`,level:'mid'});
+  const chunkSize=24;
+  for(let i=0;i<tracked.length;i+=chunkSize){
+    const chunk=tracked.slice(i,i+chunkSize);
+    const results=await Promise.all(chunk.map(async st=>({st,stats:await loadStats(st.no,start,end)})));
+    for(const {st,stats:s} of results){
+      if(s.entryCount===0) items.push({student:st,reason:mode==='gün'?'Bugün çalışma girişi yok':'Bu hafta veri girişi yok',level:'high'});
+      else if(mode==='hafta' && s.total<50) items.push({student:st,reason:`Haftalık toplam düşük: ${s.total} soru`,level:'mid'});
+      else if(mode==='gün' && s.total<20) items.push({student:st,reason:`Bugünkü çalışma düşük: ${s.total} soru`,level:'mid'});
+    }
   }
   return {configured:true,items};
 }
@@ -697,14 +768,18 @@ async function sendStudentPanelMessage(student,title,message){
 async function loadStudentMessages(no){try{const root=await getJson(`verianalizi001/ogrenciMesajlari/${no}`)||{}; return Object.entries(root).map(([key,o])=>({key,...o})).sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||'')));}catch(e){return [];}}
 
 function buildWhatsAppMessage(st,stats,range,note){
-  const ders=stats.subjects.length?stats.subjects.map(s=>`• *${s.lesson}:* ${s.total} soru, ${s.correct} doğru, ${s.wrong} yanlış, ${s.empty} boş`).join('\n'):'• Bu tarih aralığında çalışma girişi görünmüyor.';
-  const auto=stats.entryCount===0?'⚠️ Öğrencimizin bu aralıkta sisteme çalışma girişi yapmadığı görülmektedir.':stats.total<50?'📌 Çalışma miktarının artırılması faydalı olacaktır.':'✅ Çalışma takibi olumlu ilerlemektedir.';
-  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf:* ${st.className}\n*Tarih:* ${fmtDate(range.start)} - ${fmtDate(range.end)}\n\n📊 *Çalışma Özeti*\n*Toplam:* ${stats.total} soru\n*Doğru:* ${stats.correct}  *Yanlış:* ${stats.wrong}  *Boş:* ${stats.empty}\n*Aktif gün:* ${stats.activeDays}\n\n📚 *Ders Özeti*\n${ders}\n\n${note.trim()||auto}\n\n*Gönderen Öğretmen:* ${state.teacher.name}\n${state.settings.kurumAdi}`;
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• *${s.lesson}:* ${s.total} soru, başarı %${itemAccuracy(s)} (${s.correct} doğru, ${s.wrong} yanlış, ${s.empty} boş)`).join('\n'):'• Bu tarih aralığında çalışma girişi görünmüyor.';
+  const weak=weakAreas(stats).slice(0,3).map(x=>`• ${x.label}: %${x.pct}`).join('\n') || '• Belirgin eksik alan için yeterli veri yok.';
+  const strong=strongAreas(stats).slice(0,3).map(x=>`• ${x.label}: %${x.pct}`).join('\n') || '• Güçlü alan için yeterli veri yok.';
+  const auto=stats.entryCount===0?'⚠️ Öğrencimizin bu aralıkta sisteme çalışma girişi yapmadığı görülmektedir.':accuracyPct(stats)<60?'📌 Eksik konulara odaklanması ve düzenli tekrar yapması faydalı olacaktır.':'✅ Çalışma takibi olumlu ilerlemektedir.';
+  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf:* ${st.className}\n*Tarih:* ${fmtDate(range.start)} - ${fmtDate(range.end)}\n\n📊 *Çalışma Özeti*\n*Toplam:* ${stats.total} soru\n*Genel Başarı:* %${accuracyPct(stats)}\n*Doğru:* ${stats.correct}  *Yanlış:* ${stats.wrong}  *Boş:* ${stats.empty}\n*Aktif gün:* ${stats.activeDays}\n\n📚 *Ders Özeti*\n${ders}\n\n🔴 *Geliştirilmesi Gereken Alanlar*\n${weak}\n\n🟢 *İyi Olduğu Alanlar*\n${strong}\n\n${note.trim()||auto}\n\n*Gönderen Öğretmen:* ${state.teacher.name}\n${state.settings.kurumAdi}`;
 }
 function buildEmailMessage(st,stats,range,note){
-  const ders=stats.subjects.length?stats.subjects.map(s=>`• ${s.lesson}: ${s.total} soru | ${s.correct} doğru | ${s.wrong} yanlış | ${s.empty} boş`).join('\n'):'Kayıtlı çalışma bulunmamaktadır.';
-  const auto=stats.entryCount===0?'Bu tarih aralığında sistemde çalışma kaydı bulunmamaktadır. Düzenli takip için öğrencimizin günlük çalışma girişlerini yapması önemlidir.':stats.total<50?'Çalışma girişi vardır ancak soru sayısı beklenen seviyenin altındadır. Kısa ve düzenli ev takibi faydalı olacaktır.':'Öğrencimizin çalışma takibi olumlu ilerlemektedir.';
-  return `Sayın Velimiz,\n\n${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.\n\nÖğrenci Bilgisi\nAd Soyad: ${st.name}\nSınıf: ${st.className}\nÖğrenci No: ${st.no}\n\nÇalışma Özeti\nToplam Soru: ${stats.total}\nDoğru: ${stats.correct}\nYanlış: ${stats.wrong}\nBoş: ${stats.empty}\nAktif Çalışma Günü: ${stats.activeDays}\n\nDers Bazlı Özet\n${ders}\n\nÖğretmen Değerlendirmesi\n${note.trim()||auto}\n\nGönderen Öğretmen: ${state.teacher.name}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• ${s.lesson}: ${s.total} soru | başarı %${itemAccuracy(s)} | ${s.correct} doğru | ${s.wrong} yanlış | ${s.empty} boş`).join('\n'):'Kayıtlı çalışma bulunmamaktadır.';
+  const weak=weakAreas(stats).slice(0,5).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || 'Yeterli veri bulunmamaktadır.';
+  const strong=strongAreas(stats).slice(0,5).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || 'Yeterli veri bulunmamaktadır.';
+  const auto=stats.entryCount===0?'Bu tarih aralığında sistemde çalışma kaydı bulunmamaktadır. Düzenli takip için öğrencimizin günlük çalışma girişlerini yapması önemlidir.':accuracyPct(stats)<60?'Başarı yüzdesi beklenen seviyenin altındadır. Eksik konular üzerinden kısa ve düzenli tekrar yapılması önerilir.':'Öğrencimizin çalışma takibi olumlu ilerlemektedir.';
+  return `Sayın Velimiz,\n\n${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.\n\nÖğrenci Bilgisi\nAd Soyad: ${st.name}\nSınıf: ${st.className}\nÖğrenci No: ${st.no}\n\nÇalışma Özeti\nToplam Soru: ${stats.total}\nGenel Başarı: %${accuracyPct(stats)}\nDoğru: ${stats.correct}\nYanlış: ${stats.wrong}\nBoş: ${stats.empty}\nAktif Çalışma Günü: ${stats.activeDays}\n\nDers Bazlı Özet\n${ders}\n\nGeliştirilmesi Gereken Alanlar\n${weak}\n\nİyi Olduğu Alanlar\n${strong}\n\nÖğretmen Değerlendirmesi\n${note.trim()||auto}\n\nGönderen Öğretmen: ${state.teacher.name}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
 }
 function buildSmsMessage(st,stats,range){
   const total=Number(stats.total||0);
@@ -764,6 +839,9 @@ async function loginTeacherById(id){
     state.taskWizard=null;
     state.taskWizardStep=1;
     state.adminOpsMap={};
+    state.statsCache={};
+    state.studentListUi={search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''};
+    state.studentDetailTab='summary';
     state.loading=false;
     render();
     setToast(oldTeacher && cleanId(oldTeacher)!==clean ? 'Kullanıcı değişti; veritabanı ve sayfa yenilendi.' : 'Giriş yapıldı; veriler yenilendi.','ok');
@@ -795,7 +873,7 @@ function renderLogin(){
 }
 function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
 function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
-function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
+function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; state.statsCache={}; state.studentListUi={search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''}; renderLogin();});}
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
@@ -820,34 +898,179 @@ async function renderDashboard(main){
   document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); render();});
 }
 function renderStudents(main){
-  const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean))];
+  const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr')) )];
+  const ui=state.studentListUi||{search:'',classFilter:'Tümü',scrollY:0,lastStudentNo:''};
+  if(!classes.includes(ui.classFilter)) ui.classFilter='Tümü';
   main.innerHTML=`${section('Öğrenciler','Ara, filtrele, detay ve veli işlemleri')}
-    <div class="card"><div class="compact-grid"><div class="field"><label>Öğrenci ara</label><input id="studentSearch" class="input" placeholder="Ad, no veya sınıf"></div><div class="field"><label>Sınıf</label><select id="classFilter">${classes.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div></div><p class="muted tiny" id="studentCount"></p></div>
+    <div class="student-toolbar-sticky"><div class="card"><div class="compact-grid"><div class="field"><label>Öğrenci ara</label><input id="studentSearch" class="input" placeholder="Ad, no veya sınıf" value="${esc(ui.search||'')}"></div><div class="field"><label>Sınıf</label><select id="classFilter">${classes.map(c=>`<option ${c===ui.classFilter?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div><p class="muted tiny" id="studentCount"></p></div></div>
     <div id="studentList" class="grid" style="margin-top:12px"></div>`;
-  const draw=()=>{const q=document.getElementById('studentSearch').value.toLocaleLowerCase('tr-TR'); const c=document.getElementById('classFilter').value; const list=state.students.filter(s=>(c==='Tümü'||s.className===c)&&`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q)); document.getElementById('studentCount').textContent=`${list.length} öğrenci listeleniyor`; document.getElementById('studentList').innerHTML=list.map(s=>`<div class="student-row" data-student="${esc(s.no)}"><div class="avatar">${esc(s.name.charAt(0).toLocaleUpperCase('tr-TR'))}</div><div class="spacer"><h3>${esc(s.name)}</h3><p>No ${esc(s.no)} • ${esc(s.className)}</p></div><span class="badge">Aç</span></div>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>'; document.querySelectorAll('[data-student]').forEach(x=>x.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===x.dataset.student); render();});};
-  document.getElementById('studentSearch').oninput=draw; document.getElementById('classFilter').onchange=draw; draw();
+  const draw=()=>{
+    const q=document.getElementById('studentSearch').value.toLocaleLowerCase('tr-TR');
+    const c=document.getElementById('classFilter').value;
+    state.studentListUi={...state.studentListUi,search:q,classFilter:c};
+    const list=state.students.filter(s=>(c==='Tümü'||s.className===c)&&`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q));
+    document.getElementById('studentCount').textContent=`${list.length} öğrenci listeleniyor`;
+    document.getElementById('studentList').innerHTML=list.map(s=>`<div class="student-row ${state.studentListUi.lastStudentNo===s.no?'return-focus':''}" data-student="${esc(s.no)}"><div class="avatar">${esc(s.name.charAt(0).toLocaleUpperCase('tr-TR'))}</div><div class="spacer"><h3>${esc(s.name)}</h3><p>No ${esc(s.no)} • ${esc(s.className)}</p></div><span class="badge">Detay</span></div>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
+    document.querySelectorAll('[data-student]').forEach(x=>x.onclick=()=>{
+      state.studentListUi={search:document.getElementById('studentSearch').value,classFilter:document.getElementById('classFilter').value,scrollY:window.scrollY,lastStudentNo:x.dataset.student};
+      state.selectedStudent=state.students.find(s=>s.no===x.dataset.student);
+      state.studentDetailTab='summary';
+      window.scrollTo({top:0,behavior:'smooth'});
+      render();
+    });
+  };
+  document.getElementById('studentSearch').oninput=draw;
+  document.getElementById('classFilter').onchange=draw;
+  draw();
+  if(state.returnToStudentList){
+    state.returnToStudentList=false;
+    const y=Number(state.studentListUi?.scrollY||0);
+    setTimeout(()=>window.scrollTo({top:y,behavior:'instant'}),0);
+  }
 }
 async function renderStudentDetail(main,st){
-  const range=state.range||weekRange(); main.innerHTML=`${section(st.name,`No ${st.no} • ${st.className}`)}<div class="card"><span class="loader"></span> Öğrenci detayları hazırlanıyor...</div>`;
+  const range=state.range||weekRange();
+  main.innerHTML=`${section(st.name,`No ${st.no} • ${st.className}`)}<div class="card"><span class="loader"></span> Öğrenci detayları hazırlanıyor...</div>`;
   const [stats,messages]=await Promise.all([loadStats(st.no,range.start,range.end),loadStudentMessages(st.no)]);
   const tasks=state.tasks.filter(t=>studentsForTask(t).includes(st.no) && rangesOverlap(t.start,t.end,range.start,range.end));
-  main.innerHTML=`<div class="row" style="margin-bottom:12px"><button class="ghost" id="backStudents">← Geri</button><div>${section(st.name,`No ${st.no} • ${st.className}`)}</div></div>
-    <div class="grid two">
-      <div class="card"><h3>Öğrenci Özeti</h3><p class="muted">Veli Tel: <b>${esc(st.parentPhone||'Yok')}</b></p><p class="muted">Veli Mail: <b>${esc(st.parentMail||'Yok')}</b></p></div>
-      <div class="card"><h3>Tarih Aralığı</h3>${rangeSelectorHtml()}</div>
+  const tab=state.studentDetailTab||'summary';
+  const success=accuracyPct(stats);
+  const level=success>=80?'Çok iyi':success>=60?'Orta':success>0?'Gelişmeli':'Veri yok';
+  main.innerHTML=`<div class="student-detail-shell">
+    <div class="student-head-card">
+      <div class="row"><button class="ghost btn-back-smart" id="backStudents">← Geri</button><span class="badge">${esc(st.className||'-')}</span><span class="badge">No ${esc(st.no)}</span></div>
+      <h2>${esc(st.name)}</h2>
+      <p>Veli bilgilendirme, başarı analizi, konu zayıflıkları ve görev takibi</p>
+      <div class="metric-strip">
+        <div class="mini-metric"><small>Toplam</small><strong>${stats.total}</strong></div>
+        <div class="mini-metric"><small>Başarı</small><strong>${success}%</strong></div>
+        <div class="mini-metric"><small>Seviye</small><strong>${level}</strong></div>
+        <div class="mini-metric"><small>Aktif Gün</small><strong>${stats.activeDays}</strong></div>
+        <div class="mini-metric"><small>Görev</small><strong>${tasks.length}</strong></div>
+      </div>
     </div>
-    <div style="margin-top:14px">${statsHtml([['Soru',stats.total,'Toplam'],['Doğru',stats.correct,'Hesaplanan'],['Yanlış',stats.wrong,'Giriş'],['Boş',stats.empty,'Giriş']])}</div>
-    <div class="grid two" style="margin-top:14px">
-      <div class="card"><h3>Ders Dağılımı</h3>${subjectBarsHtml(stats)}</div>
-      <div class="card"><h3>Haftalık Görevlendirmeleri</h3>${studentTasksHtml(tasks)}</div>
-    </div>
-    <div class="card" style="margin-top:14px"><h3>Veli Bildirimi</h3><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="secondary" data-send-channel="SMS">SMS Aç</button><button class="secondary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><div id="confirmBox" style="margin-top:12px"></div></div>
-    <div class="card" style="margin-top:14px"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}<div style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div></div>`;
-  document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; render();}; bindRangeSelector(); bindPreview(st,stats,range); bindStudentMessage(st,stats,range);
+    <div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>
+    ${studentDetailTabsHtml(tab)}
+    <div id="studentDetailContent">${studentDetailTabContent(tab,st,stats,tasks,messages,range)}</div>
+  </div>`;
+  document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; state.activeTab='students'; state.returnToStudentList=true; render();};
+  bindRangeSelector(); bindStudentDetailTabs();
+  if(tab==='analysis') bindAnalysisControls(st,stats,range);
+  if(tab==='parent') bindPreview(st,stats,range);
+  if(tab==='messages') bindStudentMessage(st,stats,range);
+}
+function studentDetailTabsHtml(active){
+  const tabs=[['summary','Özet'],['analysis','Başarı Analizi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['messages','Panel Mesajı']];
+  return `<div class="detail-tabs">${tabs.map(([id,label])=>`<button type="button" class="detail-tab ${active===id?'active':''}" data-student-tab="${id}">${label}</button>`).join('')}</div>`;
+}
+function bindStudentDetailTabs(){
+  document.querySelectorAll('[data-student-tab]').forEach(b=>b.onclick=()=>{state.studentDetailTab=b.dataset.studentTab; render();});
+}
+function studentDetailTabContent(tab,st,stats,tasks,messages,range){
+  if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
+  if(tab==='tasks') return `<div class="card"><h3>Haftalık Görevlendirmeleri</h3>${studentTasksHtml(tasks)}</div>`;
+  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="secondary" data-send-channel="SMS">SMS Aç</button><button class="secondary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><div id="confirmBox" style="margin-top:12px"></div></div>`;
+  if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
+  return studentSummaryHtml(st,stats,tasks,range);
+}
+function quickStudentInsightHtml(stats){
+  const pct=accuracyPct(stats);
+  const weak=weakAreas(stats).slice(0,2).map(x=>x.label).join(', ') || 'Belirgin eksik alan yok';
+  const msg=stats.total===0?'Bu aralıkta veri girişi yok. Analiz için çalışma kaydı gerekli.':pct<60?'Başarı düşük görünüyor. Öncelik eksik konulara verilmeli.':pct<80?'Orta düzey ilerleme var. Düzenli tekrar başarıyı yükseltir.':'Başarı seviyesi iyi görünüyor. Güçlü alanlar korunmalı.';
+  return `<div class="risk-card ${pct>=80?'good':pct<60?'low':'warn'}"><b>${esc(msg)}</b><p>Öncelik: ${esc(weak)}</p></div>`;
+}
+function studentSummaryHtml(st,stats,tasks,range){
+  return `<div class="grid two">
+    <div class="card"><h3>Genel Çalışma Özeti</h3>${statsHtml([['Soru',stats.total,'Toplam'],['Doğru',stats.correct,'Hesaplanan'],['Yanlış',stats.wrong,'Giriş'],['Boş',stats.empty,'Giriş']])}</div>
+    <div class="card"><h3>Ders Dağılımı</h3>${subjectBarsHtml(stats)}</div>
+    <div class="card"><h3>En Zayıf Alanlar</h3>${weakAreasHtml(stats)}</div>
+    <div class="card"><h3>En Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div>
+  </div>`;
 }
 function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bu hafta</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
 function bindRangeSelector(){document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{const type=b.dataset.range; state.range=type==='today'?{title:'Bugün',start:todayISO(),end:todayISO()}:type==='week'?weekRange():type==='month'?monthRange():last30Range(); render();}); document.getElementById('applyRange')?.addEventListener('click',()=>{state.range={title:'Özel',start:document.getElementById('rangeStart').value,end:document.getElementById('rangeEnd').value}; render();});}
 function subjectBarsHtml(stats){if(!stats.subjects.length) return '<div class="empty">Bu aralıkta çalışma girişi yok.</div>'; return stats.subjects.map(s=>{const ratio=s.total?Math.round((s.correct/s.total)*100):0; return `<div style="margin:10px 0"><div class="row"><b>${esc(s.lesson)}</b><span class="spacer"></span><span class="muted tiny">${s.total} soru</span></div><div class="bar"><span style="width:${Math.min(100,ratio)}%"></span></div><p class="muted tiny">Doğru ${s.correct} • Yanlış ${s.wrong} • Boş ${s.empty}</p></div>`;}).join('');}
+
+function accuracyPct(obj){const total=Number(obj?.total||0); return total?Math.round((Number(obj.correct||0)/total)*100):0;}
+function itemAccuracy(x){return x.total?Math.round((x.correct/x.total)*100):0;}
+function weakAreas(stats){
+  const arr=[...(stats.topics||[]),...(stats.subjects||[])].filter(x=>Number(x.total||0)>0).map(x=>({
+    ...x,
+    label:x.topic?`${x.lesson} / ${x.topic}`:x.lesson,
+    pct:itemAccuracy(x),
+    lowData:Number(x.total||0)<20
+  }));
+  return arr.sort((a,b)=>(a.pct-b.pct)||((a.total||0)-(b.total||0)));
+}
+function strongAreas(stats){return [...(stats.topics||[]),...(stats.subjects||[])].filter(x=>Number(x.total||0)>0).map(x=>({...x,label:x.topic?`${x.lesson} / ${x.topic}`:x.lesson,pct:itemAccuracy(x)})).sort((a,b)=>(b.pct-a.pct)||((b.total||0)-(a.total||0)));}
+function weakAreasHtml(stats){const list=weakAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Analiz için yeterli veri yok.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card ${x.pct<60?'low':'warn'}"><b>${esc(x.label)} • %${x.pct}</b><p>${x.total} soru üzerinden hesaplandı. ${x.lowData?'Veri düşük; daha net analiz için bu konudan daha fazla çalışma girişi gerekli.':'Yanlış/boş oranı takip edilmeli.'}</p></div>`).join('')}</div>`;}
+function strongAreasHtml(stats){const list=strongAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Güçlü alan göstermek için çalışma verisi yok.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card good"><b>${esc(x.label)} • %${x.pct}</b><p>${x.total} soru içinde ${x.correct} doğru. Bu alan korunmalı ve düzenli tekrar edilmeli.</p></div>`).join('')}</div>`;}
+function selectedAnalysisData(stats){
+  const lesson=state.analysisLesson||'Tümü';
+  const topic=state.analysisTopic||'Tümü';
+  let rows=[];
+  if(lesson==='Tümü' && topic==='Tümü') rows=stats.subjects||[];
+  else if(lesson==='Tümü') rows=(stats.topics||[]).filter(x=>x.topic===topic);
+  else if(topic==='Tümü') rows=(stats.topics||[]).filter(x=>x.lesson===lesson);
+  else rows=(stats.subtopics||[]).filter(x=>x.lesson===lesson && x.topic===topic);
+  const total=rows.reduce((a,x)=>a+Number(x.total||0),0);
+  const correct=rows.reduce((a,x)=>a+Number(x.correct||0),0);
+  const wrong=rows.reduce((a,x)=>a+Number(x.wrong||0),0);
+  const empty=rows.reduce((a,x)=>a+Number(x.empty||0),0);
+  return {rows,total,correct,wrong,empty,pct:total?Math.round(correct/total*100):0};
+}
+function pieGradient(data){
+  const total=Math.max(1,Number(data.total||0));
+  const c=Math.round((Number(data.correct||0)/total)*1000)/10;
+  const w=Math.round((Number(data.wrong||0)/total)*1000)/10;
+  const e=Math.max(0,Math.round((100-c-w)*10)/10);
+  return `conic-gradient(#16a34a 0 ${c}%, #dc2626 ${c}% ${c+w}%, #d97706 ${c+w}% ${c+w+e}%, #e2e8f0 ${c+w+e}% 100%)`;
+}
+function studentAnalysisHtml(st,stats,range){
+  const lessons=['Tümü',...new Set((stats.subjects||[]).map(x=>x.lesson).filter(Boolean))];
+  if(!lessons.includes(state.analysisLesson)) state.analysisLesson='Tümü';
+  const topics=['Tümü',...new Set((stats.topics||[]).filter(x=>state.analysisLesson==='Tümü'||x.lesson===state.analysisLesson).map(x=>x.topic).filter(Boolean))];
+  if(!topics.includes(state.analysisTopic)) state.analysisTopic='Tümü';
+  const selected=selectedAnalysisData(stats);
+  const weak=weakAreas(stats).slice(0,4);
+  const strong=strongAreas(stats).slice(0,4);
+  return `<div class="grid">
+    <div class="card analysis-filter-card">
+      <div class="compact-grid"><div class="field"><label>Ders seç</label><select id="analysisLesson">${lessons.map(l=>`<option ${l===state.analysisLesson?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div class="field"><label>Konu seç</label><select id="analysisTopic">${topics.map(t=>`<option ${t===state.analysisTopic?'selected':''}>${esc(t)}</option>`).join('')}</select></div></div>
+      <p class="muted tiny">Ders veya konu seçtiğinizde pasta grafik ve başarı listesi otomatik yenilenir.</p>
+    </div>
+    <div class="analysis-grid">
+      <div class="card pie-card"><h3>Başarı Dağılımı</h3><div class="pie-chart" style="--chart:${pieGradient(selected)}"><div class="pie-center"><div>%${selected.pct}</div><span>Başarı</span></div></div><div class="legend"><span><i class="lg-good"></i>Doğru ${selected.correct}</span><span><i class="lg-bad"></i>Yanlış ${selected.wrong}</span><span><i class="lg-empty"></i>Boş ${selected.empty}</span></div></div>
+      <div class="card"><h3>Seçili Alan Detayı</h3>${analysisRowsHtml(selected.rows)}</div>
+    </div>
+    <div class="report-cards">
+      <div class="parent-report-card" id="weakReportCard"><h3>Veli Bilgilendirme Kartı: Eksik Alanlar</h3><div class="big-label">${weak.length?`%${weak[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${weak.length?weak.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru</li>`).join(''):'<li>Eksik alan analizi için veri bulunmuyor.</li>'}</ul><div class="capture-actions"><button class="secondary" data-capture="weakReportCard">PNG İndir</button><button class="ghost" data-copy-report="weak">Metni Kopyala</button></div></div>
+      <div class="parent-report-card" id="strongReportCard"><h3>Veli Bilgilendirme Kartı: Güçlü Alanlar</h3><div class="big-label">${strong.length?`%${strong[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${strong.length?strong.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru</li>`).join(''):'<li>Güçlü alan analizi için veri bulunmuyor.</li>'}</ul><div class="capture-actions"><button class="secondary" data-capture="strongReportCard">PNG İndir</button><button class="ghost" data-copy-report="strong">Metni Kopyala</button></div></div>
+    </div>
+    <div class="grid two"><div class="card"><h3>Öncelikli Eksik Konular</h3>${weakAreasHtml(stats)}</div><div class="card"><h3>İyi Olduğu Konular</h3>${strongAreasHtml(stats)}</div></div>
+  </div>`;
+}
+function analysisRowsHtml(rows){if(!rows.length) return '<div class="empty">Bu seçim için veri yok.</div>'; return rows.map(x=>{const pct=itemAccuracy(x); const label=x.subtopic?`${x.topic} / ${x.subtopic}`:(x.topic||x.lesson); return `<div class="success-row"><div><b>${esc(label)}</b><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><p class="muted tiny">${x.total} soru • Doğru ${x.correct} • Yanlış ${x.wrong} • Boş ${x.empty}</p></div><div class="success-pct">%${pct}</div></div>`;}).join('');}
+function bindAnalysisControls(st,stats,range){
+  document.getElementById('analysisLesson')?.addEventListener('change',e=>{state.analysisLesson=e.target.value; state.analysisTopic='Tümü'; render();});
+  document.getElementById('analysisTopic')?.addEventListener('change',e=>{state.analysisTopic=e.target.value; render();});
+  document.querySelectorAll('[data-capture]').forEach(b=>b.onclick=()=>captureElementAsPng(b.dataset.capture,`${st.name.replace(/\s+/g,'_')}_${b.dataset.capture}.png`));
+  document.querySelectorAll('[data-copy-report]').forEach(b=>b.onclick=async()=>{const text=parentReportText(b.dataset.copyReport,st,stats,range); await copyText(text); setToast('Rapor metni kopyalandı','ok');});
+}
+function parentReportText(type,st,stats,range){
+  const list=(type==='strong'?strongAreas(stats):weakAreas(stats)).slice(0,5);
+  const title=type==='strong'?'Güçlü olduğu alanlar':'Geliştirmesi gereken alanlar';
+  return `${st.name} (${st.className}) ${fmtDate(range.start)}-${fmtDate(range.end)} ${title}:\n`+(list.length?list.map(x=>`- ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n'):'- Yeterli veri yok.')+`\nToplam: ${stats.total} soru, genel başarı: %${accuracyPct(stats)}.\nFenomen`;
+}
+async function captureElementAsPng(id,filename){
+  const el=document.getElementById(id); if(!el){setToast('Kart bulunamadı','error');return;}
+  try{
+    if(window.html2canvas){const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2}); downloadCanvas(canvas,filename); setToast('PNG indirildi','ok'); return;}
+    fallbackTextCanvas(el,filename); setToast('PNG indirildi','ok');
+  }catch(e){setToast('PNG oluşturulamadı: '+e.message,'error');}
+}
+function downloadCanvas(canvas,filename){const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=filename; document.body.appendChild(a); a.click(); a.remove();}
+function fallbackTextCanvas(el,filename){const canvas=document.createElement('canvas'); canvas.width=1100; canvas.height=700; const ctx=canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0f172a'; ctx.font='bold 34px Inter, Arial'; const lines=el.innerText.split('\n').filter(Boolean); let y=60; lines.forEach((line,i)=>{ctx.font=i===0?'bold 34px Arial':'24px Arial'; ctx.fillText(line.slice(0,70),60,y); y+=i===0?48:34;}); downloadCanvas(canvas,filename);}
 function studentTasksHtml(tasks){if(!tasks.length) return '<div class="empty">Bu tarih aralığında öğrenciye atanmış görev görünmüyor.</div>'; return `<div class="thin-list">${tasks.map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))} • Toplam ${taskQuestionTotal(t)} soru</div></div>`).join('')}</div>`;}
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
 function bindStudentMessage(st,stats,range){document.querySelectorAll('[data-msg-level]').forEach(b=>b.onclick=()=>{const level=b.dataset.msgLevel; document.getElementById('studentMsgTitle').value=level==='excellent'?'Harika İlerleme':level==='positive'?'Güzel İlerleme':level==='high'?'Önemli Uyarı':'Çalışma Hatırlatması'; document.getElementById('studentMsgText').value=buildStudentMsg(level,st,stats,range);}); document.getElementById('sendStudentMsg').onclick=async()=>{try{await sendStudentPanelMessage(st,document.getElementById('studentMsgTitle').value,document.getElementById('studentMsgText').value); setToast('Öğrenci panel mesajı kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};}
@@ -878,7 +1101,7 @@ function taskWizardHtml(){
 function wizardStepContent(step,w,classes){
   if(step===1) return `<h3>Hedef Seçimi</h3><p class="wizard-help">Görevin tüm öğrencilere, tek bir sınıfa veya seçtiğiniz öğrencilere atanacağını belirleyin.</p><div class="chipbar"><label class="chip ${w.targetType==='all'?'active':''}"><input type="radio" name="targetMode" value="all" ${w.targetType==='all'?'checked':''} hidden> Tüm Öğrenciler</label><label class="chip ${w.targetType==='class'?'active':''}"><input type="radio" name="targetMode" value="class" ${w.targetType==='class'?'checked':''} hidden> Sınıf</label><label class="chip ${w.targetType==='students'?'active':''}"><input type="radio" name="targetMode" value="students" ${w.targetType==='students'?'checked':''} hidden> Öğrenci Seç</label></div><div id="targetFields" style="margin-top:14px">${targetFieldsHtml(w,classes)}</div>${wizardActions(step)}`;
   if(step===2) return `<h3>Tarih ve Süre</h3><p class="wizard-help">Başlangıç gününü ve program süresini seçin. Sistem bitiş tarihini otomatik hesaplar.</p><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="taskStart" class="input" type="date" value="${w.start}"></div><div class="field"><label>Süre</label><select id="taskDays">${[1,3,5,7,14,21,28,30,60].map(d=>`<option value="${d}" ${w.days===d?'selected':''}>${d} gün</option>`).join('')}</select></div></div><div class="target-summary" id="wizardTargetSummary" style="margin-top:12px">${targetLabel({...w,end:addDaysISO(w.start,w.days-1)})} • ${studentsForTask({...w,end:addDaysISO(w.start,w.days-1)}).length} öğrenci • ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</div>${wizardActions(step)}`;
-  if(step===3) return `<h3>Hızlı Program</h3><p class="wizard-help">Hazır şablonlardan biriyle başlayın veya gün gün ders hedeflerini elle yazın.</p><div class="chipbar"><button class="chip" data-template="hafif">Hafif</button><button class="chip" data-template="dengeli">Dengeli</button><button class="chip" data-template="yogun">Yoğun</button><button class="chip" data-template="copyWeek">1. haftayı kopyala</button><button class="chip" data-template="weekendOff">Hafta sonu boş</button><button class="chip" data-template="clear">Temizle</button></div><div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div>${wizardActions(step)}`;
+  if(step===3) return `<h3>Hızlı Program</h3><p class="wizard-help">Hazır şablonlardan biriyle başlayın veya gün gün ders hedeflerini elle yazın.</p><div class="template-grid"><button class="template-card" data-template="hafif"><strong>Hafif</strong><span>Kısa tekrar ağırlıklı düşük hedef</span></button><button class="template-card primary-template" data-template="dengeli"><strong>Dengeli</strong><span>Derslere dengeli dağıtılmış hedef</span></button><button class="template-card" data-template="yogun"><strong>Yoğun</strong><span>Yüksek soru hedefli program</span></button><button class="template-card" data-template="copyWeek"><strong>1. Haftayı Kopyala</strong><span>Uzun programlarda tekrar kullan</span></button><button class="template-card" data-template="weekendOff"><strong>Hafta Sonu Boş</strong><span>Cumartesi ve pazar hedeflerini temizle</span></button><button class="template-card" data-template="clear"><strong>Temizle</strong><span>Tüm soru sayılarını sıfırla</span></button></div><div class="plan-summary-row"><span><b id="planTotalBadge">0</b> toplam soru</span><span class="muted tiny">Günlük toplamlar her günün sağ üstünde gösterilir.</span></div><div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div>${wizardActions(step)}`;
   return `<h3>Önizleme ve Kayıt</h3><p class="wizard-help">Kaydetmeden önce hedef, tarih ve toplam soru bilgisini kontrol edin. Sistem çakışan tarih aralığını engeller.</p><div id="taskPreview" class="task-preview-box"></div><div id="firebaseStatus" class="target-summary" style="margin-top:12px">Firebase kaydı hazır.</div>${wizardActions(step,true)}`;
 }
 function wizardActions(step,isFinal=false){
@@ -895,7 +1118,7 @@ function studentPickListHtml(list,selected=[]){
   const set=new Set((selected||[]).map(cleanId));
   return list.map(s=>{const checked=set.has(cleanId(s.no)); return `<label class="student-option ${checked?'selected':''}"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${checked?'checked':''}><span class="checkmark">✓</span><span class="student-meta"><b>${esc(s.name)}</b><span>${esc(s.className||'-')}</span></span><span class="student-badge">No ${esc(s.no)}</span></label>`;}).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
 }
-function planHtml(w){const names=lessonNames(); let out=''; const weeks=Math.ceil(w.days/7); for(let week=0; week<weeks; week++){const start=week*7,end=Math.min(start+6,w.days-1); out+=`<div class="card" style="box-shadow:none;background:#fff"><h3>${week+1}. Hafta</h3><div class="grid">`; for(let d=start; d<=end; d++){const date=addDaysISO(w.start,d); const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0); out+=`<div class="day-card"><h4><span>${Days[d%7]} • ${fmtDate(date)}</span><span class="badge">${total} soru</span></h4><div class="lesson-grid">${names.map(l=>`<div class="field"><label>${esc(l)}</label><input class="input" inputmode="numeric" data-plan-key="${esc(planKey(d,l))}" value="${esc(w.plan[planKey(d,l)]||'')}"></div>`).join('')}</div></div>`;} out+=`</div></div>`;} return out;}
+function planHtml(w){const names=lessonNames(); let out=''; const weeks=Math.ceil(w.days/7); for(let week=0; week<weeks; week++){const start=week*7,end=Math.min(start+6,w.days-1); out+=`<div class="card" style="box-shadow:none;background:#fff"><h3>${week+1}. Hafta</h3><div class="grid">`; for(let d=start; d<=end; d++){const date=addDaysISO(w.start,d); const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0); out+=`<div class="day-card"><h4><span>${Days[d%7]} • ${fmtDate(date)}</span><span class="day-total-pill"><b>${total}</b> soru</span></h4><div class="lesson-grid">${names.map(l=>`<div class="field"><label>${esc(l)}</label><input class="input" inputmode="numeric" data-plan-key="${esc(planKey(d,l))}" value="${esc(w.plan[planKey(d,l)]||'')}"></div>`).join('')}</div></div>`;} out+=`</div></div>`;} return out;}
 function teacherTasksHtml(){const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id)); if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>'; return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div></div>`).join('');}
 function syncTaskWizardFromDom(){
   if(!state.taskWizard) return;
@@ -908,26 +1131,9 @@ function syncTaskWizardFromDom(){
   if(checked.length || document.getElementById('studentPickList')) w.studentNos=[...new Set([...(w.studentNos||[]),...checked])].filter(Boolean);
   document.querySelectorAll('[data-plan-key]').forEach(inp=>{const v=String(inp.value||'').replace(/\D/g,'').slice(0,4); if(v && v!=='0') w.plan[inp.dataset.planKey]=v; else delete w.plan[inp.dataset.planKey];});
 }
-function validateWizardStep(step){
-  syncTaskWizardFromDom();
-  const w=state.taskWizard||{};
-  if(step===1){
-    if(w.targetType==='class' && !w.className){setToast('Önce sınıf seçin.','error'); return false;}
-    if(w.targetType==='students' && !(w.studentNos||[]).length){setToast('Önce en az bir öğrenci seçin.','error'); return false;}
-  }
-  if(step===2){
-    if(!w.start){setToast('Başlangıç tarihi seçin.','error'); return false;}
-    if(!Number(w.days||0)){setToast('Program süresi seçin.','error'); return false;}
-  }
-  if(step===3){
-    const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
-    if(total<=0){setToast('Programda en az bir ders için soru hedefi yazın.','error'); return false;}
-  }
-  return true;
-}
 function bindTaskWizard(){
-  document.querySelectorAll('[data-wizard-jump]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.wizardJump); const current=Number(state.taskWizardStep||1); if(target<=current){syncTaskWizardFromDom(); state.taskWizardStep=target; renderTasks(document.getElementById('mainArea')); return;} if(target===current+1 && validateWizardStep(current)){state.taskWizardStep=target; renderTasks(document.getElementById('mainArea')); return;} setToast('Lütfen sihirbazı sırayla ilerletin.','error');});
-  document.querySelector('[data-wizard-next]')?.addEventListener('click',()=>{const current=Number(state.taskWizardStep||1); if(!validateWizardStep(current)) return; state.taskWizardStep=Math.min(4,current+1); renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-wizard-jump]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizardStep=Number(b.dataset.wizardJump); renderTasks(document.getElementById('mainArea'));});
+  document.querySelector('[data-wizard-next]')?.addEventListener('click',()=>{syncTaskWizardFromDom(); state.taskWizardStep=Math.min(4,(state.taskWizardStep||1)+1); renderTasks(document.getElementById('mainArea'));});
   document.querySelector('[data-wizard-prev]')?.addEventListener('click',()=>{syncTaskWizardFromDom(); state.taskWizardStep=Math.max(1,(state.taskWizardStep||1)-1); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{state.taskWizard.targetType=r.value; state.taskWizard.studentNos=state.taskWizard.studentNos||[]; renderTasks(document.getElementById('mainArea'));});
   document.getElementById('taskClass')?.addEventListener('change',e=>{state.taskWizard.className=e.target.value; updatePreviewLive();});
@@ -952,6 +1158,7 @@ function updatePreviewLive(){
   const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
   const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`;
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}`;
+  const planTotalBadge=document.getElementById('planTotalBadge'); if(planTotalBadge) planTotalBadge.textContent=String(total);
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
 function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));});}
@@ -982,33 +1189,42 @@ function bindLessonDesigner(){
 }
 function renderAdmin(main){
   if(!state.teacher.isAdmin){main.innerHTML='<div class="empty">Admin yetkisi gerekli.</div>';return;}
+  const active=state.adminTab||'overview';
   const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
-  const activeTeachers=state.teachers.length;
-  const firebaseHealth=`<span class="badge health-ok">Firebase SDK aktif</span>`;
+  const tabs=[['overview','Genel'],['settings','Kurum & Takip'],['lessons','Dersler'],['ops','İşlemler'],['firebase','Firebase']];
   main.innerHTML=`${section('Admin Merkezi','Kurum, takip, ders yapısı, Firebase uyumu ve öğretmen işlemleri')}
-    <div class="grid four">
-      <div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Sistemde görünen</span></div>
-      <div class="admin-metric"><small>Öğretmen</small><strong>${activeTeachers}</strong><span class="muted tiny">Tanımlı kullanıcı</span></div>
-      <div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase kayıtlı</span></div>
-      <div class="admin-metric"><small>Bağlantı</small><strong style="font-size:18px">${firebaseHealth}</strong><span class="muted tiny">Realtime Database</span></div>
-    </div>
-    <div class="grid two" style="margin-top:14px">
-      <div class="card"><h3>Kurum Ayarları</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Ders başına günlük giriş limiti</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Ayarları Kaydet</button><button id="useEduIcon" class="secondary">Fenomen Logosunu Kullan</button></div><p class="muted tiny" style="margin-top:10px">Bu alan öğrenci panelindeki kurum adı, logo ve günlük giriş limitleriyle aynı Firebase yollarına kaydedilir.</p></div>
-      <div class="card"><h3>Takip Edilecek Sınıflar</h3><p class="muted tiny">Sınıf seçilmezse günlük/haftalık uyarı listesi hiç gösterilmez.</p><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarını Kaydet</button></div>
-    </div>
-    <div class="card" style="margin-top:14px"><h3>Dersleri Kur / Düzenle</h3><p class="muted tiny">Modern ders editörü: ders, ana konu ve alt konuları kart yapısıyla düzenler; kayıt hem öğretmen hem öğrenci panelinin okuyacağı Firebase yollarına yazılır.</p>${lessonDesignerHtml()}</div>
-    <div class="card" style="margin-top:14px"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><p class="muted tiny">Görevler, veli bildirimleri ve öğrenci mesajları öğretmen bazında analiz edilir. Hatalı görevler admin tarafından silinebilir.</p><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div>`;
+    <div class="admin-main-tabs">${tabs.map(([id,label])=>`<button type="button" class="admin-tab-btn ${active===id?'active':''}" data-admin-tab="${id}">${label}</button>`).join('')}</div>
+    <div class="admin-tab-panel ${active==='overview'?'active':''}">${adminOverviewHtml()}</div>
+    <div class="admin-tab-panel ${active==='settings'?'active':''}">${adminSettingsHtml(classes)}</div>
+    <div class="admin-tab-panel ${active==='lessons'?'active':''}"><div class="card"><h3>Dersleri Kur / Düzenle</h3><p class="muted tiny">Ders, ana konu ve alt konuları kart yapısıyla düzenler; kayıt hem öğretmen hem öğrenci panelinin okuyacağı Firebase yollarına yazılır.</p>${lessonDesignerHtml()}</div></div>
+    <div class="admin-tab-panel ${active==='ops'?'active':''}"><div class="card"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><p class="muted tiny">Detay görme, düzenleme ve silme işlemleri bu bölümden yapılır.</p><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>
+    <div class="admin-tab-panel ${active==='firebase'?'active':''}">${adminFirebaseHtml()}</div>`;
   bindAdmin();
 }
-function bindAdmin(){
-  document.getElementById('useEduIcon').onclick=()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;};
-  document.getElementById('saveSettings').onclick=async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM; state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO; state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3; await saveSettings(); setToast('Kurum ayarları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};
-  document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
-  document.getElementById('saveFollow').onclick=async()=>{try{await saveFollowSettings(); setToast('Takip sınıfları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};
-  bindLessonDesigner();
-  document.getElementById('loadOps').onclick=loadAdminOperations;
+function adminOverviewHtml(){
+  return `<div class="grid four">
+    <div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Sistemde görünen</span></div>
+    <div class="admin-metric"><small>Öğretmen</small><strong>${state.teachers.length}</strong><span class="muted tiny">Tanımlı kullanıcı</span></div>
+    <div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase kayıtlı</span></div>
+    <div class="admin-metric"><small>Takip</small><strong>${state.followClasses.length||0}</strong><span class="muted tiny">Aktif sınıf</span></div>
+  </div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Hızlı Durum</h3><div class="risk-list"><div class="risk-card good"><b>Firebase SDK aktif</b><p>Realtime Database bağlantısı için compat SDK yüklenmiştir.</p></div><div class="risk-card ${state.followClasses.length?'good':'warn'}"><b>Takip sınıfları</b><p>${state.followClasses.length?state.followClasses.join(', '):'Sınıf seçilmezse takip uyarıları gösterilmez.'}</p></div></div></div><div class="card"><h3>Kullanım Önerisi</h3><p class="muted">Uzun tablolar artık sekmeli yapıda açılır. Öğrenci detayındaki analiz, görev ve veli bildirimi bölümleri ayrı sekmelerde çalışır.</p></div></div>`;
 }
-
+function adminSettingsHtml(classes){
+  return `<div class="grid two"><div class="card"><h3>Kurum Ayarları</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Ders başına günlük giriş limiti</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Ayarları Kaydet</button><button id="useEduIcon" class="secondary">Fenomen Logosunu Kullan</button></div></div>
+  <div class="card"><h3>Takip Edilecek Sınıflar</h3><p class="muted tiny">Sınıf seçilmezse günlük/haftalık uyarı listesi hiç gösterilmez.</p><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarını Kaydet</button></div></div>`;
+}
+function adminFirebaseHtml(){
+  return `<div class="grid two"><div class="card"><h3>Firebase Durumu</h3><div class="risk-list"><div class="risk-card good"><b>Realtime Database yolu</b><p>Görevler: verianalizi001/haftalikGorevler</p></div><div class="risk-card good"><b>Öğrenci mesajları</b><p>verianalizi001/ogrenciMesajlari/{öğrenciNo}</p></div><div class="risk-card good"><b>Veli bildirim geçmişi</b><p>verianalizi001/veliBildirimGecmisi/{öğrenciNo}</p></div></div></div><div class="card"><h3>Performans</h3><p class="muted">Öğrenci detaylarında istatistikler tarih aralığına göre önbelleğe alınır. Takip listeleri parça parça okunur; gereksiz uzun sayfa yükleri sekmelere bölünmüştür.</p></div></div>`;
+}
+function bindAdmin(){
+  document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab; render();});
+  document.getElementById('useEduIcon')?.addEventListener('click',()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;});
+  document.getElementById('saveSettings')?.addEventListener('click',async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM; state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO; state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3; await saveSettings(); setToast('Kurum ayarları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}});
+  document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
+  document.getElementById('saveFollow')?.addEventListener('click',async()=>{try{await saveFollowSettings(); setToast('Takip sınıfları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}});
+  bindLessonDesigner();
+  document.getElementById('loadOps')?.addEventListener('click',loadAdminOperations);
+}
 function registerAdminRecord(title,path,data){
   const id='rec_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
   state.adminOpsMap[id]={title,path,data};
@@ -1068,12 +1284,15 @@ async function loadAdminOperations(){
     const logRows=recentLogs.slice(0,60).map(l=>{const id=registerAdminRecord('Öğretmen İşlem Kaydı',`verianalizi001/ogretmenIslemleri/${l.key}`,l); return `<tr class="admin-row-click"><td onclick="openAdminRecord('${id}')">${esc(l.time||l.tarihSaat||'')}</td><td>${esc(l.teacherName||l.ogretmenAdi||getTeacherName(l.teacherId||l.ogretmenID))}</td><td>${esc(l.type||'İşlem')}</td><td>${esc(l.detail||'')}</td><td>${adminActionButtons(id)}</td></tr>`;}).join('');
     const notificationHtml=notifyRows.sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||''))).slice(0,50).map(n=>{const st=state.students.find(s=>s.no===cleanId(n.studentNo)); const id=registerAdminRecord('Veli Bildirim Kaydı',`verianalizi001/veliBildirimGecmisi/${n.studentNo}/${n.key}`,n); return `<tr class="admin-row-click"><td onclick="openAdminRecord('${id}')">${esc(n.tarihSaat||'')}</td><td>${esc(st?.name||n.studentNo)}</td><td>${esc(n.kanal||'-')}</td><td>${esc(n.ogretmenAdi||getTeacherName(n.ogretmenID||n.teacherId))}</td><td>${adminActionButtons(id)}</td></tr>`;}).join('');
     const messageHtml=messageRows.sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||''))).slice(0,50).map(m=>{const st=state.students.find(s=>s.no===cleanId(m.studentNo)); const id=registerAdminRecord('Öğrenci Panel Mesajı',`verianalizi001/ogrenciMesajlari/${m.studentNo}/${m.key}`,m); return `<tr class="admin-row-click"><td onclick="openAdminRecord('${id}')">${esc(m.tarihSaat||m.tarih||'')}</td><td>${esc(st?.name||m.studentNo)}</td><td>${esc(m.baslik||'Mesaj')}</td><td>${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID||m.teacherId))}</td><td>${adminActionButtons(id)}</td></tr>`;}).join('');
+    const opsTabs=[['teachers','Öğretmenler'],['tasks','Görevler'],['logs','İşlemler'],['notifications','Veli Bildirimleri'],['messages','Panel Mesajları']];
     box.innerHTML=`${statsHtml([['Öğretmen',Object.keys(byTeacher).length,'İşlem yapan'],['Görev',state.tasks.length,'Kayıtlı'],['Veli Bildirimi',notifyRows.length,'Onaylı'],['Panel Mesajı',messageRows.length,'Öğrenciye']])}
-      <h3 style="margin-top:14px">Öğretmen Performans Özeti</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>İşlem</th><th>Veli Bildirimi</th><th>Panel Mesajı</th><th>Toplam</th></tr></thead><tbody>${teacherRows||'<tr><td colspan="5">Kayıt yok</td></tr>'}</tbody></table></div>
-      <h3 style="margin-top:14px">Görev Kayıtları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>Hedef</th><th>Tarih</th><th>Toplam</th><th>İşlem</th></tr></thead><tbody>${taskRows||'<tr><td colspan="5">Görev yok</td></tr>'}</tbody></table></div>
-      <h3 style="margin-top:14px">Son Öğretmen İşlemleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğretmen</th><th>Tür</th><th>Detay</th><th>İşlem</th></tr></thead><tbody>${logRows||'<tr><td colspan="5">İşlem yok</td></tr>'}</tbody></table></div>
-      <h3 style="margin-top:14px">Veli Bildirimleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Kanal</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${notificationHtml||'<tr><td colspan="5">Veli bildirimi yok</td></tr>'}</tbody></table></div>
-      <h3 style="margin-top:14px">Öğrenci Panel Mesajları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Başlık</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${messageHtml||'<tr><td colspan="5">Mesaj yok</td></tr>'}</tbody></table></div>`;
+      <div class="admin-ops-tabs">${opsTabs.map(([id,label])=>`<button type="button" class="admin-ops-tab ${state.adminOpsTab===id?'active':''}" data-admin-ops-tab="${id}">${label}</button>`).join('')}</div>
+      <div class="admin-ops-panel ${state.adminOpsTab==='teachers'?'active':''}" data-admin-ops-panel="teachers"><h3>Öğretmen Performans Özeti</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>İşlem</th><th>Veli Bildirimi</th><th>Panel Mesajı</th><th>Toplam</th></tr></thead><tbody>${teacherRows||'<tr><td colspan="5">Kayıt yok</td></tr>'}</tbody></table></div></div>
+      <div class="admin-ops-panel ${state.adminOpsTab==='tasks'?'active':''}" data-admin-ops-panel="tasks"><h3>Görev Kayıtları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>Hedef</th><th>Tarih</th><th>Toplam</th><th>İşlem</th></tr></thead><tbody>${taskRows||'<tr><td colspan="5">Görev yok</td></tr>'}</tbody></table></div></div>
+      <div class="admin-ops-panel ${state.adminOpsTab==='logs'?'active':''}" data-admin-ops-panel="logs"><h3>Son Öğretmen İşlemleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğretmen</th><th>Tür</th><th>Detay</th><th>İşlem</th></tr></thead><tbody>${logRows||'<tr><td colspan="5">İşlem yok</td></tr>'}</tbody></table></div></div>
+      <div class="admin-ops-panel ${state.adminOpsTab==='notifications'?'active':''}" data-admin-ops-panel="notifications"><h3>Veli Bildirimleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Kanal</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${notificationHtml||'<tr><td colspan="5">Veli bildirimi yok</td></tr>'}</tbody></table></div></div>
+      <div class="admin-ops-panel ${state.adminOpsTab==='messages'?'active':''}" data-admin-ops-panel="messages"><h3>Öğrenci Panel Mesajları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Başlık</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${messageHtml||'<tr><td colspan="5">Mesaj yok</td></tr>'}</tbody></table></div></div>`;
+    document.querySelectorAll('[data-admin-ops-tab]').forEach(b=>b.onclick=()=>{state.adminOpsTab=b.dataset.adminOpsTab; document.querySelectorAll('[data-admin-ops-tab]').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('[data-admin-ops-panel]').forEach(p=>p.classList.toggle('active',p.dataset.adminOpsPanel===state.adminOpsTab));});
     document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));
     document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:{...t.plan}}; state.taskWizardStep=1; state.activeTab='tasks'; render();});
     bindAdminRecordButtons();
