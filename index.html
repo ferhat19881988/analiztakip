@@ -3,42 +3,285 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#1d4ed8" />
+  <meta name="theme-color" content="#f5f7fb" />
   <title>Fenomen Öğretmen Paneli</title>
-  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"%3E%3Crect width="128" height="128" rx="28" fill="%231d4ed8"/%3E%3Cpath d="M22 42l42-22 42 22-42 22-42-22z" fill="white"/%3E%3Cpath d="M38 59v20c0 10 12 18 26 18s26-8 26-18V59L64 73 38 59z" fill="%23bfdbfe"/%3E%3Cpath d="M103 48v30" stroke="%23fde68a" stroke-width="8" stroke-linecap="round"/%3E%3Ccircle cx="103" cy="85" r="8" fill="%23fde68a"/%3E%3C/svg%3E' />
+  <link rel="icon" href="https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg" />
   <style>
+
     :root{
-      --bg:#f4f7fb;--surface:#ffffff;--card:#ffffff;--text:#071426;--muted:#64748b;--line:#e5edf7;
-      --primary:#1d4ed8;--primary2:#2563eb;--primary-soft:#eff6ff;--success:#047857;--warning:#b45309;--danger:#be123c;
-      --green-soft:#ecfdf5;--orange-soft:#fff7ed;--red-soft:#fff1f2;--shadow:0 18px 45px rgba(15,23,42,.10);
-      --radius:24px;--radius2:16px;--navh:78px;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --success:#16a34a;
+      --warning:#d97706;
+      --danger:#dc2626;
+      --soft:#eef4ff;
+      --radius:22px;
+      --shadow:0 18px 45px rgba(15, 23, 42, .08);
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:linear-gradient(145deg,#f8fbff,#eef5ff 52%,#f7f8fb)}
-    body{padding-bottom:calc(var(--navh) + env(safe-area-inset-bottom))}
-    button,input,textarea,select{font:inherit}
-    button{border:none;cursor:pointer}
-    .hidden{display:none!important}.nowrap{white-space:nowrap}.muted{color:var(--muted)}.tiny{font-size:12px}.danger{color:var(--danger)}.success{color:var(--success)}.warning{color:var(--warning)}
-    .app{min-height:100vh}.container{width:min(1180px,100%);margin:0 auto;padding:18px 14px 28px}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.four{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:880px){.two,.three,.four{grid-template-columns:1fr}.container{padding:14px 12px 24px}}
-    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(226,232,240,.8)}
-    .topbar-inner{width:min(1180px,100%);margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}.logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#1d4ed8,#0f766e);box-shadow:0 10px 22px rgba(37,99,235,.22);overflow:hidden;flex:0 0 auto}.logo img{width:100%;height:100%;object-fit:cover}.brand{min-width:0;flex:1}.brand h1{font-size:18px;line-height:1.1;margin:0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:800;font-size:12px}.ghost{background:#fff;border:1px solid var(--line);color:var(--text);padding:10px 13px;border-radius:14px;font-weight:800}.primary{background:linear-gradient(135deg,var(--primary),#0f766e);color:white;padding:11px 15px;border-radius:15px;font-weight:900;box-shadow:0 12px 24px rgba(29,78,216,.22)}.secondary{background:var(--primary-soft);color:var(--primary);padding:10px 13px;border-radius:14px;font-weight:850}.danger-btn{background:var(--red-soft);color:var(--danger);padding:10px 13px;border-radius:14px;font-weight:850}.success-btn{background:var(--green-soft);color:var(--success);padding:10px 13px;border-radius:14px;font-weight:850}.warning-btn{background:var(--orange-soft);color:var(--warning);padding:10px 13px;border-radius:14px;font-weight:850}
-    .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.9);backdrop-filter:blur(20px);border-top:1px solid rgba(226,232,240,.9);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -16px 45px rgba(15,23,42,.08)}.bottom-nav .nav-inner{width:min(760px,100%);margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.nav-item{border:1px solid var(--line);background:#fff;border-radius:18px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:850;color:var(--muted)}.nav-item b{font-size:18px;line-height:1}.nav-item.active{background:linear-gradient(135deg,var(--primary),#0f766e);color:white;border-color:transparent;box-shadow:0 10px 22px rgba(37,99,235,.22)}
-    .login-wrap{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(480px,100%);background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border:1px solid rgba(226,232,240,.95);border-radius:34px;padding:28px;box-shadow:var(--shadow);text-align:center}.login-icon{width:112px;height:112px;margin:0 auto 16px;border-radius:28px;background:linear-gradient(135deg,#1d4ed8,#0f766e);display:grid;place-items:center;color:white}.login-card h1{font-size:28px;margin:8px 0 6px}.login-card p{color:var(--muted);font-weight:700;margin:0 0 20px}.field{width:100%;display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;font-weight:900;color:#334155;text-transform:uppercase;letter-spacing:.03em}.input,textarea,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 14px;outline:none;color:var(--text);box-shadow:0 1px 0 rgba(15,23,42,.02)}.input:focus,textarea:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(59,130,246,.13)}textarea{resize:vertical;min-height:110px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.nowrap{flex-wrap:nowrap}.row>*{min-width:0}.spacer{flex:1}.card{background:rgba(255,255,255,.95);border:1px solid rgba(226,232,240,.95);border-radius:var(--radius);box-shadow:0 10px 30px rgba(15,23,42,.06);padding:16px}.card h2,.card h3{margin:0 0 10px}.card h2{font-size:21px}.card h3{font-size:17px}.section-title{margin:6px 0 14px}.section-title h2{font-size:24px;margin:0;font-weight:950}.section-title p{margin:5px 0 0;color:var(--muted);font-weight:700}.stat-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:15px;box-shadow:0 8px 22px rgba(15,23,42,.05)}.stat-card small{color:var(--muted);font-weight:900}.stat-card strong{display:block;font-size:28px;margin:5px 0 3px}.stat-card span{font-size:12px;color:var(--muted);font-weight:700}.chipbar{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:white;color:#334155;font-weight:850}.chip.active{background:var(--primary);border-color:var(--primary);color:white}.empty{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:18px;padding:18px;color:var(--muted);font-weight:700}.student-row{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:22px;background:#fff;cursor:pointer;transition:.15s}.student-row:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(15,23,42,.07)}.avatar{width:48px;height:48px;border-radius:18px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:950}.student-row h3{margin:0;font-size:16px}.student-row p{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:700}.badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;background:var(--primary-soft);color:var(--primary)}.badge.red{background:var(--red-soft);color:var(--danger)}.badge.orange{background:var(--orange-soft);color:var(--warning)}.badge.green{background:var(--green-soft);color:var(--success)}.tabbox{display:grid;gap:10px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:900;color:var(--muted)}.tab.active{background:var(--primary);color:white;border-color:var(--primary)}.message-preview{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:13px;line-height:1.48;color:#26364d}.button-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.button-grid button{min-height:46px}.compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.lesson-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.day-card{border:1px solid var(--line);background:#f8fafc;border-radius:20px;padding:12px}.day-card h4{margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;align-items:center}.thin-list{display:grid;gap:8px}.thin-item{border:1px solid var(--line);border-radius:18px;background:#fff;padding:11px;display:grid;gap:7px}.thin-item .actions{display:flex;gap:7px;flex-wrap:wrap}.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:80;display:grid;place-items:center;padding:14px}.modal{width:min(720px,100%);max-height:88vh;overflow:auto;background:white;border-radius:28px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.24)}.toast{position:fixed;left:50%;bottom:calc(var(--navh) + 18px);transform:translateX(-50%);background:#0f172a;color:#fff;padding:12px 16px;border-radius:16px;box-shadow:var(--shadow);z-index:100;font-weight:800;max-width:min(620px,calc(100vw - 28px));text-align:center}.toast.error{background:#991b1b}.toast.ok{background:#065f46}.bar{height:9px;background:#eaf0f8;border-radius:999px;overflow:hidden}.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#0f766e);border-radius:999px}.confirm-panel{border:1px solid #bfdbfe;background:#eff6ff;border-radius:20px;padding:13px;display:grid;gap:10px}.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:10px;white-space:pre-wrap;overflow:auto}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px}.table{width:100%;border-collapse:collapse;background:white}.table th,.table td{padding:11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}.table th{background:#f8fafc;color:#334155;font-size:12px;text-transform:uppercase;letter-spacing:.03em}.table tr:last-child td{border-bottom:0}.loader{display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #bfdbfe;border-top-color:var(--primary);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-    @media(max-width:600px){.button-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar-inner{padding:9px 10px}.logo{width:48px;height:48px;border-radius:16px}.brand h1{font-size:15px}.brand p{font-size:12px}.topbar .ghost{padding:9px 10px}.card{padding:14px;border-radius:22px}.bottom-nav .nav-inner{gap:6px}.nav-item{border-radius:16px;font-size:11px}.nav-item b{font-size:16px}}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;width:100%;overflow-x:hidden;overflow-y:auto;height:auto}
+    body{
+      margin:0;
+      width:100%;
+      overflow-x:hidden;
+      font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:radial-gradient(circle at top left,#eaf2ff 0,#f7f9fd 38%,#f6f7fb 100%);
+      color:var(--text);
+      min-height:100vh;
+      min-height:100dvh;
+      overflow-y:auto;
+      overscroll-behavior-y:auto;
+      padding-left:env(safe-area-inset-left);
+      padding-right:env(safe-area-inset-right);
+    }
+    img{max-width:100%;display:block}
+    .app-shell{max-width:1180px;margin:0 auto;padding:24px 18px 40px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand > div:not(.logo-box){min-width:0}
+    .logo-box{width:78px;height:78px;min-width:78px;background:transparent;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(15,23,42,.08);overflow:hidden;flex:0 0 78px;line-height:0}
+    .logo-img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;padding:0;flex:0 0 auto}
+    .brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .card{background:rgba(255,255,255,.92);border:1px solid rgba(226,232,240,.9);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .login-wrap{min-height:calc(100dvh - 90px);display:grid;place-items:center;padding:20px 0}
+    .login-card{width:min(470px,100%);padding:30px}
+    .login-logo{width:116px;height:116px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(15,23,42,.10);overflow:hidden;margin:0 auto 18px;line-height:0}
+    .login-logo img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;padding:0}
+    .login-title{text-align:center;margin:0;font-size:26px;font-weight:800;letter-spacing:-.03em}
+    .login-sub{text-align:center;color:var(--muted);line-height:1.5;margin:9px 0 24px}
+    label{font-size:13px;font-weight:700;color:#334155;display:block;margin-bottom:8px}
+    input,select,textarea{
+      width:100%;
+      max-width:100%;border:1px solid #dbe3ef;background:#fff;color:var(--text);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;outline:none;transition:.18s;appearance:none;-webkit-appearance:none;
+    }
+    input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+    textarea{min-height:96px;resize:vertical}
+    .btn{border:0;border-radius:14px;padding:12px 16px;min-height:46px;touch-action:manipulation;font:inherit;font-weight:800;cursor:pointer;transition:.18s;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+    .btn-primary{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.22)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(37,99,235,.28)}
+    .btn-light{background:#f1f5f9;color:#0f172a}
+    .btn-light:hover{background:#e2e8f0}
+    .btn-danger{background:#fee2e2;color:#991b1b}
+    .btn-ghost{background:transparent;color:#334155;border:1px solid var(--line)}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .w-100{width:100%}
+    .alert{border-radius:16px;padding:13px 14px;margin-top:14px;font-size:14px;line-height:1.45;display:none}
+    .alert.show{display:block}
+    .alert.ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+    .alert.bad{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+    .alert.info{background:#e0f2fe;color:#075985;border:1px solid #bae6fd}
+    .grid{display:grid;gap:16px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .student-hero{padding:22px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;margin-bottom:16px}
+    .student-hero h2{margin:0 0 8px;font-size:25px;letter-spacing:-.03em}
+    .meta-row{display:flex;flex-wrap:wrap;gap:8px}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:700}
+    .pill.blue{background:#eef4ff;color:#1d4ed8;border-color:#dbeafe}
+    .pill.green{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+    .pill.orange{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+    .stat-card{padding:18px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:0 12px 28px rgba(15,23,42,.05)}
+    .stat-card span{display:block;color:var(--muted);font-size:13px;font-weight:700;margin-bottom:8px}
+    .stat-card strong{display:block;font-size:26px;letter-spacing:-.03em}
+    .tabs{display:flex;gap:10px;overflow-x:auto;padding:4px 0 14px;margin:0 0 4px;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{white-space:nowrap;min-height:44px;touch-action:manipulation;border:1px solid var(--line);background:#fff;color:#334155;border-radius:999px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .tab.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;box-shadow:0 10px 25px rgba(29,78,216,.18)}
+    .section-card{padding:20px;margin-top:8px}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}
+    .section-head h3{margin:0;font-size:20px;letter-spacing:-.02em}
+    .section-head p{margin:5px 0 0;color:var(--muted);font-size:14px;line-height:1.45}
+    .entry-row{border:1px solid var(--line);border-radius:20px;background:#fbfdff;padding:16px;margin-bottom:12px}
+    .row-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .row-title strong{font-size:15px}
+    .mini{font-size:12px;color:var(--muted);font-weight:700}
+    .task-card{border:1px solid var(--line);background:#fff;border-radius:20px;padding:16px;margin-bottom:12px}
+    .task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .task-title{font-weight:800;font-size:16px;margin:0 0 4px}
+    .task-sub{color:var(--muted);font-size:13px;margin:0}
+    .task-line{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px;border-radius:14px;background:#f8fafc;border:1px solid #edf2f7;margin-top:8px;align-items:center}
+    .progress-wrap{margin-top:8px;background:#e2e8f0;border-radius:999px;height:9px;overflow:hidden}
+    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#16a34a);border-radius:999px}
+    .message-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:16px;margin-bottom:12px}
+    .message-card.unread{border-color:#bfdbfe;background:#f8fbff}
+    .message-title{font-weight:800;margin:0 0 6px}
+    .message-text{line-height:1.55;color:#334155;margin:0 0 12px;white-space:pre-wrap}
+    .analysis-list{display:grid;gap:12px}
+    .course-line{padding:14px;border:1px solid var(--line);border-radius:18px;background:#fff}
+    .course-line-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+    .course-line-top strong{font-size:15px}
+    .course-line-top span{font-size:13px;color:var(--muted);font-weight:700}
+    .empty{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:20px;padding:22px;text-align:center;color:#64748b;line-height:1.55}
+    .footer{text-align:center;color:#64748b;font-size:12px;margin-top:24px;font-weight:600}
+    .hidden{display:none!important}
+    .loading{position:fixed;inset:0;background:rgba(248,250,252,.78);backdrop-filter:blur(8px);z-index:50;display:none;place-items:center;text-align:center;color:#334155;font-weight:800}
+    .loading.show{display:grid}
+    .spinner{width:44px;height:44px;border-radius:50%;border:5px solid #dbeafe;border-top-color:#2563eb;animation:spin 1s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:860px){
+      .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+      .student-hero{grid-template-columns:1fr}
+      .section-head{display:block}
+      .topbar{align-items:flex-start;flex-direction:column}
+      .brand h1{white-space:normal}
+      .app-shell{padding:16px 12px 30px}
+      .login-card{padding:24px 18px}
+      .student-hero h2{font-size:22px}
+      .task-line,.course-line-top,.task-top,.row-title{grid-template-columns:1fr;display:block}
+    }
+    @media(max-width:560px){
+      .app-shell{padding:14px 10px 24px}
+      .card,.task-card,.message-card,.course-line,.entry-row{border-radius:18px}
+      .student-hero,.section-card{padding:16px}
+      .login-card{padding:22px 14px}
+      .login-title{font-size:23px}
+      .brand{align-items:center;gap:11px;width:100%}
+      .logo-box{width:62px;height:62px;min-width:62px;flex-basis:62px;border-radius:12px}
+      .login-logo{width:104px;height:104px;border-radius:15px}
+      .topbar .btn{width:100%}
+      .tab{padding:10px 12px;font-size:14px}
+      .pill{font-size:12px}
+      .stat-card strong{font-size:22px}
+    }
+  
+
+    /* Öğretmen paneli ek sınıfları - öğrenci panelindeki tema ile uyumlu */
+    body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+    button{font:inherit;border:0;cursor:pointer}
+    .app{min-height:100vh}
+    .container{width:min(1180px,100%);margin:0 auto;padding:20px 18px 34px}
+    .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(226,232,240,.85)}
+    .topbar-inner{width:min(1180px,100%);margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:14px}
+    .logo{width:64px;height:64px;min-width:64px;background:transparent;border-radius:14px;display:grid;place-items:center;box-shadow:0 10px 22px rgba(15,23,42,.08);overflow:hidden;line-height:0}
+    .logo img{display:block;width:100%;height:100%;object-fit:contain}
+    .brand{min-width:0;flex:1}
+    .brand h1{font-size:19px;line-height:1.15;margin:0;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .primary{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.22);border-radius:14px;padding:12px 16px;min-height:46px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .secondary{background:#eef4ff;color:#1d4ed8;border-radius:14px;padding:12px 16px;min-height:44px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .ghost{background:#fff;color:#334155;border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-height:44px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .danger-btn{background:#fee2e2;color:#991b1b;border-radius:14px;padding:12px 16px;min-height:44px;font-weight:800}
+    .success-btn{background:#dcfce7;color:#166534;border-radius:14px;padding:12px 16px;min-height:44px;font-weight:800}
+    .warning-btn{background:#fff7ed;color:#9a3412;border-radius:14px;padding:12px 16px;min-height:44px;font-weight:800}
+    .primary:hover,.secondary:hover,.ghost:hover,.danger-btn:hover,.success-btn:hover,.warning-btn:hover{transform:translateY(-1px)}
+    .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-top:1px solid rgba(226,232,240,.9);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -16px 45px rgba(15,23,42,.08)}
+    .bottom-nav .nav-inner{width:min(760px,100%);margin:0 auto;display:grid;gap:8px}
+    .nav-item{border:1px solid var(--line);background:#fff;border-radius:18px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:850;color:var(--muted)}
+    .nav-item b{font-size:18px;line-height:1}
+    .nav-item.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;box-shadow:0 10px 25px rgba(29,78,216,.18)}
+    .login-icon{width:116px;height:116px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(15,23,42,.10);overflow:hidden;margin:0 auto 18px;line-height:0}
+    .login-icon img{display:block;width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important}
+    .section-title{margin:6px 0 14px}
+    .section-title h2{font-size:24px;margin:0;font-weight:800;letter-spacing:-.02em}
+    .section-title p{margin:5px 0 0;color:var(--muted);font-weight:600}
+    .card h2,.card h3{margin:0 0 10px}
+    .card h2{font-size:21px}.card h3{font-size:18px}
+    .field{width:100%;display:flex;flex-direction:column;gap:7px}
+    .field label{font-size:13px;font-weight:700;color:#334155;text-transform:none;letter-spacing:0}
+    .input{width:100%;border:1px solid #dbe3ef;background:#fff;color:var(--text);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;outline:none;transition:.18s;appearance:none;-webkit-appearance:none}
+    .input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .row.nowrap{flex-wrap:nowrap}
+    .row>*{min-width:0}.spacer{flex:1}
+    .muted{color:var(--muted)}.tiny{font-size:12px}.danger{color:var(--danger)}.success{color:var(--success)}.warning{color:var(--warning)}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#eef4ff;color:#1d4ed8;border:1px solid #dbeafe;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800}
+    .badge.red{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    .badge.orange{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+    .badge.green{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+    .chipbar{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:#334155;font-weight:800;min-height:38px}
+    .chip.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff;box-shadow:0 10px 25px rgba(29,78,216,.14)}
+    .student-row{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:22px;background:#fff;cursor:pointer;transition:.15s;box-shadow:0 8px 20px rgba(15,23,42,.04)}
+    .student-row:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(15,23,42,.07)}
+    .avatar{width:48px;height:48px;border-radius:18px;display:grid;place-items:center;background:#eef4ff;color:#1d4ed8;font-weight:900}
+    .student-row h3{margin:0;font-size:16px}.student-row p{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:700}
+    .tabbox{display:grid;gap:10px}
+    .message-preview{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:13px;line-height:1.5;color:#26364d}
+    .button-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .button-grid button{min-height:46px}
+    .compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+    .lesson-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+    .day-card{border:1px solid var(--line);background:#f8fafc;border-radius:20px;padding:12px}
+    .day-card h4{margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .thin-list{display:grid;gap:8px}
+    .thin-item{border:1px solid var(--line);background:#fff;border-radius:18px;padding:12px}
+    .bar{height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#16a34a);border-radius:999px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
+    .table{width:100%;border-collapse:collapse;min-width:620px}
+    .table th,.table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;vertical-align:top}
+    .table th{background:#f8fafc;color:#334155;font-weight:800}.table tr:last-child td{border-bottom:none}
+    .loader{display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #dbeafe;border-top-color:#2563eb;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px}
+    .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:50;background:#0f172a;color:#fff;border-radius:999px;padding:12px 16px;font-weight:800;box-shadow:0 18px 45px rgba(15,23,42,.18);max-width:min(92vw,760px)}
+    .toast.ok{background:#166534}.toast.error{background:#991b1b}.hidden{display:none!important}
+    .wizard-shell{display:grid;gap:14px}
+    .wizard-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:6px}
+    .wizard-step{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 8px 20px rgba(15,23,42,.04)}
+    .wizard-step b{display:block;font-size:13px;color:#1d4ed8;margin-bottom:4px}
+    .wizard-step span{font-size:12px;color:var(--muted);font-weight:700}
+    .target-summary{background:#eef4ff;border:1px solid #dbeafe;color:#1e3a8a;border-radius:18px;padding:13px;font-weight:700}
+    .student-picker-tools{display:grid;grid-template-columns:1fr 180px;gap:10px}
+    .lesson-designer{display:grid;gap:12px}
+    .lesson-card{border:1px solid var(--line);background:#fff;border-radius:22px;padding:14px;box-shadow:0 8px 22px rgba(15,23,42,.04)}
+    .topic-card{border:1px solid #e8eef7;background:#fbfdff;border-radius:18px;padding:12px;margin-top:10px}
+    .subtopic-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+    .subtopic-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #dbe3ef;background:#fff;border-radius:999px;padding:7px 9px;font-size:12px;font-weight:750}
+    .subtopic-chip button{background:#fee2e2;color:#991b1b;border-radius:999px;width:22px;height:22px;font-weight:900;line-height:1}
+    .admin-metric{padding:16px;border:1px solid var(--line);background:#fff;border-radius:22px;box-shadow:0 8px 22px rgba(15,23,42,.04)}
+    .admin-metric small{color:var(--muted);font-weight:800}.admin-metric strong{display:block;font-size:26px;margin-top:6px}
+    .health-ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}.health-bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    @media(max-width:860px){
+      .two,.three,.four{grid-template-columns:1fr}
+      .container{padding:16px 12px 30px}
+      .topbar-inner{padding:10px 12px}
+      .wizard-steps{grid-template-columns:1fr 1fr}
+      .student-picker-tools{grid-template-columns:1fr}
+    }
+    @media(max-width:560px){
+      body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+      .container{padding:14px 10px 24px}
+      .logo{width:62px;height:62px;min-width:62px}
+      .brand h1{white-space:normal}
+      .button-grid{grid-template-columns:1fr 1fr}
+      .bottom-nav .nav-inner{gap:6px}
+      .nav-item{border-radius:16px;min-height:56px;font-size:11px}
+      .wizard-steps{grid-template-columns:1fr}
+    }
+
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 <div id="toast" class="toast hidden"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 'use strict';
 
 const SHEET_ID = '1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw';
 const DB_BASE = 'https://odevfeno-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAIzu6aNQstwQCdMWODyIwiaVVBm63OeGw',
+  authDomain: 'odevfeno.firebaseapp.com',
+  databaseURL: 'https://odevfeno-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId: 'odevfeno',
+  storageBucket: 'odevfeno.firebasestorage.app',
+  messagingSenderId: '662757516934',
+  appId: '1:662757516934:web:0042188832f63deb6fd307',
+  measurementId: 'G-4Q99NQRB38'
+};
 const ADMIN_ID = '101';
 const DEFAULT_KURUM = 'Fenomen Eğitim Kurumları';
-const DEFAULT_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="128" height="128" rx="30" fill="url(#g)"/><path d="M20 42l44-23 44 23-44 23-44-23z" fill="#fff"/><path d="M38 59v22c0 10 12 19 26 19s26-9 26-19V59L64 73 38 59z" fill="#dbeafe"/><path d="M102 49v29" stroke="#fde68a" stroke-width="8" stroke-linecap="round"/><circle cx="102" cy="86" r="8" fill="#fde68a"/></svg>`)}`;
+const DEFAULT_LOGO = 'https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg';
 
 const DEFAULT_LESSONS = [
   {name:'Türkçe', topics:[{name:'Paragraf', subtopics:['Ana fikir','Yardımcı fikir','Sözcükte anlam']},{name:'Dil Bilgisi', subtopics:['Fiilimsiler','Cümle türleri']}]},
@@ -90,12 +333,40 @@ function getTeacherName(id){const t=state.teachers.find(x=>cleanId(x.id)===clean
 function normalizePhoneTR(raw){let d=String(raw||'').replace(/\D/g,''); if(!d) return ''; if(d.startsWith('0090')&&d.length>=14) d=d.slice(2,14); else if(d.startsWith('90')&&d.length>=12) d=d.slice(0,12); else if(d.startsWith('0')&&d.length===11) d='9'+d; else if(d.length===10) d='90'+d; return d;}
 function copyText(text){if(navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return Promise.resolve();}
 
+function firebasePath(path){return String(path||'').replace(/^\/+|\/+$/g,'');}
+function initFirebase(){
+  if(window.firebase && !firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+}
 async function fetchText(url){const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.text();}
-async function getJson(path){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`Firebase okuma hatası: HTTP ${r.status}`); const t=await r.text(); if(!t || t==='null') return null; return JSON.parse(t);}
-async function putJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();}
-async function patchJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase güncelleme hatası: HTTP ${r.status}`); return await r.json();}
-async function postJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();}
-async function deleteJson(path){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(`Firebase silme hatası: HTTP ${r.status}`); return true;}
+async function getJson(path){
+  const p=firebasePath(path);
+  if(window.firebase){
+    initFirebase();
+    const snap=await firebase.database().ref(p).once('value');
+    return snap.val();
+  }
+  const url=`${DB_BASE}/${p}.json`; const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`Firebase okuma hatası: HTTP ${r.status}`); const t=await r.text(); if(!t || t==='null') return null; return JSON.parse(t);
+}
+async function putJson(path,obj){
+  const p=firebasePath(path);
+  if(window.firebase){initFirebase(); await firebase.database().ref(p).set(obj); return obj;}
+  const url=`${DB_BASE}/${p}.json`; const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();
+}
+async function patchJson(path,obj){
+  const p=firebasePath(path);
+  if(window.firebase){initFirebase(); await firebase.database().ref(p).update(obj); return obj;}
+  const url=`${DB_BASE}/${p}.json`; const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase güncelleme hatası: HTTP ${r.status}`); return await r.json();
+}
+async function postJson(path,obj){
+  const p=firebasePath(path);
+  if(window.firebase){initFirebase(); const ref=firebase.database().ref(p).push(); await ref.set(obj); return {name:ref.key};}
+  const url=`${DB_BASE}/${p}.json`; const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();
+}
+async function deleteJson(path){
+  const p=firebasePath(path);
+  if(window.firebase){initFirebase(); await firebase.database().ref(p).remove(); return true;}
+  const url=`${DB_BASE}/${p}.json`; const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(`Firebase silme hatası: HTTP ${r.status}`); return true;
+}
 
 function parseCsv(csv){
   const rows=[]; let row=[],cur='',q=false;
@@ -124,9 +395,24 @@ async function loadSheetRows(sheetNames, groups){
 }
 
 async function loadSettings(){
-  try{const o=await getJson('verianalizi002/kurumAyarlari'); state.settings={kurumAdi:o?.kurumAdi||DEFAULT_KURUM, logoUrl:o?.logoUrl||DEFAULT_LOGO, dailyLimit:Number(o?.gunlukLimit||o?.dailyLimit||3)};}catch(e){state.settings={kurumAdi:DEFAULT_KURUM,logoUrl:DEFAULT_LOGO,dailyLimit:3};}
+  try{
+    const [kurum, limit] = await Promise.all([
+      getJson('verianalizi002/kurumAyarlari').catch(()=>null),
+      getJson('verianalizi002/ayarlar/gunlukGirisLimitleri').catch(()=>null)
+    ]);
+    state.settings={
+      kurumAdi:kurum?.kurumAdi||DEFAULT_KURUM,
+      logoUrl:kurum?.logoUrl||DEFAULT_LOGO,
+      dailyLimit:Number(limit?.maxEntryPerCourse||kurum?.gunlukLimit||kurum?.dailyLimit||3)
+    };
+  }catch(e){state.settings={kurumAdi:DEFAULT_KURUM,logoUrl:DEFAULT_LOGO,dailyLimit:3};}
 }
-async function saveSettings(){await putJson('verianalizi002/kurumAyarlari',{kurumAdi:state.settings.kurumAdi, logoUrl:state.settings.logoUrl, gunlukLimit:state.settings.dailyLimit, guncelleme:nowText()}); await logAction('Ayar güncelleme','Kurum ayarları güncellendi');}
+async function saveSettings(){
+  const now=nowText();
+  await putJson('verianalizi002/kurumAyarlari',{kurumAdi:state.settings.kurumAdi, logoUrl:state.settings.logoUrl, gunlukLimit:state.settings.dailyLimit, dailyLimit:state.settings.dailyLimit, guncelleme:now});
+  await putJson('verianalizi002/ayarlar/gunlukGirisLimitleri',{minEntryPerCourse:1,maxEntryPerCourse:Number(state.settings.dailyLimit||3),allowSameTopicAgain:true,guncelleme:now,ogretmenID:state.teacher?.id||''});
+  await logAction('Ayar güncelleme','Kurum ayarları ve günlük giriş limitleri güncellendi');
+}
 async function loadTeachers(){
   const groups=[['ID'],['OGRETMENADI','OGRETMEN_ADI','ÖĞRETMEN_ADI']];
   let list=[];
@@ -148,26 +434,111 @@ async function loadStudents(){
   if(!list.length){try{const root=await getJson('verianalizi002/ogrenciler')||{}; list=Object.entries(root).map(([k,o])=>({no:cleanId(o.no||o.NO||o.id||k),name:o.adsoyad||o.ADSOYAD||o.name||o.ogrenciAdi||'',className:o.sinif||o.SINIF||o.className||'',parentPhone:o.veliTel||o.VeliTel||o.parentPhone||'',parentMail:o.veliMail||o.VeliMail||o.parentMail||''})).filter(x=>x.no&&x.name);}catch(e){}}
   state.students=list.sort((a,b)=>(a.className||'').localeCompare(b.className||'','tr') || ((+a.no||999999)-(+b.no||999999)) || a.name.localeCompare(b.name,'tr'));
 }
+function lessonToTeacherLesson(x){
+  if(!x || typeof x !== 'object') return null;
+  const name=x.name||x.ad||x.ders||'';
+  const rawTopics=x.topics||x.anaKonular||x.konular||[];
+  const topics=(Array.isArray(rawTopics)?rawTopics:Object.values(rawTopics||{})).map(t=>({
+    name:t.name||t.ad||t.konu||'',
+    subtopics:Array.isArray(t.subtopics)?t.subtopics:(Array.isArray(t.altKonular)?t.altKonular:Object.values(t.altKonular||t.alt||{}).map(String))
+  })).filter(t=>t.name);
+  return name?{name,topics}:null;
+}
+function teacherLessonsToStudentFormat(list=state.lessons){
+  return (list||[]).map(l=>({ad:l.name||l.ad||'', anaKonular:(l.topics||l.anaKonular||[]).map(t=>({ad:t.name||t.ad||'', altKonular:[...(t.subtopics||t.altKonular||[])]}))})).filter(l=>l.ad);
+}
 async function loadLessons(){
   try{
-    const o=await getJson('verianalizi002/dersler');
-    if(Array.isArray(o?.lessons)) state.lessons=o.lessons;
-    else if(Array.isArray(o?.dersler)) state.lessons=o.dersler.map(x=>typeof x==='string'?{name:x,topics:[]}:x);
-    else state.lessons=structuredClone(DEFAULT_LESSONS);
+    const lgs=await getJson('verianalizi002/lgsKonulari').catch(()=>null);
+    const dersler=await getJson('verianalizi002/dersler').catch(()=>null);
+    const raw = Array.isArray(lgs) ? lgs : (Array.isArray(dersler?.lessons) ? dersler.lessons : (Array.isArray(dersler?.dersler) ? dersler.dersler : []));
+    const parsed=(Array.isArray(raw)?raw:[]).map(lessonToTeacherLesson).filter(Boolean);
+    state.lessons=parsed.length?parsed:structuredClone(DEFAULT_LESSONS);
   }catch(e){state.lessons=structuredClone(DEFAULT_LESSONS);}
   if(!state.lessons.length) state.lessons=structuredClone(DEFAULT_LESSONS);
 }
-async function saveLessons(){await putJson('verianalizi002/dersler',{lessons:state.lessons,guncelleme:nowText(),ogretmenID:state.teacher?.id||''}); await logAction('Ders düzenleme','Dersler / ana konular / alt konular güncellendi');}
+async function saveLessons(){
+  const now=nowText();
+  const studentFormat=teacherLessonsToStudentFormat(state.lessons);
+  await putJson('verianalizi002/lgsKonulari',studentFormat);
+  await putJson('verianalizi002/dersler',{lessons:state.lessons, dersler:studentFormat, guncelleme:now, ogretmenID:state.teacher?.id||''});
+  await logAction('Ders düzenleme','Dersler / ana konular / alt konular güncellendi ve öğrenci paneliyle uyumlu hale getirildi');
+}
 async function loadFollowSettings(){try{const o=await getJson('verianalizi002/takipAyarlari'); state.followClasses=Array.isArray(o?.siniflar)?o.siniflar:[];}catch(e){state.followClasses=[];}}
 async function saveFollowSettings(){await putJson('verianalizi002/takipAyarlari',{siniflar:state.followClasses,guncelleme:nowText(),ogretmenID:state.teacher?.id}); await logAction('Takip ayarı','Admin takip sınıflarını güncelledi');}
 async function loadTasks(){
   try{const root=await getJson('verianalizi001/haftalikGorevler')||{}; state.tasks=Object.entries(root).map(([key,o])=>normalizeTask(key,o)).filter(Boolean).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}
   catch(e){state.tasks=[];}
 }
-function normalizeTask(key,o){if(!o || typeof o!=='object') return null; const start=isoFromAny(o.start||o.baslangic); const days=Number(o.days||o.sureGun||7); const targetType=targetTypeFromLabel(o.targetType||o.hedefTipi); return {key,start,days,end:addDaysISO(start,days-1),targetType,className:o.className||o.sinif||'',studentNos:Array.isArray(o.studentNos)?o.studentNos.map(cleanId):(Array.isArray(o.ogrenciler)?o.ogrenciler.map(cleanId):[]),plan:o.plan||{},teacherId:cleanId(o.teacherId||o.ogretmenID||''),teacherName:o.teacherName||getTeacherName(o.teacherId||o.ogretmenID),createdAt:o.createdAt||o.olusturmaZamani||'',updatedAt:o.updatedAt||'',status:o.status||'aktif'};}
-function targetTypeFromLabel(v){const s=String(v||'').toLocaleLowerCase('tr-TR'); if(s.includes('tüm')||s==='all') return 'all'; if(s.includes('öğr')||s.includes('student')) return 'students'; return 'class';}
-function targetLabel(task){if(task.targetType==='all') return 'Tüm öğrenciler'; if(task.targetType==='students') return `${task.studentNos.length} öğrenci`; return `${task.className} sınıfı`;}
-function studentsForTask(task, students=state.students){if(task.targetType==='all') return students.map(s=>s.no); if(task.targetType==='class') return students.filter(s=>s.className===task.className).map(s=>s.no); return task.studentNos.map(cleanId);}
+function planToDaysObject(task){
+  const days={};
+  const names=lessonNames();
+  for(let d=0; d<Number(task.days||7); d++){
+    const date=addDaysISO(task.start,d);
+    const items=[];
+    for(const lesson of names){
+      const n=Number(task.plan?.[planKey(d,lesson)]||0);
+      if(n>0) items.push({ders:lesson,course:lesson,soruSayisi:n,hedefSoru:n,anaKonu:'Genel Tekrar',altKonu:'',aciklama:''});
+    }
+    if(items.length) days[date]=items;
+  }
+  return days;
+}
+function planFromDaysObject(daysObj){
+  const plan={};
+  if(!daysObj || typeof daysObj!=='object') return plan;
+  const dates=Object.keys(daysObj).sort();
+  dates.forEach((date,idx)=>{
+    const val=daysObj[date];
+    const items=Array.isArray(val)?val:(Array.isArray(val?.items)?val.items:(Array.isArray(val?.gorevler)?val.gorevler:Object.values(val||{})));
+    items.forEach(item=>{
+      const lesson=item.ders||item.course||item.lesson||'';
+      const n=Number(item.soruSayisi||item.hedefSoru||item.soru||item.total||0);
+      if(lesson && n) plan[planKey(idx,lesson)]=String(n);
+    });
+  });
+  return plan;
+}
+function normalizeTask(key,o){
+  if(!o || typeof o!=='object') return null;
+  const start=isoFromAny(o.start||o.startDate||o.baslangicTarihi||o.baslangic);
+  const duration=Number(o.sureGun||o.durationDays||(typeof o.days==='number'?o.days:0)||7);
+  const end=isoFromAny(o.end||o.endDate||o.bitisTarihi) || addDaysISO(start,duration-1);
+  const targetType=targetTypeFromLabel(o.targetType||o.hedefTuru||o.hedefTipi);
+  const studentNos=Array.isArray(o.studentNos)?o.studentNos.map(cleanId):(Array.isArray(o.ogrenciler)?o.ogrenciler.map(cleanId):(targetType==='student'&&o.targetValue?[cleanId(o.targetValue)]:[]));
+  return {
+    key,start,days:duration,end,targetType,
+    className:o.className||o.sinif||(['class','sinif'].includes(targetType)?(o.targetValue||''):''),
+    targetValue:o.targetValue||o.hedefDegeri||'',
+    studentNos,plan:o.plan||planFromDaysObject(o.days||o.gunler||{}),
+    daysObject:(typeof o.days==='object'?o.days:(o.gunler||{})),
+    teacherId:cleanId(o.teacherId||o.ogretmenID||''),
+    teacherName:o.teacherName||o.ogretmenAdi||getTeacherName(o.teacherId||o.ogretmenID),
+    createdAt:o.createdAt||o.olusturmaZamani||'',updatedAt:o.updatedAt||'',status:o.status||'aktif'
+  };
+}
+function targetTypeFromLabel(v){
+  const s=String(v||'').toLocaleLowerCase('tr-TR');
+  if(s.includes('tüm')||s==='all'||s==='genel') return 'all';
+  if(s.includes('öğr')||s.includes('student')) return 'student';
+  return 'class';
+}
+function targetLabel(task){
+  if(task.targetType==='all') return 'Tüm öğrenciler';
+  if(task.targetType==='student'||task.targetType==='students'){
+    const nos=task.studentNos?.length?task.studentNos:(task.targetValue?[task.targetValue]:[]);
+    if(nos.length===1){const st=state.students.find(s=>s.no===cleanId(nos[0])); return st?`${st.name}`:`Öğrenci ${nos[0]}`;}
+    return `${nos.length} öğrenci`;
+  }
+  return `${task.className||task.targetValue||'-'} sınıfı`;
+}
+function studentsForTask(task, students=state.students){
+  const type=task.targetType;
+  if(type==='all') return students.map(s=>s.no);
+  if(type==='class') return students.filter(s=>s.className===(task.className||task.targetValue)).map(s=>s.no);
+  const nos=task.studentNos?.length?task.studentNos:(task.targetValue?[task.targetValue]:[]);
+  return nos.map(cleanId).filter(Boolean);
+}
 function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);}
 function planKey(dayIndex, lesson){return `d${dayIndex}_${lesson.replaceAll(' ','_')}`;}
 function defaultPlan(days){const m={}; for(let d=0; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
@@ -175,7 +546,17 @@ function resizePlan(old,days){const m=defaultPlan(days); for(const [k,v] of Obje
 function applyTemplate(plan,days,type){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; for(let d=0; d<days; d++){ if(d%7<5) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
 function clearWeekends(plan,days){const m={...plan}; for(let d=0; d<days; d++) if(d%7>=5) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
 function copyFirstWeek(plan,days){const m={...plan}; for(let d=7; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=plan[planKey(d%7,l)]||''; return m;}
-function buildTaskFromWizard(){const mode=document.querySelector('input[name="targetMode"]:checked')?.value||'class'; const start=document.getElementById('taskStart')?.value||todayISO(); const days=Number(document.getElementById('taskDays')?.value||7); const className=document.getElementById('taskClass')?.value||''; const domStudentNos=[...document.querySelectorAll('.student-check:checked')].map(x=>cleanId(x.value)); const studentNos=[...new Set([...(state.taskWizard?.studentNos||[]),...domStudentNos])].filter(Boolean); let plan={}; document.querySelectorAll('[data-plan-key]').forEach(inp=>{const v=String(inp.value||'').replace(/\D/g,'').slice(0,4); if(v && v!=='0') plan[inp.dataset.planKey]=v;}); return {start,days,end:addDaysISO(start,days-1),targetType:mode,className,studentNos,plan,teacherId:state.teacher.id,teacherName:state.teacher.name,status:'aktif'};}
+function buildTaskFromWizard(){
+  const mode=document.querySelector('input[name="targetMode"]:checked')?.value||'class';
+  const start=document.getElementById('taskStart')?.value||todayISO();
+  const days=Number(document.getElementById('taskDays')?.value||7);
+  const className=document.getElementById('taskClass')?.value||'';
+  const domStudentNos=[...document.querySelectorAll('.student-check:checked')].map(x=>cleanId(x.value));
+  const studentNos=[...new Set([...(state.taskWizard?.studentNos||[]),...domStudentNos])].filter(Boolean);
+  let plan={};
+  document.querySelectorAll('[data-plan-key]').forEach(inp=>{const v=String(inp.value||'').replace(/\D/g,'').slice(0,4); if(v && v!=='0') plan[inp.dataset.planKey]=v;});
+  return {start,days,end:addDaysISO(start,days-1),targetType:mode,className,studentNos,plan,teacherId:state.teacher.id,teacherName:state.teacher.name,status:'aktif'};
+}
 function findConflicts(task, ignoreKey=''){
   const targetSet=new Set(studentsForTask(task));
   const conflicts=[];
@@ -198,13 +579,36 @@ async function saveTaskFromWizard(){
     const names=conflicts[0].students.slice(0,5).map(no=>state.students.find(s=>s.no===no)?.name||no).join(', ');
     throw new Error(`Bu tarihlerde bu öğrencinin/program hedefinin görevi vardır: ${names}${conflicts[0].students.length>5?'...':''}. Çakışan görev: ${targetLabel(conflicts[0].task)} (${fmtDate(conflicts[0].task.start)}-${fmtDate(conflicts[0].task.end)}), veren: ${getTeacherName(conflicts[0].task.teacherId)}.`);
   }
-  const payload={...task,createdAt:state.editingTaskKey?(state.tasks.find(t=>t.key===state.editingTaskKey)?.createdAt||nowText()):nowText(),updatedAt:nowText()};
-  let key=state.editingTaskKey;
-  if(key){await putJson(`verianalizi001/haftalikGorevler/${key}`,payload);} else {const r=await postJson('verianalizi001/haftalikGorevler',payload); key=r.name;}
-  const verify=await getJson(`verianalizi001/haftalikGorevler/${key}`);
-  if(!verify) throw new Error('Firebase doğrulaması başarısız: kayıt görünmüyor. Realtime Database kurallarını kontrol edin.');
-  await logAction(state.editingTaskKey?'Görev güncelleme':'Görev kaydı',`${targetLabel({...task,key})} için ${fmtDate(task.start)}-${fmtDate(task.end)} programı kaydedildi. Firebase key: ${key}`);
-  state.editingTaskKey=null; await loadTasks(); setToast(`Görev Firebase'e kaydedildi: ${key}`,'ok'); resetWizardAfterSave(); render();
+  const now=nowText();
+  const common={...task,createdAt:state.editingTaskKey?(state.tasks.find(t=>t.key===state.editingTaskKey)?.createdAt||now):now,updatedAt:now,sureGun:task.days,durationDays:task.days,startDate:task.start,endDate:task.end,baslangicTarihi:fmtDate(task.start),bitisTarihi:fmtDate(task.end)};
+  common.days=planToDaysObject(task);
+  const payloads=[];
+  if(task.targetType==='students' && !state.editingTaskKey){
+    task.studentNos.forEach(no=>{
+      const st=state.students.find(s=>s.no===no);
+      payloads.push({...common,targetType:'student',hedefTuru:'student',targetValue:no,hedefDegeri:no,studentNos:[no],className:st?.className||'',sinif:st?.className||''});
+    });
+  }else{
+    const targetType=task.targetType==='students'?'student':task.targetType;
+    const targetValue=targetType==='class'?task.className:(targetType==='student'?(task.studentNos[0]||task.targetValue||''):'all');
+    payloads.push({...common,targetType,hedefTuru:targetType,targetValue,hedefDegeri:targetValue,studentNos:targetType==='student'?[targetValue]:task.studentNos,sinif:task.className||''});
+  }
+  const savedKeys=[];
+  if(state.editingTaskKey){
+    await putJson(`verianalizi001/haftalikGorevler/${state.editingTaskKey}`,payloads[0]);
+    savedKeys.push(state.editingTaskKey);
+  }else{
+    for(const payload of payloads){
+      const r=await postJson('verianalizi001/haftalikGorevler',payload);
+      savedKeys.push(r.name);
+    }
+  }
+  for(const key of savedKeys){
+    const verify=await getJson(`verianalizi001/haftalikGorevler/${key}`);
+    if(!verify) throw new Error('Firebase doğrulaması başarısız: kayıt görünmüyor. Realtime Database kurallarını kontrol edin.');
+  }
+  await logAction(state.editingTaskKey?'Görev güncelleme':'Görev kaydı',`${targetLabel(task)} için ${fmtDate(task.start)}-${fmtDate(task.end)} programı kaydedildi. Firebase key: ${savedKeys.join(', ')}`);
+  state.editingTaskKey=null; await loadTasks(); setToast(`Görev Firebase'e kaydedildi: ${savedKeys.length} kayıt`,'ok'); resetWizardAfterSave(); render();
 }
 async function deleteTask(key){if(!confirm('Bu görevlendirmeyi silmek istiyor musunuz?')) return; await deleteJson(`verianalizi001/haftalikGorevler/${key}`); await logAction('Görev silme',`Görev silindi: ${key}`); await loadTasks(); setToast('Görev silindi','ok'); render();}
 async function logAction(type,detail){try{await postJson('verianalizi001/ogretmenIslemleri',{type,detail,teacherId:state.teacher?.id||'',teacherName:state.teacher?.name||'',time:nowText()});}catch(e){}}
@@ -216,14 +620,38 @@ async function loadStats(studentNo,start,end){
   }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[]};}
 }
 async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.tarih||rec?.date||rec?.tarihSaat||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
-async function loadAlerts(){
+async function loadFollowAlerts(start,end,mode='hafta'){
   if(!state.followClasses.length) return {configured:false,items:[]};
-  const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).slice(0,160); const r=weekRange(); const items=[];
-  for(const st of tracked){const s=await loadStats(st.no,r.start,r.end); if(s.entryCount===0) items.push({student:st,reason:'Bu hafta veri girişi yok',level:'high'}); else if(s.total<50) items.push({student:st,reason:`Soru sayısı düşük: ${s.total}`,level:'mid'});}
+  const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).slice(0,220);
+  const items=[];
+  for(const st of tracked){
+    const s=await loadStats(st.no,start,end);
+    if(s.entryCount===0) items.push({student:st,reason:mode==='gün'?'Bugün çalışma girişi yok':'Bu hafta veri girişi yok',level:'high'});
+    else if(mode==='hafta' && s.total<50) items.push({student:st,reason:`Haftalık toplam düşük: ${s.total} soru`,level:'mid'});
+    else if(mode==='gün' && s.total<20) items.push({student:st,reason:`Bugünkü çalışma düşük: ${s.total} soru`,level:'mid'});
+  }
   return {configured:true,items};
 }
-async function logParentNotification(student,channel,message){await postJson(`verianalizi001/veliBildirimGecmisi/${student.no}`,{kanal:channel,mesajMetni:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,durum:'gonderildi'}); await logAction('Veli bildirimi',`${student.name} velisine ${channel} bildirimi gönderildi olarak işlendi.`);}
-async function sendStudentPanelMessage(student,title,message){await postJson(`verianalizi001/ogrenciMesajlari/${student.no}`,{baslik:title,mesaj:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,okundu:false}); await logAction('Öğrenci mesajı',`${student.name} öğrencisine panel mesajı gönderildi.`);}
+async function loadAlerts(){
+  const r=weekRange();
+  return loadFollowAlerts(r.start,r.end,'hafta');
+}
+async function logParentNotification(student,channel,message){
+  await postJson(`verianalizi001/veliBildirimGecmisi/${student.no}`,{kanal:channel,mesajMetni:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,durum:'gonderildi'});
+  await logAction('Veli bildirimi',`${student.name} velisine ${channel} bildirimi öğretmen onayıyla gönderildi olarak işlendi.`);
+}
+async function sendStudentPanelMessage(student,title,message){
+  const d=new Date(); const z=n=>String(n).padStart(2,'0');
+  await postJson(`verianalizi001/ogrenciMesajlari/${student.no}`,{
+    baslik:title,mesaj:message,
+    tarih:fmtDate(d),saat:`${z(d.getHours())}:${z(d.getMinutes())}`,
+    tarihSaat:nowText(),timestamp:d.getTime(),
+    ogretmenID:state.teacher.id,teacherId:state.teacher.id,
+    ogretmenAdi:state.teacher.name,teacherName:state.teacher.name,
+    okundu:false
+  });
+  await logAction('Öğrenci mesajı',`${student.name} öğrencisine panel mesajı gönderildi.`);
+}
 async function loadStudentMessages(no){try{const root=await getJson(`verianalizi001/ogrenciMesajlari/${no}`)||{}; return Object.entries(root).map(([key,o])=>({key,...o})).sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||'')));}catch(e){return [];}}
 
 function buildWhatsAppMessage(st,stats,range,note){
@@ -237,8 +665,11 @@ function buildEmailMessage(st,stats,range,note){
   return `Sayın Velimiz,\n\n${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.\n\nÖğrenci Bilgisi\nAd Soyad: ${st.name}\nSınıf: ${st.className}\nÖğrenci No: ${st.no}\n\nÇalışma Özeti\nToplam Soru: ${stats.total}\nDoğru: ${stats.correct}\nYanlış: ${stats.wrong}\nBoş: ${stats.empty}\nAktif Çalışma Günü: ${stats.activeDays}\n\nDers Bazlı Özet\n${ders}\n\nÖğretmen Değerlendirmesi\n${note.trim()||auto}\n\nGönderen Öğretmen: ${state.teacher.name}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
 }
 function buildSmsMessage(st,stats,range){
-  const durum=stats.entryCount===0?'calisma yok':stats.total<50?'soru az':'olumlu';
-  const msg=`${st.name.slice(0,18)} ${fmtDate(range.start).slice(0,5)}-${fmtDate(range.end).slice(0,5)}: ${stats.total} soru, D:${stats.correct} Y:${stats.wrong} B:${stats.empty}. Durum:${durum}. Öğrt:${state.teacher.name.slice(0,16)}.`;
+  const total=Number(stats.total||0);
+  const durum=stats.entryCount===0?'bu hafta sisteme çalışma girişi yapmadı':total<50?'bu hafta çalışmasını artırmalı':total<150?'bu hafta orta düzey çalıştı':'bu hafta düzenli ve iyi çalıştı';
+  const gelisim=stats.entryCount===0?'Günlük kısa tekrarlarla başlaması faydalı olur.':total<50?'Daha düzenli tekrar ve günlük soru takibi gelişimini destekler.':total<150?'Düzenli tekrar yaparsa gelişimi daha net artar.':'Aynı düzenle devam etmesi çok değerli.';
+  const tarih=`${fmtDate(range.start).slice(0,5)}-${fmtDate(range.end).slice(0,5)}`;
+  const msg=`${st.name.split(' ')[0]} ${tarih}: ${durum}. Toplam ${total} soru. ${gelisim} Fenomen`;
   return msg.length<=155?msg:msg.slice(0,152)+'...';
 }
 function buildStudentMsg(level,st,stats,range){const who=`\n\nGönderen Öğretmen: ${state.teacher.name}`; if(level==='positive') return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığında ${stats.total} soru girişi yaptın. Bu iyi bir başlangıç. Düzenli devam edersen gelişimin çok daha net görülecek.${who}`; if(level==='high') return `Sevgili ${st.name}, bu aralıktaki çalışma takibin beklenen seviyenin altında görünüyor. Bugünden itibaren kısa ama düzenli çalışma yapmanı ve girişlerini aksatmamanı bekliyorum.${who}`; if(level==='excellent') return `Sevgili ${st.name}, çalışman çok güzel ilerliyor. Toplam ${stats.total} soru çözmen ve düzenli takip yapman çok değerli. Aynı tempoyla devam etmeni bekliyorum.${who}`; return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığındaki çalışma durumunu kontrol etmeni istiyorum. Toplam soru: ${stats.total}. Günlük girişlerini düzenli yapmayı unutma.${who}`;}
@@ -263,7 +694,7 @@ function render(){
 }
 function renderLogin(){
   app.innerHTML=`<div class="login-wrap"><div class="login-card">
-    <div class="login-icon"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:28px" onerror="this.src='${DEFAULT_LOGO}'"></div>
+    <div class="login-icon"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:0" onerror="this.src='${DEFAULT_LOGO}'"></div>
     <h1>${esc(state.settings.kurumAdi)}</h1><p>Öğretmen yönetim paneli</p>
     <div class="field" style="text-align:left"><label>Öğretmen ID</label><input id="loginId" class="input" inputmode="numeric" placeholder="Örn. 101"></div>
     <button id="loginBtn" class="primary" style="width:100%;margin-top:14px;min-height:52px">Giriş Yap</button>
@@ -278,16 +709,24 @@ function section(title,sub){return `<div class="section-title"><h2>${esc(title)}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
 async function renderDashboard(main){
-  main.innerHTML=`${section('Kontrol Paneli','Bugün, hafta ve risk durumları')}<div class="grid"><div class="card"><span class="loader"></span> Veriler hesaplanıyor...</div></div>`;
-  const today=await countEntries(todayISO(),todayISO()); const alertData=await loadAlerts();
-  main.innerHTML=`${section('Kontrol Paneli','Bugün, hafta ve risk durumları')}
-    ${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',today,'Çalışma girişi'],['Takip',alertData.configured?alertData.items.length:'Kapalı','Uyarı listesi'],['Yetki',state.teacher.isAdmin?'Admin':'Öğretmen',`ID ${state.teacher.id}`]])}
+  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}<div class="grid"><div class="card"><span class="loader"></span> Veriler hesaplanıyor...</div></div>`;
+  const todayIso=todayISO();
+  const week=weekRange();
+  const [todayEntries,dailyAlert,weeklyAlert]=await Promise.all([
+    countEntries(todayIso,todayIso),
+    loadFollowAlerts(todayIso,todayIso,'gün'),
+    loadFollowAlerts(week.start,week.end,'hafta')
+  ]);
+  const listHtml=(data,emptyText)=>!data.configured?'<div class="empty">Admin takip edilecek sınıfları seçmediği için liste gösterilmiyor.</div>':data.items.length?data.items.slice(0,14).map(a=>`<div class="thin-item"><div class="row"><span class="badge ${a.level==='high'?'red':'orange'}">${a.level==='high'?'Acil':'Uyarı'}</span><b>${esc(a.student.name)}</b><span class="muted">${esc(a.student.className)}</span><span class="spacer"></span><button class="secondary" data-open-student="${esc(a.student.no)}">Detay</button></div><div class="muted">${esc(a.reason)}</div></div>`).join(''):`<div class="empty">${emptyText}</div>`;
+  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}
+    ${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Günlük Uyarı',dailyAlert.configured?dailyAlert.items.length:'Kapalı','Bugünkü takip'],['Haftalık Uyarı',weeklyAlert.configured?weeklyAlert.items.length:'Kapalı','Haftalık takip']])}
     <div class="grid two" style="margin-top:14px">
-      <div class="card"><h3>Haftalık Takip</h3><p class="muted">Hafta: <b>${fmtDate(weekRange().start)} / ${fmtDate(weekRange().end)}</b></p><p class="muted">Uyarı listesi yalnızca adminin seçtiği sınıflar için üretilir.</p></div>
-      <div class="card"><h3>Takip Ayarı</h3>${state.followClasses.length?`<div class="chipbar">${state.followClasses.map(c=>`<span class="chip active">${esc(c)}</span>`).join('')}</div>`:'<div class="empty">Admin takip edilecek sınıfları seçmediği için takip/uyarı listesi gösterilmiyor.</div>'}</div>
+      <div class="card"><h3>Günlük Takip</h3><p class="muted">Tarih: <b>${fmtDate(todayIso)}</b></p><div class="thin-list">${listHtml(dailyAlert,'Bugün için kritik uyarı yok.')}</div></div>
+      <div class="card"><h3>Haftalık Takip</h3><p class="muted">Hafta: <b>${fmtDate(week.start)} - ${fmtDate(week.end)}</b></p><div class="thin-list">${listHtml(weeklyAlert,'Seçilen sınıflarda haftalık kritik uyarı yok.')}</div></div>
     </div>
-    <div class="card" style="margin-top:14px"><h3>Takip Gereken Öğrenciler</h3><div class="thin-list">${!alertData.configured?'<div class="empty">Liste kapalı. Admin panelinden takip edilecek sınıfları seçin.</div>':alertData.items.length?alertData.items.slice(0,12).map(a=>`<div class="thin-item"><div class="row"><span class="badge ${a.level==='high'?'red':'orange'}">${a.level==='high'?'Acil':'Uyarı'}</span><b>${esc(a.student.name)}</b><span class="muted">${esc(a.student.className)}</span></div><div class="muted">${esc(a.reason)}</div></div>`).join(''):'<div class="empty">Seçilen sınıflarda şu anda kritik uyarı yok.</div>'}</div></div>
+    <div class="card" style="margin-top:14px"><h3>Takip Ayarı</h3>${state.followClasses.length?`<div class="chipbar">${state.followClasses.map(c=>`<span class="chip active">${esc(c)}</span>`).join('')}</div>`:'<div class="empty">Admin takip edilecek sınıfları seçmediği için takip/uyarı listesi gösterilmiyor.</div>'}</div>
     <footer class="muted tiny" style="text-align:center;margin:20px">Program Tasarımı: Ferhat Karagöz</footer>`;
+  document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); render();});
 }
 function renderStudents(main){
   const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean))];
@@ -331,29 +770,145 @@ function renderTasks(main){
   bindTaskWizard(); bindTaskList(); updatePreviewLive();
 }
 function resetWizardAfterSave(doRender=true){state.taskWizard={targetType:'class',className:state.students.find(s=>s.className)?.className||'',studentNos:[],start:weekRange().start,days:7,plan:defaultPlan(7)}; state.editingTaskKey=null; if(doRender) render();}
-function taskWizardHtml(){const w=state.taskWizard; const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))]; const selectedClass=w.className||classes[0]||''; w.className=selectedClass; w.plan=resizePlan(w.plan,w.days); return `<div class="grid two">
-    <div><h3>1. Hedef</h3><div class="chipbar"><label class="chip ${w.targetType==='all'?'active':''}"><input type="radio" name="targetMode" value="all" ${w.targetType==='all'?'checked':''} hidden> Tüm Öğrenciler</label><label class="chip ${w.targetType==='class'?'active':''}"><input type="radio" name="targetMode" value="class" ${w.targetType==='class'?'checked':''} hidden> Sınıf</label><label class="chip ${w.targetType==='students'?'active':''}"><input type="radio" name="targetMode" value="students" ${w.targetType==='students'?'checked':''} hidden> Öğrenci Seç</label></div><div id="targetFields" style="margin-top:12px">${targetFieldsHtml(w,classes)}</div></div>
-    <div><h3>2. Tarih ve Süre</h3><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="taskStart" class="input" type="date" value="${w.start}"></div><div class="field"><label>Süre</label><select id="taskDays">${[7,14,21,28,30,60].map(d=>`<option value="${d}" ${w.days===d?'selected':''}>${d} gün</option>`).join('')}</select></div></div><p class="muted tiny">Görünen tarih: <b id="taskDateHuman">${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</b></p></div>
-  </div>
-  <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"><h3>3. Hızlı Program</h3><div class="chipbar"><button class="chip" data-template="hafif">Hafif</button><button class="chip" data-template="dengeli">Dengeli</button><button class="chip" data-template="yogun">Yoğun</button><button class="chip" data-template="copyWeek">1. haftayı kopyala</button><button class="chip" data-template="weekendOff">Hafta sonu boş</button><button class="chip" data-template="clear">Temizle</button></div><div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div>
-  <div class="card" style="background:#f8fafc;margin-top:14px"><h3>4. Önizleme</h3><div id="taskPreview"></div></div><div class="row" style="margin-top:14px"><button id="saveTask" class="primary">${state.editingTaskKey?'Görevi Güncelle':'Görevi Kaydet'}</button>${state.editingTaskKey?'<button id="cancelEdit" class="ghost">Düzenlemeyi İptal Et</button>':''}<span id="taskStatus" class="muted tiny"></span></div>`;}
-function targetFieldsHtml(w,classes){if(w.targetType==='all') return '<div class="empty">Tüm aktif öğrenciler seçildi.</div>'; if(w.targetType==='class') return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="muted tiny" id="classCount"></p>`; const list=state.students; return `<div class="field"><label>Öğrenci ara</label><input id="taskStudentSearch" class="input" placeholder="Ad / no / sınıf"></div><div id="studentPickList" class="thin-list" style="max-height:320px;overflow:auto;margin-top:10px">${studentPickListHtml(list,w.studentNos)}</div>`;}
-function studentPickListHtml(list,selected){return list.slice(0,80).map(s=>`<label class="thin-item"><div class="row"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${selected.includes(s.no)?'checked':''}><b>${esc(s.name)}</b><span class="muted tiny">${esc(s.className)}</span></div></label>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';}
+function taskWizardHtml(){
+  const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
+  const w=state.taskWizard||{targetType:'class',className:classes[0]||'',studentNos:[],start:todayISO(),days:7,plan:defaultPlan(7)};
+  const selectedClass=w.className||classes[0]||''; w.className=selectedClass; w.plan=resizePlan(w.plan,w.days);
+  return `<div class="wizard-shell">
+    <div class="wizard-steps">
+      <div class="wizard-step"><b>1. Hedef</b><span>Sınıf veya öğrenci seçimi</span></div>
+      <div class="wizard-step"><b>2. Tarih</b><span>Otomatik tarih aralığı</span></div>
+      <div class="wizard-step"><b>3. Program</b><span>Günlere göre soru hedefi</span></div>
+      <div class="wizard-step"><b>4. Kontrol</b><span>Firebase kaydı ve çakışma engeli</span></div>
+    </div>
+    <div class="grid two">
+      <div class="card" style="box-shadow:none;background:#fbfdff"><h3>Hedef Seçimi</h3><div class="chipbar"><label class="chip ${w.targetType==='all'?'active':''}"><input type="radio" name="targetMode" value="all" ${w.targetType==='all'?'checked':''} hidden> Tüm Öğrenciler</label><label class="chip ${w.targetType==='class'?'active':''}"><input type="radio" name="targetMode" value="class" ${w.targetType==='class'?'checked':''} hidden> Sınıf</label><label class="chip ${w.targetType==='students'?'active':''}"><input type="radio" name="targetMode" value="students" ${w.targetType==='students'?'checked':''} hidden> Öğrenci Seç</label></div><div id="targetFields" style="margin-top:12px">${targetFieldsHtml(w,classes)}</div></div>
+      <div class="card" style="box-shadow:none;background:#fbfdff"><h3>Tarih ve Süre</h3><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="taskStart" class="input" type="date" value="${w.start}"></div><div class="field"><label>Süre</label><select id="taskDays">${[1,3,5,7,14,21,28,30,60].map(d=>`<option value="${d}" ${w.days===d?'selected':''}>${d} gün</option>`).join('')}</select></div></div><p class="muted tiny">Görünen tarih: <b id="taskDateHuman">${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</b></p><div class="target-summary" id="wizardTargetSummary">Önizleme hazırlanıyor.</div></div>
+    </div>
+    <div class="card" style="box-shadow:none;background:#fff"><h3>Hızlı Program</h3><p class="muted tiny">Butonlarla taslak oluşturabilir, her gün için ders bazlı hedefleri elle değiştirebilirsin.</p><div class="chipbar"><button class="chip" data-template="hafif">Hafif</button><button class="chip" data-template="dengeli">Dengeli</button><button class="chip" data-template="yogun">Yoğun</button><button class="chip" data-template="copyWeek">1. haftayı kopyala</button><button class="chip" data-template="weekendOff">Hafta sonu boş</button><button class="chip" data-template="clear">Temizle</button></div><div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div></div>
+    <div class="card" style="background:#f8fafc"><h3>Önizleme ve Kayıt</h3><div id="taskPreview"></div><div class="row" style="margin-top:14px"><button id="saveTask" class="primary">${state.editingTaskKey?'Görevi Güncelle':'Görevi Kaydet'}</button>${state.editingTaskKey?'<button id="cancelEdit" class="ghost">Düzenlemeyi İptal Et</button>':''}<span id="taskStatus" class="muted tiny"></span></div></div>
+  </div>`;
+}
+function targetFieldsHtml(w,classes){
+  if(w.targetType==='all') return '<div class="target-summary">Tüm aktif öğrenciler seçildi. Görev bütün öğrenci panelinde görünür.</div>';
+  if(w.targetType==='class') return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="muted tiny" id="classCount"></p>`;
+  const allClasses=['Tümü',...classes];
+  return `<div class="student-picker-tools"><div class="field"><label>Öğrenci ara</label><input id="taskStudentSearch" class="input" placeholder="Ad / no / sınıf"></div><div class="field"><label>Sınıf süz</label><select id="studentClassFilter">${allClasses.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div></div><div id="studentPickList" class="thin-list" style="max-height:380px;overflow:auto;margin-top:10px">${studentPickListHtml(state.students,w.studentNos)}</div>`;
+}
+function studentPickListHtml(list,selected){
+  return list.map(s=>`<label class="thin-item"><div class="row"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${selected.includes(s.no)?'checked':''}><b>${esc(s.name)}</b><span class="muted tiny">${esc(s.className)}</span><span class="spacer"></span><span class="badge">No ${esc(s.no)}</span></div></label>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
+}
 function planHtml(w){const names=lessonNames(); let out=''; const weeks=Math.ceil(w.days/7); for(let week=0; week<weeks; week++){const start=week*7,end=Math.min(start+6,w.days-1); out+=`<div class="card" style="box-shadow:none;background:#fff"><h3>${week+1}. Hafta</h3><div class="grid">`; for(let d=start; d<=end; d++){const date=addDaysISO(w.start,d); const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0); out+=`<div class="day-card"><h4><span>${Days[d%7]} • ${fmtDate(date)}</span><span class="badge">${total} soru</span></h4><div class="lesson-grid">${names.map(l=>`<div class="field"><label>${esc(l)}</label><input class="input" inputmode="numeric" data-plan-key="${esc(planKey(d,l))}" value="${esc(w.plan[planKey(d,l)]||'')}"></div>`).join('')}</div></div>`;} out+=`</div></div>`;} return out;}
 function teacherTasksHtml(){const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id)); if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>'; return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))} • Firebase key: ${esc(t.key)}</div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div></div>`).join('');}
-function bindTaskWizard(){document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{state.taskWizard.targetType=r.value; renderTasks(document.getElementById('mainArea'));}); document.getElementById('taskClass')?.addEventListener('change',e=>{state.taskWizard.className=e.target.value; updatePreviewLive();}); document.getElementById('taskStart').onchange=e=>{state.taskWizard.start=e.target.value; renderTasks(document.getElementById('mainArea'));}; document.getElementById('taskDays').onchange=e=>{state.taskWizard.days=Number(e.target.value); state.taskWizard.plan=resizePlan(state.taskWizard.plan,state.taskWizard.days); renderTasks(document.getElementById('mainArea'));}; document.getElementById('taskStudentSearch')?.addEventListener('input',e=>{const q=e.target.value.toLocaleLowerCase('tr-TR'); const selected=[...document.querySelectorAll('.student-check:checked')].map(x=>x.value); state.taskWizard.studentNos=[...new Set([...state.taskWizard.studentNos,...selected])]; const filtered=state.students.filter(s=>`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q)); document.getElementById('studentPickList').innerHTML=studentPickListHtml(filtered,state.taskWizard.studentNos); bindStudentChecks();}); bindStudentChecks(); document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t); renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();}); document.getElementById('saveTask').onclick=async()=>{try{document.getElementById('taskStatus').textContent='Firebase kaydı yapılıyor...'; await saveTaskFromWizard();}catch(e){document.getElementById('taskStatus').textContent=''; setToast(e.message,'error');}}; document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());}
+function bindTaskWizard(){
+  document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{state.taskWizard.targetType=r.value; renderTasks(document.getElementById('mainArea'));});
+  document.getElementById('taskClass')?.addEventListener('change',e=>{state.taskWizard.className=e.target.value; updatePreviewLive();});
+  document.getElementById('taskStart').onchange=e=>{state.taskWizard.start=e.target.value; renderTasks(document.getElementById('mainArea'));};
+  document.getElementById('taskDays').onchange=e=>{state.taskWizard.days=Number(e.target.value); state.taskWizard.plan=resizePlan(state.taskWizard.plan,state.taskWizard.days); renderTasks(document.getElementById('mainArea'));};
+  const drawStudentPick=()=>{
+    const q=(document.getElementById('taskStudentSearch')?.value||'').toLocaleLowerCase('tr-TR');
+    const cls=document.getElementById('studentClassFilter')?.value||'Tümü';
+    const selected=[...document.querySelectorAll('.student-check:checked')].map(x=>x.value);
+    state.taskWizard.studentNos=[...new Set([...state.taskWizard.studentNos,...selected])];
+    const filtered=state.students.filter(s=>(cls==='Tümü'||s.className===cls)&&`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q));
+    const box=document.getElementById('studentPickList'); if(box){box.innerHTML=studentPickListHtml(filtered,state.taskWizard.studentNos); bindStudentChecks();}
+  };
+  document.getElementById('taskStudentSearch')?.addEventListener('input',drawStudentPick);
+  document.getElementById('studentClassFilter')?.addEventListener('change',drawStudentPick);
+  bindStudentChecks();
+  document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t); renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();});
+  document.getElementById('saveTask').onclick=async()=>{try{document.getElementById('taskStatus').textContent='Firebase kaydı yapılıyor...'; await saveTaskFromWizard();}catch(e){document.getElementById('taskStatus').textContent=''; setToast(e.message,'error');}};
+  document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());
+  updatePreviewLive();
+}
 function bindStudentChecks(){document.querySelectorAll('.student-check').forEach(ch=>ch.onchange=()=>{const set=new Set(state.taskWizard.studentNos); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.taskWizard.studentNos=[...set]; updatePreviewLive();});}
-function updatePreviewLive(){const w=state.taskWizard; if(!w) return; const task={...w,end:addDaysISO(w.start,w.days-1)}; const count=studentsForTask(task).length; const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0); const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`; const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)}</p><p><b>Plan toplam soru:</b> ${total}</p>`; const human=document.getElementById('taskDateHuman'); if(human) human.textContent=`${fmtDate(w.start)} - ${fmtDate(task.end)}`;}
+function updatePreviewLive(){
+  const w=state.taskWizard; if(!w) return;
+  const task={...w,end:addDaysISO(w.start,w.days-1)};
+  const count=studentsForTask(task).length;
+  const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
+  const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`;
+  const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}`;
+  const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Kaydetmeden önce sistem aynı tarih aralığında aynı öğrenciye/sınıfa verilen başka görevleri kontrol eder.</p>`;
+}
 function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType,className:t.className,studentNos:[...t.studentNos],start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; renderTasks(document.getElementById('mainArea'));});}
 
-function renderAdmin(main){if(!state.teacher.isAdmin){main.innerHTML='<div class="empty">Admin yetkisi gerekli.</div>';return;} const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))]; main.innerHTML=`${section('Admin Merkezi','Kurum, takip ayarı, dersler ve öğretmen işlemleri')}
-  <div class="grid two"><div class="card"><h3>Kurum</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL / eğitim ikonu</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Günlük limit</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Kurum Ayarlarını Kaydet</button><button id="useEduIcon" class="secondary">Eğitim İkonunu Kullan</button></div></div>
-  <div class="card"><h3>Takip Edilecek Sınıflar</h3><p class="muted tiny">Sınıf seçilmezse uyarı/takip listesi çıkmaz.</p><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarını Kaydet</button></div></div>
-  <div class="grid two" style="margin-top:14px"><div class="card"><h3>Dersleri Kur / Düzenle</h3><p class="muted tiny">Dersler, ana konular ve alt konular Firebase’e kaydedilir. Görevlendirme sihirbazı buradan beslenir.</p><textarea id="lessonsJson" class="code" style="min-height:330px">${esc(JSON.stringify(state.lessons,null,2))}</textarea><div class="row" style="margin-top:10px"><button id="saveLessons" class="primary">Dersleri Firebase’e Kaydet</button><button id="resetLessons" class="secondary">Varsayılanı Yükle</button></div></div><div class="card"><h3>Öğretmen İşlemleri Analizi</h3><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>`;
+function lessonDesignerHtml(){
+  return `<div class="lesson-designer">
+    <div class="row"><button class="secondary" data-lesson-add>+ Ders Ekle</button><button class="ghost" id="resetLessons">Varsayılanı Yükle</button><button class="primary" id="saveLessons">Dersleri Firebase’e Kaydet</button></div>
+    ${(state.lessons||[]).map((lesson,li)=>`<div class="lesson-card" data-lesson-card="${li}">
+      <div class="compact-grid"><div class="field"><label>Ders adı</label><input class="input lesson-name" data-li="${li}" value="${esc(lesson.name||'')}"></div><div class="field"><label>İşlem</label><div class="row"><button class="secondary" data-topic-add="${li}">+ Ana Konu</button><button class="danger-btn" data-lesson-del="${li}">Dersi Sil</button></div></div></div>
+      ${(lesson.topics||[]).map((topic,ti)=>`<div class="topic-card"><div class="compact-grid"><div class="field"><label>Ana konu</label><input class="input topic-name" data-li="${li}" data-ti="${ti}" value="${esc(topic.name||'')}"></div><div class="field"><label>Alt konu ekle</label><div class="row"><input class="input subtopic-new" data-li="${li}" data-ti="${ti}" placeholder="Alt konu adı"><button class="secondary" data-subtopic-add="${li}:${ti}">Ekle</button><button class="danger-btn" data-topic-del="${li}:${ti}">Sil</button></div></div></div><div class="subtopic-chips">${(topic.subtopics||[]).map((sub,si)=>`<span class="subtopic-chip">${esc(sub)} <button type="button" data-subtopic-del="${li}:${ti}:${si}">×</button></span>`).join('')||'<span class="muted tiny">Alt konu yok.</span>'}</div></div>`).join('')}
+    </div>`).join('')||'<div class="empty">Henüz ders yok. Ders ekleyerek başlayın.</div>'}
+  </div>`;
+}
+function bindLessonDesigner(){
+  const sync=()=>{
+    document.querySelectorAll('.lesson-name').forEach(inp=>{const li=Number(inp.dataset.li); if(state.lessons[li]) state.lessons[li].name=inp.value.trim();});
+    document.querySelectorAll('.topic-name').forEach(inp=>{const li=Number(inp.dataset.li),ti=Number(inp.dataset.ti); if(state.lessons[li]?.topics?.[ti]) state.lessons[li].topics[ti].name=inp.value.trim();});
+  };
+  document.querySelector('[data-lesson-add]')?.addEventListener('click',()=>{sync(); state.lessons.push({name:'Yeni Ders',topics:[{name:'Yeni Ana Konu',subtopics:['Alt Konu']} ]}); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-lesson-del]').forEach(b=>b.onclick=()=>{sync(); state.lessons.splice(Number(b.dataset.lessonDel),1); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-topic-add]').forEach(b=>b.onclick=()=>{sync(); const li=Number(b.dataset.topicAdd); state.lessons[li].topics=state.lessons[li].topics||[]; state.lessons[li].topics.push({name:'Yeni Ana Konu',subtopics:[]}); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-topic-del]').forEach(b=>b.onclick=()=>{sync(); const [li,ti]=b.dataset.topicDel.split(':').map(Number); state.lessons[li].topics.splice(ti,1); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-subtopic-add]').forEach(b=>b.onclick=()=>{sync(); const [li,ti]=b.dataset.subtopicAdd.split(':').map(Number); const input=document.querySelector(`.subtopic-new[data-li="${li}"][data-ti="${ti}"]`); const val=(input?.value||'').trim(); if(!val){setToast('Alt konu adı yazın','error'); return;} state.lessons[li].topics[ti].subtopics=state.lessons[li].topics[ti].subtopics||[]; state.lessons[li].topics[ti].subtopics.push(val); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-subtopic-del]').forEach(b=>b.onclick=()=>{sync(); const [li,ti,si]=b.dataset.subtopicDel.split(':').map(Number); state.lessons[li].topics[ti].subtopics.splice(si,1); renderAdmin(document.getElementById('mainArea'));});
+  document.getElementById('resetLessons')?.addEventListener('click',()=>{state.lessons=structuredClone(DEFAULT_LESSONS); renderAdmin(document.getElementById('mainArea'));});
+  document.getElementById('saveLessons')?.addEventListener('click',async()=>{try{sync(); state.lessons=state.lessons.filter(l=>l.name).map(l=>({...l,topics:(l.topics||[]).filter(t=>t.name)})); await saveLessons(); setToast('Dersler Firebase’e kaydedildi','ok'); render();}catch(e){setToast('Ders kaydı hatası: '+e.message,'error');}});
+}
+function renderAdmin(main){
+  if(!state.teacher.isAdmin){main.innerHTML='<div class="empty">Admin yetkisi gerekli.</div>';return;}
+  const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
+  const activeTeachers=state.teachers.length;
+  const firebaseHealth=`<span class="badge health-ok">Firebase SDK aktif</span>`;
+  main.innerHTML=`${section('Admin Merkezi','Kurum, takip, ders yapısı, Firebase uyumu ve öğretmen işlemleri')}
+    <div class="grid four">
+      <div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Sistemde görünen</span></div>
+      <div class="admin-metric"><small>Öğretmen</small><strong>${activeTeachers}</strong><span class="muted tiny">Tanımlı kullanıcı</span></div>
+      <div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase kayıtlı</span></div>
+      <div class="admin-metric"><small>Bağlantı</small><strong style="font-size:18px">${firebaseHealth}</strong><span class="muted tiny">Realtime Database</span></div>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3>Kurum Ayarları</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Ders başına günlük giriş limiti</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Ayarları Kaydet</button><button id="useEduIcon" class="secondary">Fenomen Logosunu Kullan</button></div><p class="muted tiny" style="margin-top:10px">Bu alan öğrenci panelindeki kurum adı, logo ve günlük giriş limitleriyle aynı Firebase yollarına kaydedilir.</p></div>
+      <div class="card"><h3>Takip Edilecek Sınıflar</h3><p class="muted tiny">Sınıf seçilmezse günlük/haftalık uyarı listesi hiç gösterilmez.</p><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarını Kaydet</button></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Dersleri Kur / Düzenle</h3><p class="muted tiny">Modern ders editörü: ders, ana konu ve alt konuları kart yapısıyla düzenler; kayıt hem öğretmen hem öğrenci panelinin okuyacağı Firebase yollarına yazılır.</p>${lessonDesignerHtml()}</div>
+    <div class="card" style="margin-top:14px"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><p class="muted tiny">Görevler, veli bildirimleri ve öğrenci mesajları öğretmen bazında analiz edilir. Hatalı görevler admin tarafından silinebilir.</p><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div>`;
   bindAdmin();
 }
-function bindAdmin(){document.getElementById('useEduIcon').onclick=()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;}; document.getElementById('saveSettings').onclick=async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM; state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO; state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3; await saveSettings(); setToast('Kurum ayarları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);}); document.getElementById('saveFollow').onclick=async()=>{try{await saveFollowSettings(); setToast('Takip sınıfları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.getElementById('resetLessons').onclick=()=>{document.getElementById('lessonsJson').value=JSON.stringify(DEFAULT_LESSONS,null,2);}; document.getElementById('saveLessons').onclick=async()=>{try{const parsed=JSON.parse(document.getElementById('lessonsJson').value); if(!Array.isArray(parsed)) throw new Error('Ders JSON kökü dizi olmalı.'); state.lessons=parsed; await saveLessons(); setToast('Dersler Firebase’e kaydedildi','ok'); render();}catch(e){setToast('Ders kaydı hatası: '+e.message,'error');}}; document.getElementById('loadOps').onclick=loadAdminOperations;}
-async function loadAdminOperations(){const box=document.getElementById('adminOpsBox'); box.innerHTML='<span class="loader"></span> Analiz yükleniyor...'; try{const [logs,notifications,msgs]=await Promise.all([getJson('verianalizi001/ogretmenIslemleri').catch(()=>({})), getJson('verianalizi001/veliBildirimGecmisi').catch(()=>({})), getJson('verianalizi001/ogrenciMesajlari').catch(()=>({}))]); const byTeacher={}; for(const l of Object.values(logs||{})){const id=cleanId(l.ogretmenID||l.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:l.ogretmenAdi||l.teacherName||getTeacherName(id),actions:0}; byTeacher[id].actions++;} for(const stu of Object.values(notifications||{})) for(const n of Object.values(stu||{})){const id=cleanId(n.ogretmenID||n.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:n.ogretmenAdi||n.teacherName||getTeacherName(id),actions:0}; byTeacher[id].notifications=(byTeacher[id].notifications||0)+1;} for(const stu of Object.values(msgs||{})) for(const m of Object.values(stu||{})){const id=cleanId(m.ogretmenID||m.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:m.ogretmenAdi||m.teacherName||getTeacherName(id),actions:0}; byTeacher[id].studentMessages=(byTeacher[id].studentMessages||0)+1;} const taskRows=state.tasks.slice(0,30).map(t=>`<tr><td>${esc(getTeacherName(t.teacherId))}</td><td>${esc(targetLabel(t))}</td><td>${fmtDate(t.start)}-${fmtDate(t.end)}</td><td><button class="danger-btn" data-admin-del-task="${esc(t.key)}">Sil</button></td></tr>`).join(''); box.innerHTML=`${statsHtml([['Öğretmen',Object.keys(byTeacher).length,'İşlem yapan'],['Görev',state.tasks.length,'Kayıtlı'],['Veli Bildirimi',Object.values(byTeacher).reduce((s,x)=>s+(x.notifications||0),0),'Gönderildi onaylı'],['Panel Mesajı',Object.values(byTeacher).reduce((s,x)=>s+(x.studentMessages||0),0),'Öğrenciye']])}<h3 style="margin-top:14px">Özet</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>İşlem</th><th>Veli bildirimi</th><th>Öğrenci mesajı</th></tr></thead><tbody>${Object.values(byTeacher).map(x=>`<tr><td>${esc(x.name)}<br><span class="muted tiny">ID ${esc(x.id)}</span></td><td>${x.actions||0}</td><td>${x.notifications||0}</td><td>${x.studentMessages||0}</td></tr>`).join('')||'<tr><td colspan="4">Kayıt yok</td></tr>'}</tbody></table></div><h3 style="margin-top:14px">Görev Kayıtları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>Hedef</th><th>Tarih</th><th>İşlem</th></tr></thead><tbody>${taskRows||'<tr><td colspan="4">Görev yok</td></tr>'}</tbody></table></div>`; document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));}catch(e){box.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}}
+function bindAdmin(){
+  document.getElementById('useEduIcon').onclick=()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;};
+  document.getElementById('saveSettings').onclick=async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM; state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO; state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3; await saveSettings(); setToast('Kurum ayarları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};
+  document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
+  document.getElementById('saveFollow').onclick=async()=>{try{await saveFollowSettings(); setToast('Takip sınıfları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};
+  bindLessonDesigner();
+  document.getElementById('loadOps').onclick=loadAdminOperations;
+}
+async function loadAdminOperations(){
+  const box=document.getElementById('adminOpsBox'); box.innerHTML='<span class="loader"></span> Analiz yükleniyor...';
+  try{
+    const [logs,notifications,msgs]=await Promise.all([
+      getJson('verianalizi001/ogretmenIslemleri').catch(()=>({})),
+      getJson('verianalizi001/veliBildirimGecmisi').catch(()=>({})),
+      getJson('verianalizi001/ogrenciMesajlari').catch(()=>({}))
+    ]);
+    const byTeacher={};
+    const recentLogs=Object.entries(logs||{}).map(([key,l])=>({key,...l})).sort((a,b)=>String(b.time||b.tarihSaat||'').localeCompare(String(a.time||a.tarihSaat||'')));
+    for(const l of Object.values(logs||{})){const id=cleanId(l.ogretmenID||l.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:l.ogretmenAdi||l.teacherName||getTeacherName(id),actions:0}; byTeacher[id].actions++;}
+    for(const stu of Object.values(notifications||{})) for(const n of Object.values(stu||{})){const id=cleanId(n.ogretmenID||n.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:n.ogretmenAdi||n.teacherName||getTeacherName(id),actions:0}; byTeacher[id].notifications=(byTeacher[id].notifications||0)+1;}
+    for(const stu of Object.values(msgs||{})) for(const m of Object.values(stu||{})){const id=cleanId(m.ogretmenID||m.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:m.ogretmenAdi||m.teacherName||getTeacherName(id),actions:0}; byTeacher[id].studentMessages=(byTeacher[id].studentMessages||0)+1;}
+    const teacherRows=Object.values(byTeacher).sort((a,b)=>(b.actions+b.notifications+b.studentMessages)-(a.actions+a.notifications+a.studentMessages)).map(x=>`<tr><td>${esc(x.name)}<br><span class="muted tiny">ID ${esc(x.id||'-')}</span></td><td>${x.actions||0}</td><td>${x.notifications||0}</td><td>${x.studentMessages||0}</td><td>${(x.actions||0)+(x.notifications||0)+(x.studentMessages||0)}</td></tr>`).join('');
+    const taskRows=state.tasks.slice(0,60).map(t=>`<tr><td>${esc(getTeacherName(t.teacherId))}</td><td>${esc(targetLabel(t))}</td><td>${fmtDate(t.start)} - ${fmtDate(t.end)}</td><td>${taskQuestionTotal(t)} soru</td><td><button class="secondary" data-admin-edit-task="${esc(t.key)}">Düzenle</button> <button class="danger-btn" data-admin-del-task="${esc(t.key)}">Sil</button></td></tr>`).join('');
+    const logRows=recentLogs.slice(0,30).map(l=>`<tr><td>${esc(l.time||l.tarihSaat||'')}</td><td>${esc(l.teacherName||l.ogretmenAdi||getTeacherName(l.teacherId||l.ogretmenID))}</td><td>${esc(l.type||'İşlem')}</td><td>${esc(l.detail||'')}</td></tr>`).join('');
+    box.innerHTML=`${statsHtml([['Öğretmen',Object.keys(byTeacher).length,'İşlem yapan'],['Görev',state.tasks.length,'Kayıtlı'],['Veli Bildirimi',Object.values(byTeacher).reduce((s,x)=>s+(x.notifications||0),0),'Onaylı'],['Panel Mesajı',Object.values(byTeacher).reduce((s,x)=>s+(x.studentMessages||0),0),'Öğrenciye']])}
+      <h3 style="margin-top:14px">Öğretmen Performans Özeti</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>İşlem</th><th>Veli Bildirimi</th><th>Panel Mesajı</th><th>Toplam</th></tr></thead><tbody>${teacherRows||'<tr><td colspan="5">Kayıt yok</td></tr>'}</tbody></table></div>
+      <h3 style="margin-top:14px">Görev Kayıtları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>Hedef</th><th>Tarih</th><th>Toplam</th><th>İşlem</th></tr></thead><tbody>${taskRows||'<tr><td colspan="5">Görev yok</td></tr>'}</tbody></table></div>
+      <h3 style="margin-top:14px">Son İşlemler</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğretmen</th><th>Tür</th><th>Detay</th></tr></thead><tbody>${logRows||'<tr><td colspan="4">İşlem yok</td></tr>'}</tbody></table></div>`;
+    document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));
+    document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:{...t.plan}}; state.activeTab='tasks'; render();});
+  }catch(e){box.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}
+}
 
 bootstrap();
 </script>
