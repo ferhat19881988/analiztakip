@@ -326,6 +326,91 @@ input:focus,select:focus,textarea:focus,.input:focus{border-color:var(--primary-
 @media(max-width:980px){.system-grid{grid-template-columns:1fr}.system-subgrid{grid-template-columns:1fr}}
 @media(max-width:620px){.day-card h4.task-day-title{align-items:flex-start}.day-card h4.task-day-title .date-label{white-space:normal}.question-total-badge{min-width:70px}.lesson-tabbar{margin-left:-2px;margin-right:-2px}}
 
+
+
+/* GÜNCEL: Daha temiz Başarı Dağılımı grafiği ve bugünden başlayan takip mantığı */
+.pie-card{
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:12px;
+  padding:22px!important;
+  text-align:center;
+}
+.pie-card h3{
+  width:100%;
+  margin:0 0 4px!important;
+  font-size:20px!important;
+  line-height:1.2;
+  text-align:center;
+}
+.pie-chart.pro-chart{
+  width:min(236px,66vw)!important;
+  margin:2px auto 0;
+  border-radius:50%;
+  background:var(--chart);
+  position:relative;
+  box-shadow:0 22px 54px rgba(15,23,42,.12), inset 0 0 0 1px rgba(15,23,42,.06)!important;
+}
+.pie-chart.pro-chart::before{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  border:1px solid rgba(226,232,240,.82);
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0));
+  z-index:0;
+  pointer-events:none;
+}
+.pie-chart.pro-chart::after{
+  content:"";
+  position:absolute;
+  inset:30%!important;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 0 11px rgba(255,255,255,.62), inset 0 0 0 1px var(--line)!important;
+  z-index:1;
+}
+.pie-center{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  text-align:center;
+  pointer-events:none;
+  color:var(--ink);
+}
+.pie-center strong{
+  display:block;
+  font-size:clamp(26px,4vw,34px);
+  line-height:1;
+  font-weight:900;
+  letter-spacing:-.06em;
+  font-variant-numeric:tabular-nums;
+}
+.pie-center small{
+  display:block;
+  max-width:96px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.18;
+  font-weight:900;
+  letter-spacing:-.01em;
+}
+.analysis-summary-line{
+  margin-top:8px!important;
+}
+.legend{
+  margin-top:4px!important;
+}
+.legend span{white-space:nowrap}
+@media(max-width:620px){.pie-card{padding:18px!important}.pie-chart.pro-chart{width:min(214px,72vw)!important}.pie-center strong{font-size:28px}.pie-center small{font-size:11px}}
+
   </style>
 </head>
 <body>
@@ -400,7 +485,7 @@ function nowText(){const d=new Date(); const z=n=>String(n).padStart(2,'0'); ret
 function addDaysISO(iso, days){const d=parseAnyDate(iso) || new Date(); d.setDate(d.getDate()+days); return toISO(d);}
 function dateInRange(date,start,end){const iso=isoFromAny(date); return iso && iso>=start && iso<=end;}
 function rangesOverlap(aStart,aEnd,bStart,bEnd){return aStart<=bEnd && bStart<=aEnd;}
-function weekRange(){const d=new Date(); const day=d.getDay(); const diff=day===0 ? -6 : 1-day; d.setDate(d.getDate()+diff); const start=toISO(d); d.setDate(d.getDate()+6); return {title:'Bu hafta', start, end:toISO(d)};}
+function weekRange(){const start=todayISO(); return {title:'Bugünden itibaren 7 gün', start, end:addDaysISO(start,6)};}
 function monthRange(){const d=new Date(); const start=new Date(d.getFullYear(),d.getMonth(),1); const end=new Date(d.getFullYear(),d.getMonth()+1,0); return {title:'Bu ay', start:toISO(start), end:toISO(end)};}
 function last30Range(){return {title:'Son 30 gün', start:addDaysISO(todayISO(),-29), end:todayISO()};}
 function setToast(msg,type=''){toastEl.className=`toast ${type}`; toastEl.textContent=msg; clearTimeout(setToast.t); setToast.t=setTimeout(()=>toastEl.classList.add('hidden'),3600);}
@@ -645,6 +730,30 @@ async function loadTasks(){
   try{const root=await getJson('verianalizi001/haftalikGorevler')||{}; state.tasks=Object.entries(root).map(([key,o])=>normalizeTask(key,o)).filter(Boolean).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}
   catch(e){state.tasks=[];}
 }
+
+function normalizeTaskItems(val){
+  if(Array.isArray(val)) return val;
+  if(Array.isArray(val?.items)) return val.items;
+  if(Array.isArray(val?.gorevler)) return val.gorevler;
+  if(val && typeof val==='object') return Object.values(val);
+  return [];
+}
+function normalizedTaskDaysObject(raw){
+  const source=(raw && typeof raw==='object') ? raw : {};
+  const out={};
+  Object.entries(source).forEach(([date,val])=>{
+    const iso=isoFromAny(date);
+    if(iso) out[iso]=normalizeTaskItems(val);
+  });
+  return out;
+}
+function daysBetweenInclusive(start,end){
+  const a=parseAnyDate(start), b=parseAnyDate(end);
+  if(!a || !b) return 0;
+  a.setHours(0,0,0,0); b.setHours(0,0,0,0);
+  return Math.max(1,Math.round((b-a)/86400000)+1);
+}
+
 function planToDaysObject(task){
   const days={};
   const names=lessonNames();
@@ -676,17 +785,21 @@ function planFromDaysObject(daysObj){
 }
 function normalizeTask(key,o){
   if(!o || typeof o!=='object') return null;
-  const start=isoFromAny(o.start||o.startDate||o.baslangicTarihi||o.baslangic);
-  const duration=Number(o.sureGun||o.durationDays||(typeof o.days==='number'?o.days:0)||7);
-  const end=isoFromAny(o.end||o.endDate||o.bitisTarihi) || addDaysISO(start,duration-1);
+  const rawDays=(typeof o.days==='object' && o.days) ? o.days : (o.gunler || o.program || {});
+  const dayObj=normalizedTaskDaysObject(rawDays);
+  const dayKeys=Object.keys(dayObj).sort();
+  const start=isoFromAny(o.start||o.startDate||o.baslangicTarihi||o.baslangic) || dayKeys[0] || todayISO();
+  const explicitDuration=Number(o.sureGun||o.durationDays||(typeof o.days==='number'?o.days:0)||0);
+  const end=isoFromAny(o.end||o.endDate||o.bitisTarihi) || dayKeys[dayKeys.length-1] || addDaysISO(start,Math.max(1,explicitDuration||7)-1);
+  const duration=explicitDuration || daysBetweenInclusive(start,end) || 7;
   const targetType=targetTypeFromLabel(o.targetType||o.hedefTuru||o.hedefTipi);
   const studentNos=Array.isArray(o.studentNos)?o.studentNos.map(cleanId):(Array.isArray(o.ogrenciler)?o.ogrenciler.map(cleanId):(targetType==='student'&&o.targetValue?[cleanId(o.targetValue)]:[]));
   return {
     key,start,days:duration,end,targetType,
     className:o.className||o.sinif||(['class','sinif'].includes(targetType)?(o.targetValue||''):''),
     targetValue:o.targetValue||o.hedefDegeri||'',
-    studentNos,plan:o.plan||planFromDaysObject(o.days||o.gunler||{}),
-    daysObject:(typeof o.days==='object'?o.days:(o.gunler||{})),
+    studentNos,plan:o.plan||planFromDaysObject(dayObj),
+    daysObject:dayObj,daysObj:dayObj,
     teacherId:cleanId(o.teacherId||o.ogretmenID||''),
     teacherName:o.teacherName||o.ogretmenAdi||getTeacherName(o.teacherId||o.ogretmenID),
     createdAt:o.createdAt||o.olusturmaZamani||'',updatedAt:o.updatedAt||'',status:o.status||'aktif'
@@ -718,8 +831,8 @@ function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v
 function planKey(dayIndex, lesson){return `d${dayIndex}_${String(lesson||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[.#$\[\]\/\s]+/g,'_').replace(/[^A-Za-z0-9_ğüşöçıİĞÜŞÖÇ-]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')}`;}
 function defaultPlan(days){const m={}; for(let d=0; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
 function resizePlan(old,days){const m=defaultPlan(days); for(const [k,v] of Object.entries(old||{})) if(k in m) m[k]=v; return m;}
-function applyTemplate(plan,days,type){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; for(let d=0; d<days; d++){ if(d%7<5) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
-function clearWeekends(plan,days){const m={...plan}; for(let d=0; d<days; d++) if(d%7>=5) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
+function applyTemplate(plan,days,type){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; const start=state.taskWizard?.start||todayISO(); for(let d=0; d<days; d++){ const real=parseAnyDate(addDaysISO(start,d)); const weekend=real ? [0,6].includes(real.getDay()) : false; if(!weekend) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
+function clearWeekends(plan,days){const m={...plan}; const start=state.taskWizard?.start||todayISO(); for(let d=0; d<days; d++){ const real=parseAnyDate(addDaysISO(start,d)); if(real && [0,6].includes(real.getDay())) for(const l of lessonNames()) m[planKey(d,l)]=''; } return m;}
 function copyFirstWeek(plan,days){const m={...plan}; for(let d=7; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=plan[planKey(d%7,l)]||''; return m;}
 function buildTaskFromWizard(){
   syncTaskWizardFromDom();
@@ -799,6 +912,7 @@ async function loadStats(studentNo,start,end){
     const root=await getJson(`verianalizi001/calismaKayitlari/${studentNo}`)||{};
     let total=0,correct=0,wrong=0,empty=0,entryCount=0; const active=new Set();
     const subjects={}, topics={}, subtopics={};
+    const records=[];
     for(const rec of Object.values(root)){
       if(!rec||typeof rec!=='object') continue;
       const date=rec.dateKey||rec.tarih||rec.date||rec.tarihSaat||rec.createdAt||'';
@@ -812,6 +926,7 @@ async function loadStats(studentNo,start,end){
       const c=Number(rec.dogru??rec.correct??Math.max(0,t-w-e));
       total+=t; correct+=c; wrong+=w; empty+=e; entryCount++;
       const iso=isoFromAny(date); if(iso) active.add(iso);
+      records.push({date:iso,lesson,topic,subtopic,total:t,correct:c,wrong:w,empty:e,raw:rec});
       if(!subjects[lesson]) subjects[lesson]={lesson,total:0,correct:0,wrong:0,empty:0,entryCount:0};
       subjects[lesson].total+=t; subjects[lesson].correct+=c; subjects[lesson].wrong+=w; subjects[lesson].empty+=e; subjects[lesson].entryCount++;
       const tk=`${lesson}|||${topic}`;
@@ -825,11 +940,12 @@ async function loadStats(studentNo,start,end){
       total,correct,wrong,empty,entryCount,activeDays:active.size,
       subjects:Object.values(subjects).sort((a,b)=>b.total-a.total),
       topics:Object.values(topics).sort((a,b)=>b.total-a.total),
-      subtopics:Object.values(subtopics).sort((a,b)=>b.total-a.total)
+      subtopics:Object.values(subtopics).sort((a,b)=>b.total-a.total),
+      records
     };
     state.statsCache=state.statsCache||{}; state.statsCache[cacheKey]=structuredClone(result);
     return result;
-  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[]};}
+  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[],records:[]};}
 }
 async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.tarih||rec?.date||rec?.tarihSaat||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
 async function loadFollowAlerts(start,end,mode='hafta'){
@@ -1035,7 +1151,7 @@ async function renderDashboard(main){
   const todayIso=todayISO(); const week=weekRange();
   const [todayEntries,dailyAlert,weeklyAlert]=await Promise.all([countEntries(todayIso,todayIso),loadFollowAlerts(todayIso,todayIso,'gün'),loadFollowAlerts(week.start,week.end,'hafta')]);
   const listHtml=(data,emptyText)=>!data.configured?'<div class="empty">Bu öğretmen için takip edilecek sınıf seçilmediği için liste gösterilmiyor.</div>':data.items.length?data.items.slice(0,14).map(a=>`<div class="thin-item"><div class="row"><span class="badge ${a.level==='high'?'red':'orange'}">${a.level==='high'?'Acil':'Uyarı'}</span><b>${esc(a.student.name)}</b><span class="muted">${esc(a.student.className)}</span><span class="spacer"></span><button class="secondary" data-open-student="${esc(a.student.no)}">Detay</button></div><div class="muted">${esc(a.reason)}</div></div>`).join(''):`<div class="empty">${emptyText}</div>`;
-  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Günlük Uyarı',dailyAlert.configured?dailyAlert.items.length:'Kapalı','Bugünkü takip'],['Haftalık Uyarı',weeklyAlert.configured?weeklyAlert.items.length:'Kapalı','Haftalık takip']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Günlük Takip</h3><p class="muted">Tarih: <b>${fmtDate(todayIso)}</b></p><div class="thin-list">${listHtml(dailyAlert,'Bugün için kritik uyarı yok.')}</div></div><div class="card"><h3>Haftalık Takip</h3><p class="muted">Hafta: <b>${fmtDate(week.start)} - ${fmtDate(week.end)}</b></p><div class="thin-list">${listHtml(weeklyAlert,'Bu hafta için kritik uyarı yok.')}</div></div></div>`;
+  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Günlük Uyarı',dailyAlert.configured?dailyAlert.items.length:'Kapalı','Bugünkü takip'],['7 Günlük Uyarı',weeklyAlert.configured?weeklyAlert.items.length:'Kapalı','Bugünden başlayan takip']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Günlük Takip</h3><p class="muted">Tarih: <b>${fmtDate(todayIso)}</b></p><div class="thin-list">${listHtml(dailyAlert,'Bugün için kritik uyarı yok.')}</div></div><div class="card"><h3>7 Günlük Takip</h3><p class="muted">Aralık: <b>${fmtDate(week.start)} - ${fmtDate(week.end)}</b></p><div class="thin-list">${listHtml(weeklyAlert,'Bu hafta için kritik uyarı yok.')}</div></div></div>`;
   document.querySelectorAll('.teacher-follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
   document.getElementById('saveTeacherFollow')?.addEventListener('click',async()=>{try{await saveFollowSettings(); setToast('Takip sınıfların kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}});
   document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); render();});
@@ -1112,7 +1228,7 @@ function bindStudentDetailTabs(){
 }
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
-  if(tab==='tasks') return `<div class="card"><h3>Haftalık Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
+  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
   if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="secondary" data-send-channel="SMS">SMS Aç</button><button class="secondary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
@@ -1131,7 +1247,7 @@ function studentSummaryHtml(st,stats,tasks,range){
     <div class="card"><h3>En Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div>
   </div>`;
 }
-function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bu hafta</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
+function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bugünden 7 gün</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
 function bindRangeSelector(){document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{const type=b.dataset.range; state.range=type==='today'?{title:'Bugün',start:todayISO(),end:todayISO()}:type==='week'?weekRange():type==='month'?monthRange():last30Range(); render();}); document.getElementById('applyRange')?.addEventListener('click',()=>{state.range={title:'Özel',start:document.getElementById('rangeStart').value,end:document.getElementById('rangeEnd').value}; render();});}
 function subjectBarsHtml(stats){if(!stats.subjects.length) return '<div class="empty">Bu aralıkta çalışma girişi yok.</div>'; return stats.subjects.map(s=>{const ratio=s.total?Math.round((s.correct/s.total)*100):0; return `<div style="margin:10px 0"><div class="row"><b>${esc(s.lesson)}</b><span class="spacer"></span><span class="muted tiny">${s.total} soru</span></div><div class="bar"><span style="width:${Math.min(100,ratio)}%"></span></div><p class="muted tiny">Doğru ${s.correct} • Yanlış ${s.wrong} • Boş ${s.empty}</p></div>`;}).join('');}
 
@@ -1157,6 +1273,7 @@ function selectedAnalysisData(stats){
   return {rows,total,correct,wrong,empty,pct:total?Math.round(correct/total*100):0};
 }
 function pieGradient(data){
+  if(!Number(data.total||0)) return `conic-gradient(#e2e8f0 0 100%)`;
   const total=Math.max(1,Number(data.total||0));
   const c=Math.round((Number(data.correct||0)/total)*1000)/10;
   const w=Math.round((Number(data.wrong||0)/total)*1000)/10;
@@ -1167,7 +1284,7 @@ function studentAnalysisHtml(st,stats,range){
   const lessons=['Tümü',...new Set((stats.subjects||[]).map(x=>x.lesson).filter(Boolean))]; if(!lessons.includes(state.analysisLesson)) state.analysisLesson='Tümü';
   const topics=['Tümü',...new Set((stats.topics||[]).filter(x=>state.analysisLesson==='Tümü'||x.lesson===state.analysisLesson).map(x=>x.topic).filter(Boolean))]; if(!topics.includes(state.analysisTopic)) state.analysisTopic='Tümü';
   const selected=selectedAnalysisData(stats); const weak=weakAreas(stats).slice(0,4); const strong=strongAreas(stats).slice(0,4); const level=analysisLevel(selected.pct,selected.total);
-  return `<div class="grid"><div class="card analysis-filter-card"><div class="compact-grid"><div class="field"><label>Ders seç</label><select id="analysisLesson">${lessons.map(l=>`<option ${l===state.analysisLesson?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div class="field"><label>Konu seç</label><select id="analysisTopic">${topics.map(t=>`<option ${t===state.analysisTopic?'selected':''}>${esc(t)}</option>`).join('')}</select></div></div><p class="muted tiny">Ders veya konu seçtiğinizde grafik, başarı yüzdesi ve veli raporu otomatik yenilenir.</p></div><div class="analysis-grid"><div class="card pie-card"><h3>Başarı Dağılımı</h3><div class="pie-chart pro-chart" style="--chart:${pieGradient(selected)}"><div class="pie-center"><div>%${selected.pct}</div><span>${esc(level.label)}</span></div></div><div class="analysis-summary-line"><span><b>${selected.correct}</b>Doğru</span><span><b>${selected.wrong}</b>Yanlış</span><span><b>${selected.empty}</b>Boş</span></div><div class="legend"><span><i class="lg-good"></i>Doğru</span><span><i class="lg-bad"></i>Yanlış</span><span><i class="lg-empty"></i>Boş</span></div></div><div class="card"><h3>Seçili Alan Detayı</h3><div class="risk-card ${level.key==='strong'||level.key==='good'?'good':level.key==='weak'?'low':'warn'}"><b>${esc(level.label)} • %${selected.pct}</b><p>${esc(level.text)} Toplam ${selected.total} soru üzerinden hesaplandı.</p></div><div style="height:10px"></div>${analysisRowsHtml(selected.rows)}</div></div><div class="report-cards"><div class="parent-report-card" id="weakReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Geliştirilmesi Gereken Alanlar</h3><div class="big-label">${weak.length?`%${weak[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${weak.length?weak.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Belirgin eksik alan yok. %75 üzeri alanlar eksik kabul edilmedi.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="weakReportCard">PNG İndir</button><button class="ghost" data-copy-report="weak">Metni Kopyala</button></div></div><div class="parent-report-card" id="strongReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Güçlü / İyi Alanlar</h3><div class="big-label">${strong.length?`%${strong[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${strong.length?strong.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Güçlü alan göstermek için yeterli veri yok.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="strongReportCard">PNG İndir</button><button class="ghost" data-copy-report="strong">Metni Kopyala</button></div></div></div><div class="grid two"><div class="card"><h3>Öncelikli Takip Alanları</h3>${weakAreasHtml(stats)}</div><div class="card"><h3>İyi ve Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div></div></div>`;
+  return `<div class="grid"><div class="card analysis-filter-card"><div class="compact-grid"><div class="field"><label>Ders seç</label><select id="analysisLesson">${lessons.map(l=>`<option ${l===state.analysisLesson?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div class="field"><label>Konu seç</label><select id="analysisTopic">${topics.map(t=>`<option ${t===state.analysisTopic?'selected':''}>${esc(t)}</option>`).join('')}</select></div></div><p class="muted tiny">Ders veya konu seçtiğinizde grafik, başarı yüzdesi ve veli raporu otomatik yenilenir.</p></div><div class="analysis-grid"><div class="card pie-card"><h3>Başarı Dağılımı</h3><div class="pie-chart pro-chart" style="--chart:${pieGradient(selected)}"><div class="pie-center"><strong>%${selected.pct}</strong><small>${esc(level.label)}</small></div></div><div class="analysis-summary-line"><span><b>${selected.correct}</b>Doğru</span><span><b>${selected.wrong}</b>Yanlış</span><span><b>${selected.empty}</b>Boş</span></div><div class="legend"><span><i class="lg-good"></i>Doğru</span><span><i class="lg-bad"></i>Yanlış</span><span><i class="lg-empty"></i>Boş</span></div></div><div class="card"><h3>Seçili Alan Detayı</h3><div class="risk-card ${level.key==='strong'||level.key==='good'?'good':level.key==='weak'?'low':'warn'}"><b>${esc(level.label)} • %${selected.pct}</b><p>${esc(level.text)} Toplam ${selected.total} soru üzerinden hesaplandı.</p></div><div style="height:10px"></div>${analysisRowsHtml(selected.rows)}</div></div><div class="report-cards"><div class="parent-report-card" id="weakReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Geliştirilmesi Gereken Alanlar</h3><div class="big-label">${weak.length?`%${weak[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${weak.length?weak.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Belirgin eksik alan yok. %75 üzeri alanlar eksik kabul edilmedi.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="weakReportCard">PNG İndir</button><button class="ghost" data-copy-report="weak">Metni Kopyala</button></div></div><div class="parent-report-card" id="strongReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Güçlü / İyi Alanlar</h3><div class="big-label">${strong.length?`%${strong[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${strong.length?strong.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Güçlü alan göstermek için yeterli veri yok.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="strongReportCard">PNG İndir</button><button class="ghost" data-copy-report="strong">Metni Kopyala</button></div></div></div><div class="grid two"><div class="card"><h3>Öncelikli Takip Alanları</h3>${weakAreasHtml(stats)}</div><div class="card"><h3>İyi ve Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div></div></div>`;
 }
 function analysisRowsHtml(rows){if(!rows.length) return '<div class="empty">Bu seçim için veri yok.</div>'; return rows.map(x=>{const pct=itemAccuracy(x); const label=x.subtopic?`${x.topic} / ${x.subtopic}`:(x.topic||x.lesson); return `<div class="success-row"><div><b>${esc(label)}</b><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><p class="muted tiny">${x.total} soru • Doğru ${x.correct} • Yanlış ${x.wrong} • Boş ${x.empty}</p></div><div class="success-pct">%${pct}</div></div>`;}).join('');}
 function bindAnalysisControls(st,stats,range){
@@ -1192,12 +1309,36 @@ function downloadCanvas(canvas,filename){const a=document.createElement('a'); a.
 function fallbackTextCanvas(el,filename){const canvas=document.createElement('canvas'); canvas.width=1100; canvas.height=700; const ctx=canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0f172a'; ctx.font='bold 34px Inter, Arial'; const lines=el.innerText.split('\n').filter(Boolean); let y=60; lines.forEach((line,i)=>{ctx.font=i===0?'bold 34px Arial':'24px Arial'; ctx.fillText(line.slice(0,70),60,y); y+=i===0?48:34;}); downloadCanvas(canvas,filename);}
 function studentTasksHtml(tasks,st,stats,range){
   if(!tasks.length) return '<div class="empty">Bu tarih aralığında öğrenciye atanmış görev görünmüyor.</div>';
-  const daySet=new Set(); tasks.forEach(t=>Object.keys(t.daysObj||{}).forEach(d=>{if(dateInRange(d,range.start,range.end)) daySet.add(d);}));
-  const days=[...daySet].sort(); if(!days.length) return '<div class="empty">Seçili aralıkta gün bazlı görev yok.</div>';
+  const today=todayISO();
+  const daySet=new Set();
+  tasks.forEach(t=>{
+    const obj=t.daysObj||t.daysObject||planToDaysObject(t);
+    Object.keys(obj||{}).forEach(d=>{const iso=isoFromAny(d); if(iso && dateInRange(iso,range.start,range.end)) daySet.add(iso);});
+  });
+  const days=[...daySet].sort();
+  if(!days.length) return '<div class="empty">Seçili aralıkta gün bazlı görev yok. Tarih aralığını bugünden başlayacak şekilde kontrol edin.</div>';
   if(!state.studentTaskDay || (state.studentTaskDay!=='all'&&!days.includes(state.studentTaskDay))) state.studentTaskDay='all';
-  const selected=state.studentTaskDay||'all'; const filteredDays=selected==='all'?days:[selected];
+  const selected=state.studentTaskDay||'all';
+  const filteredDays=selected==='all'?days:[selected];
   const dayButtons=`<div class="day-filter-strip"><button class="day-filter-btn ${selected==='all'?'active':''}" data-task-day="all">Tümü</button>${days.map(d=>`<button class="day-filter-btn ${selected===d?'active':''}" data-task-day="${esc(d)}">${fmtDate(d)}</button>`).join('')}</div>`;
-  const groups=filteredDays.map(day=>{let rows=[];tasks.forEach(t=>{const items=(t.daysObj?.[day]||[]); if(!items.length)return; const hedef=items.reduce((a,it)=>a+Number(it.soruSayisi||it.hedefSoru||it.soru||0),0); const lessonTotals=(stats.subjects||[]).reduce((o,x)=>{o[x.lesson]=x.total;return o;},{}); const done=items.reduce((a,it)=>a+Number(lessonTotals[it.ders||it.course]||0),0); const status=done>=hedef&&hedef>0?'done':(new Date(day)<new Date(todayISO())?'missing':'pending'); const label=status==='done'?'Yapıldı':status==='missing'?'Eksik':'Devam'; rows.push(`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="task-status-pill ${status}">${label}</span><span class="spacer"></span><span class="muted tiny">${done}/${hedef} soru</span></div><div class="muted tiny">${items.map(it=>`${it.ders||it.course}: ${it.soruSayisi||it.hedefSoru||0}`).join(' • ')}</div></div>`);}); return `<div class="task-day-group"><h4><span>${fmtDate(day)}</span><span class="badge">${rows.length} görev</span></h4>${rows.join('')||'<div class="empty">Bu gün için görev yok.</div>'}</div>`;}).join('');
+  const dayRecords=stats.records||[];
+  const doneFor=(day,lesson)=>dayRecords.filter(r=>r.date===day && String(r.lesson||'').trim()===String(lesson||'').trim()).reduce((s,r)=>s+Number(r.total||0),0);
+  const groups=filteredDays.map(day=>{
+    let rows=[];
+    tasks.forEach(t=>{
+      const obj=t.daysObj||t.daysObject||planToDaysObject(t);
+      const matchedKey=Object.keys(obj||{}).find(k=>isoFromAny(k)===day);
+      const items=normalizeTaskItems(matchedKey?obj[matchedKey]:[]);
+      if(!items.length)return;
+      const hedef=items.reduce((a,it)=>a+Number(it.soruSayisi||it.hedefSoru||it.soru||0),0);
+      const done=items.reduce((a,it)=>a+doneFor(day,it.ders||it.course),0);
+      const kalan=Math.max(hedef-done,0);
+      const status=done>=hedef&&hedef>0?'done':(day<today?'missing':'pending');
+      const label=status==='done'?'Yapıldı':status==='missing'?`Eksik: ${kalan} soru`:'Devam';
+      rows.push(`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="task-status-pill ${status}">${label}</span><span class="spacer"></span><span class="muted tiny">${done}/${hedef} soru</span></div><div class="muted tiny">${items.map(it=>`${it.ders||it.course}: ${it.soruSayisi||it.hedefSoru||0}`).join(' • ')}</div></div>`);
+    });
+    return `<div class="task-day-group"><h4><span>${fmtDate(day)} ${dayName(day)?'• '+dayName(day):''}</span><span class="badge">${rows.length} görev</span></h4>${rows.join('')||'<div class="empty">Bu gün için görev yok.</div>'}</div>`;
+  }).join('');
   return dayButtons+groups;
 }
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
