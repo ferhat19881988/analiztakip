@@ -414,10 +414,38 @@ function firebasePath(path){return String(path||'').replace(/^\/+|\/+$/g,'');}
 function getDbBase(){return String(state.systemSettings?.dbBase || state.systemSettings?.databaseURL || DB_BASE).trim().replace(/\/+$/,'');}
 function getSheetId(){return String(state.systemSettings?.sheetId || SHEET_ID).trim();}
 function getFirebaseConfig(){return {...FIREBASE_CONFIG,...(state.systemSettings?.firebaseConfig||{}),databaseURL:getDbBase()};}
-function initFirebase(){
-  if(!window.firebase) return;
+function firebaseAppNameFromConfig(cfg){
+  const raw=`${cfg?.databaseURL||''}|${cfg?.projectId||''}|${cfg?.appId||''}`;
+  let hash=0;
+  for(let i=0;i<raw.length;i++){hash=((hash<<5)-hash)+raw.charCodeAt(i); hash|=0;}
+  return `fenomen_${Math.abs(hash).toString(36)}`;
+}
+function getFirebaseApp(){
+  if(!window.firebase) return null;
   const cfg=getFirebaseConfig();
-  if(!firebase.apps.length) firebase.initializeApp(cfg);
+  const name=firebaseAppNameFromConfig(cfg);
+  let app=firebase.apps.find(a=>a.name===name);
+  if(!app) app=firebase.initializeApp(cfg,name);
+  return app;
+}
+function getFirebaseDb(){
+  const fbApp=getFirebaseApp();
+  return fbApp ? firebase.database(fbApp) : null;
+}
+function initFirebase(){return getFirebaseApp();}
+async function putJsonAtDbBase(base,path,obj){
+  const b=String(base||'').trim().replace(/\/+$/,''); if(!b) throw new Error('Database URL boş.');
+  const p=firebasePath(path); const data=cleanForFirebase(obj);
+  const r=await fetch(`${b}/${p}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json().catch(()=>data);
+}
+async function patchJsonAtDbBase(base,path,obj){
+  const b=String(base||'').trim().replace(/\/+$/,''); if(!b) throw new Error('Database URL boş.');
+  const p=firebasePath(path); const data=cleanForFirebase(obj);
+  const r=await fetch(`${b}/${p}.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json().catch(()=>data);
 }
 function cleanForFirebase(value){
   if(Array.isArray(value)) return value.map(cleanForFirebase);
@@ -435,9 +463,9 @@ function cleanForFirebase(value){
 async function fetchText(url){const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.text();}
 async function getJson(path){
   const p=firebasePath(path);
-  if(window.firebase){
-    initFirebase();
-    const snap=await firebase.database().ref(p).once('value');
+  const database=getFirebaseDb();
+  if(database){
+    const snap=await database.ref(p).once('value');
     return snap.val();
   }
   const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`Firebase okuma hatası: HTTP ${r.status}`); const t=await r.text(); if(!t || t==='null') return null; return JSON.parse(t);
@@ -445,27 +473,27 @@ async function getJson(path){
 async function putJson(path,obj){
   const p=firebasePath(path); const data=cleanForFirebase(obj);
   try{
-    if(window.firebase){initFirebase(); await firebase.database().ref(p).set(data); return data;}
+    const database=getFirebaseDb(); if(database){await database.ref(p).set(data); return data;}
     const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json();
   }catch(e){throw new Error(`Firebase kayıt hatası (${p}): ${e.message}`);}
 }
 async function patchJson(path,obj){
   const p=firebasePath(path); const data=cleanForFirebase(obj);
   try{
-    if(window.firebase){initFirebase(); await firebase.database().ref(p).update(data); return data;}
+    const database=getFirebaseDb(); if(database){await database.ref(p).update(data); return data;}
     const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json();
   }catch(e){throw new Error(`Firebase güncelleme hatası (${p}): ${e.message}`);}
 }
 async function postJson(path,obj){
   const p=firebasePath(path); const data=cleanForFirebase(obj);
   try{
-    if(window.firebase){initFirebase(); const ref=firebase.database().ref(p).push(); await ref.set(data); return {name:ref.key};}
+    const database=getFirebaseDb(); if(database){const ref=database.ref(p).push(); await ref.set(data); return {name:ref.key};}
     const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json();
   }catch(e){throw new Error(`Firebase kayıt hatası (${p}): ${e.message}`);}
 }
 async function deleteJson(path){
   const p=firebasePath(path);
-  if(window.firebase){initFirebase(); await firebase.database().ref(p).remove(); return true;}
+  const database=getFirebaseDb(); if(database){await database.ref(p).remove(); return true;}
   const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(`Firebase silme hatası: HTTP ${r.status}`); return true;
 }
 
@@ -503,9 +531,8 @@ async function loadSettings(){
       getJson('verianalizi002/sistemAyarlari').catch(()=>null)
     ]);
     const firebaseConfig={...FIREBASE_CONFIG,...(system?.firebaseConfig||{})};
-    const dbBase=system?.dbBase||system?.databaseURL||firebaseConfig.databaseURL||DB_BASE;
+    const dbBase=String(system?.dbBase||system?.databaseURL||firebaseConfig.databaseURL||DB_BASE).replace(/\/+$/,'');
     firebaseConfig.databaseURL=dbBase;
-    state.settings={kurumAdi:kurum?.kurumAdi||DEFAULT_KURUM,logoUrl:kurum?.logoUrl||DEFAULT_LOGO,dailyLimit:Number(limit?.maxEntryPerCourse||kurum?.gunlukLimit||kurum?.dailyLimit||3)};
     state.systemSettings={
       firebaseEnabled:system?.firebaseEnabled!==false,
       sheetsEnabled:system?.sheetsEnabled!==false,
@@ -518,6 +545,17 @@ async function loadSettings(){
       firebaseConfig,
       lastUpdate:system?.lastUpdate||''
     };
+    let activeKurum=kurum, activeLimit=limit;
+    if(dbBase && dbBase!==String(DB_BASE).replace(/\/+$/,'')){
+      const [kurum2, limit2] = await Promise.all([
+        getJson('verianalizi002/kurumAyarlari').catch(()=>null),
+        getJson('verianalizi002/ayarlar/gunlukGirisLimitleri').catch(()=>null)
+      ]);
+      activeKurum=kurum2||kurum;
+      activeLimit=limit2||limit;
+      if(activeKurum?.smsImza && !system?.smsSignature) state.systemSettings.smsSignature=activeKurum.smsImza;
+    }
+    state.settings={kurumAdi:activeKurum?.kurumAdi||DEFAULT_KURUM,logoUrl:activeKurum?.logoUrl||DEFAULT_LOGO,dailyLimit:Number(activeLimit?.maxEntryPerCourse||activeKurum?.gunlukLimit||activeKurum?.dailyLimit||3)};
   }catch(e){state.settings={kurumAdi:DEFAULT_KURUM,logoUrl:DEFAULT_LOGO,dailyLimit:3};state.systemSettings={firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',smsPrefix:'',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}};}
 }
 async function saveSettings(){
@@ -528,8 +566,15 @@ async function saveSettings(){
 }
 async function saveSystemSettings(){
   const now=nowText(); const payload={...state.systemSettings,lastUpdate:now,updatedBy:state.teacher?.id||''};
+  const currentBase=getDbBase();
   await putJson('verianalizi002/sistemAyarlari',payload);
+  if(currentBase!==String(DB_BASE).replace(/\/+$/,'')){
+    await putJsonAtDbBase(DB_BASE,'verianalizi002/sistemAyarlari',payload).catch(err=>console.warn('Varsayılan Firebase ayar aynalama uyarısı:',err));
+  }
   await patchJson('verianalizi002/kurumAyarlari',{smsImza:payload.smsSignature,guncelleme:now});
+  if(currentBase!==String(DB_BASE).replace(/\/+$/,'')){
+    await patchJsonAtDbBase(DB_BASE,'verianalizi002/kurumAyarlari',{smsImza:payload.smsSignature,guncelleme:now}).catch(err=>console.warn('Varsayılan Firebase kurum aynalama uyarısı:',err));
+  }
   await logAction('Sistem ayarı','Firebase / E-tablo / SMS ayarları güncellendi');
 }
 async function loadTeachers(){
@@ -673,9 +718,8 @@ function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v
 function planKey(dayIndex, lesson){return `d${dayIndex}_${String(lesson||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[.#$\[\]\/\s]+/g,'_').replace(/[^A-Za-z0-9_ğüşöçıİĞÜŞÖÇ-]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')}`;}
 function defaultPlan(days){const m={}; for(let d=0; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
 function resizePlan(old,days){const m=defaultPlan(days); for(const [k,v] of Object.entries(old||{})) if(k in m) m[k]=v; return m;}
-function isWeekendDate(v){const d=parseAnyDate(v); if(!d) return false; return d.getDay()===0 || d.getDay()===6;}
-function applyTemplate(plan,days,type,start=todayISO()){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; for(let d=0; d<days; d++){ if(!isWeekendDate(addDaysISO(start,d))) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
-function clearWeekends(plan,days,start=todayISO()){const m={...plan}; for(let d=0; d<days; d++) if(isWeekendDate(addDaysISO(start,d))) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
+function applyTemplate(plan,days,type){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; for(let d=0; d<days; d++){ if(d%7<5) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
+function clearWeekends(plan,days){const m={...plan}; for(let d=0; d<days; d++) if(d%7>=5) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
 function copyFirstWeek(plan,days){const m={...plan}; for(let d=7; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=plan[planKey(d%7,l)]||''; return m;}
 function buildTaskFromWizard(){
   syncTaskWizardFromDom();
@@ -1245,7 +1289,7 @@ function bindTaskWizard(){
   document.getElementById('taskStudentSearch')?.addEventListener('input',drawStudentPick);
   document.getElementById('studentClassFilter')?.addEventListener('change',drawStudentPick);
   bindStudentChecks();
-  document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days,state.taskWizard.start); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t,state.taskWizard.start); renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();});
   document.getElementById('saveTask')?.addEventListener('click',async()=>{try{syncTaskWizardFromDom(); document.getElementById('taskStatus').textContent='Kaydediliyor...'; await saveTaskFromWizard();}catch(e){const el=document.getElementById('taskStatus'); if(el) el.textContent=''; setToast(e.message,'error');}});
   document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());
