@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1d4ed8" />
+  <title>Fenomen Öğretmen Paneli</title>
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"%3E%3Crect width="128" height="128" rx="28" fill="%231d4ed8"/%3E%3Cpath d="M22 42l42-22 42 22-42 22-42-22z" fill="white"/%3E%3Cpath d="M38 59v20c0 10 12 18 26 18s26-8 26-18V59L64 73 38 59z" fill="%23bfdbfe"/%3E%3Cpath d="M103 48v30" stroke="%23fde68a" stroke-width="8" stroke-linecap="round"/%3E%3Ccircle cx="103" cy="85" r="8" fill="%23fde68a"/%3E%3C/svg%3E' />
+  <style>
+    :root{
+      --bg:#f4f7fb;--surface:#ffffff;--card:#ffffff;--text:#071426;--muted:#64748b;--line:#e5edf7;
+      --primary:#1d4ed8;--primary2:#2563eb;--primary-soft:#eff6ff;--success:#047857;--warning:#b45309;--danger:#be123c;
+      --green-soft:#ecfdf5;--orange-soft:#fff7ed;--red-soft:#fff1f2;--shadow:0 18px 45px rgba(15,23,42,.10);
+      --radius:24px;--radius2:16px;--navh:78px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:linear-gradient(145deg,#f8fbff,#eef5ff 52%,#f7f8fb)}
+    body{padding-bottom:calc(var(--navh) + env(safe-area-inset-bottom))}
+    button,input,textarea,select{font:inherit}
+    button{border:none;cursor:pointer}
+    .hidden{display:none!important}.nowrap{white-space:nowrap}.muted{color:var(--muted)}.tiny{font-size:12px}.danger{color:var(--danger)}.success{color:var(--success)}.warning{color:var(--warning)}
+    .app{min-height:100vh}.container{width:min(1180px,100%);margin:0 auto;padding:18px 14px 28px}.grid{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:880px){.two,.three,.four{grid-template-columns:1fr}.container{padding:14px 12px 24px}}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(226,232,240,.8)}
+    .topbar-inner{width:min(1180px,100%);margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}.logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#1d4ed8,#0f766e);box-shadow:0 10px 22px rgba(37,99,235,.22);overflow:hidden;flex:0 0 auto}.logo img{width:100%;height:100%;object-fit:cover}.brand{min-width:0;flex:1}.brand h1{font-size:18px;line-height:1.1;margin:0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-weight:800;font-size:12px}.ghost{background:#fff;border:1px solid var(--line);color:var(--text);padding:10px 13px;border-radius:14px;font-weight:800}.primary{background:linear-gradient(135deg,var(--primary),#0f766e);color:white;padding:11px 15px;border-radius:15px;font-weight:900;box-shadow:0 12px 24px rgba(29,78,216,.22)}.secondary{background:var(--primary-soft);color:var(--primary);padding:10px 13px;border-radius:14px;font-weight:850}.danger-btn{background:var(--red-soft);color:var(--danger);padding:10px 13px;border-radius:14px;font-weight:850}.success-btn{background:var(--green-soft);color:var(--success);padding:10px 13px;border-radius:14px;font-weight:850}.warning-btn{background:var(--orange-soft);color:var(--warning);padding:10px 13px;border-radius:14px;font-weight:850}
+    .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.9);backdrop-filter:blur(20px);border-top:1px solid rgba(226,232,240,.9);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -16px 45px rgba(15,23,42,.08)}.bottom-nav .nav-inner{width:min(760px,100%);margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.nav-item{border:1px solid var(--line);background:#fff;border-radius:18px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:850;color:var(--muted)}.nav-item b{font-size:18px;line-height:1}.nav-item.active{background:linear-gradient(135deg,var(--primary),#0f766e);color:white;border-color:transparent;box-shadow:0 10px 22px rgba(37,99,235,.22)}
+    .login-wrap{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(480px,100%);background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border:1px solid rgba(226,232,240,.95);border-radius:34px;padding:28px;box-shadow:var(--shadow);text-align:center}.login-icon{width:112px;height:112px;margin:0 auto 16px;border-radius:28px;background:linear-gradient(135deg,#1d4ed8,#0f766e);display:grid;place-items:center;color:white}.login-card h1{font-size:28px;margin:8px 0 6px}.login-card p{color:var(--muted);font-weight:700;margin:0 0 20px}.field{width:100%;display:flex;flex-direction:column;gap:7px}.field label{font-size:12px;font-weight:900;color:#334155;text-transform:uppercase;letter-spacing:.03em}.input,textarea,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 14px;outline:none;color:var(--text);box-shadow:0 1px 0 rgba(15,23,42,.02)}.input:focus,textarea:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(59,130,246,.13)}textarea{resize:vertical;min-height:110px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.nowrap{flex-wrap:nowrap}.row>*{min-width:0}.spacer{flex:1}.card{background:rgba(255,255,255,.95);border:1px solid rgba(226,232,240,.95);border-radius:var(--radius);box-shadow:0 10px 30px rgba(15,23,42,.06);padding:16px}.card h2,.card h3{margin:0 0 10px}.card h2{font-size:21px}.card h3{font-size:17px}.section-title{margin:6px 0 14px}.section-title h2{font-size:24px;margin:0;font-weight:950}.section-title p{margin:5px 0 0;color:var(--muted);font-weight:700}.stat-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:15px;box-shadow:0 8px 22px rgba(15,23,42,.05)}.stat-card small{color:var(--muted);font-weight:900}.stat-card strong{display:block;font-size:28px;margin:5px 0 3px}.stat-card span{font-size:12px;color:var(--muted);font-weight:700}.chipbar{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:white;color:#334155;font-weight:850}.chip.active{background:var(--primary);border-color:var(--primary);color:white}.empty{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:18px;padding:18px;color:var(--muted);font-weight:700}.student-row{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:22px;background:#fff;cursor:pointer;transition:.15s}.student-row:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(15,23,42,.07)}.avatar{width:48px;height:48px;border-radius:18px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);font-weight:950}.student-row h3{margin:0;font-size:16px}.student-row p{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:700}.badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;background:var(--primary-soft);color:var(--primary)}.badge.red{background:var(--red-soft);color:var(--danger)}.badge.orange{background:var(--orange-soft);color:var(--warning)}.badge.green{background:var(--green-soft);color:var(--success)}.tabbox{display:grid;gap:10px}.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:900;color:var(--muted)}.tab.active{background:var(--primary);color:white;border-color:var(--primary)}.message-preview{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:18px;padding:13px;line-height:1.48;color:#26364d}.button-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.button-grid button{min-height:46px}.compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.lesson-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.day-card{border:1px solid var(--line);background:#f8fafc;border-radius:20px;padding:12px}.day-card h4{margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;align-items:center}.thin-list{display:grid;gap:8px}.thin-item{border:1px solid var(--line);border-radius:18px;background:#fff;padding:11px;display:grid;gap:7px}.thin-item .actions{display:flex;gap:7px;flex-wrap:wrap}.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:80;display:grid;place-items:center;padding:14px}.modal{width:min(720px,100%);max-height:88vh;overflow:auto;background:white;border-radius:28px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.24)}.toast{position:fixed;left:50%;bottom:calc(var(--navh) + 18px);transform:translateX(-50%);background:#0f172a;color:#fff;padding:12px 16px;border-radius:16px;box-shadow:var(--shadow);z-index:100;font-weight:800;max-width:min(620px,calc(100vw - 28px));text-align:center}.toast.error{background:#991b1b}.toast.ok{background:#065f46}.bar{height:9px;background:#eaf0f8;border-radius:999px;overflow:hidden}.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#0f766e);border-radius:999px}.confirm-panel{border:1px solid #bfdbfe;background:#eff6ff;border-radius:20px;padding:13px;display:grid;gap:10px}.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:10px;white-space:pre-wrap;overflow:auto}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px}.table{width:100%;border-collapse:collapse;background:white}.table th,.table td{padding:11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}.table th{background:#f8fafc;color:#334155;font-size:12px;text-transform:uppercase;letter-spacing:.03em}.table tr:last-child td{border-bottom:0}.loader{display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid #bfdbfe;border-top-color:var(--primary);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:600px){.button-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar-inner{padding:9px 10px}.logo{width:48px;height:48px;border-radius:16px}.brand h1{font-size:15px}.brand p{font-size:12px}.topbar .ghost{padding:9px 10px}.card{padding:14px;border-radius:22px}.bottom-nav .nav-inner{gap:6px}.nav-item{border-radius:16px;font-size:11px}.nav-item b{font-size:16px}}
+  </style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<div id="toast" class="toast hidden"></div>
+<script>
+'use strict';
+
+const SHEET_ID = '1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw';
+const DB_BASE = 'https://odevfeno-default-rtdb.europe-west1.firebasedatabase.app';
+const ADMIN_ID = '101';
+const DEFAULT_KURUM = 'Fenomen Eğitim Kurumları';
+const DEFAULT_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="128" height="128" rx="30" fill="url(#g)"/><path d="M20 42l44-23 44 23-44 23-44-23z" fill="#fff"/><path d="M38 59v22c0 10 12 19 26 19s26-9 26-19V59L64 73 38 59z" fill="#dbeafe"/><path d="M102 49v29" stroke="#fde68a" stroke-width="8" stroke-linecap="round"/><circle cx="102" cy="86" r="8" fill="#fde68a"/></svg>`)}`;
+
+const DEFAULT_LESSONS = [
+  {name:'Türkçe', topics:[{name:'Paragraf', subtopics:['Ana fikir','Yardımcı fikir','Sözcükte anlam']},{name:'Dil Bilgisi', subtopics:['Fiilimsiler','Cümle türleri']}]},
+  {name:'Matematik', topics:[{name:'Sayılar', subtopics:['Çarpanlar','Üslü ifadeler','Karekök']},{name:'Problem', subtopics:['Oran-orantı','Yüzdeler']}]},
+  {name:'Fen Bilimleri', topics:[{name:'Madde ve Endüstri', subtopics:['Periyodik sistem','Kimyasal tepkimeler']},{name:'Enerji', subtopics:['Basınç','Elektrik yükleri']}]},
+  {name:'İngilizce', topics:[{name:'Vocabulary', subtopics:['Unit words','Reading']}]},
+  {name:'Din Kültürü', topics:[{name:'Kazanım Tekrarı', subtopics:['Kader','Zekât']}]},
+  {name:'T.C. İnkılap Tarihi', topics:[{name:'Milli Mücadele', subtopics:['Cepheler','Atatürk ilkeleri']}]} 
+];
+
+const Days = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const app = document.getElementById('app');
+const toastEl = document.getElementById('toast');
+
+const state = {
+  settings:{kurumAdi:DEFAULT_KURUM, logoUrl:DEFAULT_LOGO, dailyLimit:3},
+  teacher:null, teachers:[], students:[], lessons:structuredClone(DEFAULT_LESSONS),
+  followClasses:[], tasks:[], activeTab:'dashboard', selectedStudent:null,
+  range:null, loading:false, draftConfirm:null, editingTaskKey:null, adminOps:null
+};
+
+function esc(v){return String(v ?? '').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+function enc(v){return encodeURIComponent(String(v ?? ''));}
+function cleanId(v){return String(v ?? '').trim().replace(/\.0$/,'').replace(/\D+/g,'');}
+function normalizeHeader(s){return String(s ?? '').trim().toLocaleUpperCase('tr-TR').replace(/[\s_]+/g,'').replaceAll('İ','I').replaceAll('Ş','S').replaceAll('Ğ','G').replaceAll('Ü','U').replaceAll('Ö','O').replaceAll('Ç','C');}
+function valueOf(row, header, keys){for(const k of keys){const idx=header.indexOf(normalizeHeader(k)); if(idx>=0 && idx<row.length) return cleanSheetValue(row[idx]);} return '';}
+function cleanSheetValue(v){return String(v ?? '').trim().replace(/\.0$/,'');}
+function todayISO(){const d=new Date(); return toISO(d);}
+function toISO(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;}
+function parseAnyDate(v){
+  const s=String(v ?? '').trim(); if(!s) return null;
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[.\/]([0-9]{1,2})[.\/](\d{4})/); if(m) return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(s); return isNaN(d) ? null : d;
+}
+function isoFromAny(v){const d=parseAnyDate(v); return d ? toISO(d) : '';}
+function fmtDate(v){const d=parseAnyDate(v); if(!d) return ''; const z=n=>String(n).padStart(2,'0'); return `${z(d.getDate())}.${z(d.getMonth()+1)}.${d.getFullYear()}`;}
+function nowText(){const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${z(d.getDate())}.${z(d.getMonth()+1)}.${d.getFullYear()} ${z(d.getHours())}:${z(d.getMinutes())}`;}
+function addDaysISO(iso, days){const d=parseAnyDate(iso) || new Date(); d.setDate(d.getDate()+days); return toISO(d);}
+function dateInRange(date,start,end){const iso=isoFromAny(date); return iso && iso>=start && iso<=end;}
+function rangesOverlap(aStart,aEnd,bStart,bEnd){return aStart<=bEnd && bStart<=aEnd;}
+function weekRange(){const d=new Date(); const day=d.getDay(); const diff=day===0 ? -6 : 1-day; d.setDate(d.getDate()+diff); const start=toISO(d); d.setDate(d.getDate()+6); return {title:'Bu hafta', start, end:toISO(d)};}
+function monthRange(){const d=new Date(); const start=new Date(d.getFullYear(),d.getMonth(),1); const end=new Date(d.getFullYear(),d.getMonth()+1,0); return {title:'Bu ay', start:toISO(start), end:toISO(end)};}
+function last30Range(){return {title:'Son 30 gün', start:addDaysISO(todayISO(),-29), end:todayISO()};}
+function setToast(msg,type=''){toastEl.className=`toast ${type}`; toastEl.textContent=msg; clearTimeout(setToast.t); setToast.t=setTimeout(()=>toastEl.classList.add('hidden'),3600);}
+function setLoading(v){state.loading=v; render();}
+function lessonNames(){return state.lessons.map(x=>x.name).filter(Boolean);}
+function getTeacherName(id){const t=state.teachers.find(x=>cleanId(x.id)===cleanId(id)); return t?.name || (cleanId(id)===cleanId(state.teacher?.id) ? state.teacher?.name : `Öğretmen ${id || '?'}`);}
+function normalizePhoneTR(raw){let d=String(raw||'').replace(/\D/g,''); if(!d) return ''; if(d.startsWith('0090')&&d.length>=14) d=d.slice(2,14); else if(d.startsWith('90')&&d.length>=12) d=d.slice(0,12); else if(d.startsWith('0')&&d.length===11) d='9'+d; else if(d.length===10) d='90'+d; return d;}
+function copyText(text){if(navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return Promise.resolve();}
+
+async function fetchText(url){const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.text();}
+async function getJson(path){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(`Firebase okuma hatası: HTTP ${r.status}`); const t=await r.text(); if(!t || t==='null') return null; return JSON.parse(t);}
+async function putJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();}
+async function patchJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase güncelleme hatası: HTTP ${r.status}`); return await r.json();}
+async function postJson(path,obj){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)}); if(!r.ok) throw new Error(`Firebase kayıt hatası: HTTP ${r.status}`); return await r.json();}
+async function deleteJson(path){const url=`${DB_BASE}/${String(path).replace(/^\/+|\/+$/g,'')}.json`; const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(`Firebase silme hatası: HTTP ${r.status}`); return true;}
+
+function parseCsv(csv){
+  const rows=[]; let row=[],cur='',q=false;
+  for(let i=0;i<csv.length;i++){
+    const c=csv[i];
+    if(c==='"') { if(q && csv[i+1]==='"'){cur+='"';i++;} else q=!q; }
+    else if(c===',' && !q){ row.push(cur); cur=''; }
+    else if((c==='\n'||c==='\r') && !q){ if(cur || row.length){row.push(cur); rows.push(row.map(cleanSheetValue)); row=[]; cur='';} if(c==='\r' && csv[i+1]==='\n') i++; }
+    else cur+=c;
+  }
+  if(cur || row.length){row.push(cur); rows.push(row.map(cleanSheetValue));}
+  return rows.filter(r=>r.some(x=>String(x).trim()));
+}
+function rowsHaveHeaders(rows, groups){const h=(rows[0]||[]).map(normalizeHeader); return groups.every(g=>g.some(k=>h.includes(normalizeHeader(k))));}
+async function loadSheetRows(sheetNames, groups){
+  for(const name of sheetNames){
+    const urls=[
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${enc(name)}`,
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${enc(name)}`
+    ];
+    for(const url of urls){
+      try{const rows=parseCsv(await fetchText(url)); if(rows.length>1 && rowsHaveHeaders(rows,groups)) return rows;}catch(e){}
+    }
+  }
+  return [];
+}
+
+async function loadSettings(){
+  try{const o=await getJson('verianalizi002/kurumAyarlari'); state.settings={kurumAdi:o?.kurumAdi||DEFAULT_KURUM, logoUrl:o?.logoUrl||DEFAULT_LOGO, dailyLimit:Number(o?.gunlukLimit||o?.dailyLimit||3)};}catch(e){state.settings={kurumAdi:DEFAULT_KURUM,logoUrl:DEFAULT_LOGO,dailyLimit:3};}
+}
+async function saveSettings(){await putJson('verianalizi002/kurumAyarlari',{kurumAdi:state.settings.kurumAdi, logoUrl:state.settings.logoUrl, gunlukLimit:state.settings.dailyLimit, guncelleme:nowText()}); await logAction('Ayar güncelleme','Kurum ayarları güncellendi');}
+async function loadTeachers(){
+  const groups=[['ID'],['OGRETMENADI','OGRETMEN_ADI','ÖĞRETMEN_ADI']];
+  let list=[];
+  try{const rows=await loadSheetRows(['Ogretmenler','Öğretmenler','ogretmenler'],groups); const h=(rows[0]||[]).map(normalizeHeader); list=rows.slice(1).map(r=>({id:cleanId(valueOf(r,h,['ID'])), name:valueOf(r,h,['OGRETMENADI','OGRETMEN_ADI','ÖĞRETMEN_ADI'])||'Öğretmen', branch:valueOf(r,h,['BRANS','BRANŞ']), phone:valueOf(r,h,['TEL'])})).filter(x=>x.id);}catch(e){}
+  if(!list.length){try{const root=await getJson('verianalizi002/ogretmenler')||{}; list=Object.entries(root).map(([k,o])=>({id:cleanId(o.id||o.ID||k), name:o.name||o.ogretmenAdi||o.OGRETMEN_ADI||'Öğretmen', branch:o.brans||o.BRANS||'', phone:o.tel||o.TEL||''})).filter(x=>x.id);}catch(e){}}
+  if(!list.some(t=>cleanId(t.id)===ADMIN_ID)) list.unshift({id:ADMIN_ID,name:'Admin Öğretmen',branch:'Yönetim',phone:''});
+  state.teachers=list.map(t=>({...t,isAdmin:cleanId(t.id)===ADMIN_ID}));
+}
+async function loadStudents(){
+  const groups=[['NO','OGRENCINO','ÖĞRENCİNO'],['ADSOYAD','AD_SOYAD','ADI_SOYADI'],['SINIF','SINIFI']];
+  let list=[];
+  try{const rows=await loadSheetRows(['Ogrenciler','Öğrenciler','ogrenciler'],groups); const h=(rows[0]||[]).map(normalizeHeader); list=rows.slice(1).map(r=>({
+    no:cleanId(valueOf(r,h,['NO','OGRENCINO','ÖĞRENCİNO','OGRENCI_NO'])),
+    name:valueOf(r,h,['ADSOYAD','ADISOYADI','AD_SOYAD','ADI_SOYADI','OGRENCIADI','ÖĞRENCİADI']),
+    className:valueOf(r,h,['SINIF','SINIFI','SINIFADI','SINIF_ADI']),
+    parentPhone:valueOf(r,h,['VELITEL','VELİTEL','VELITELEFON','TELEFON']),
+    parentMail:valueOf(r,h,['VELIMAIL','VELİMAIL','VELİMAİL','VELIEPOSTA','EMAIL','EPOSTA'])
+  })).filter(x=>x.no&&x.name);}catch(e){}
+  if(!list.length){try{const root=await getJson('verianalizi002/ogrenciler')||{}; list=Object.entries(root).map(([k,o])=>({no:cleanId(o.no||o.NO||o.id||k),name:o.adsoyad||o.ADSOYAD||o.name||o.ogrenciAdi||'',className:o.sinif||o.SINIF||o.className||'',parentPhone:o.veliTel||o.VeliTel||o.parentPhone||'',parentMail:o.veliMail||o.VeliMail||o.parentMail||''})).filter(x=>x.no&&x.name);}catch(e){}}
+  state.students=list.sort((a,b)=>(a.className||'').localeCompare(b.className||'','tr') || ((+a.no||999999)-(+b.no||999999)) || a.name.localeCompare(b.name,'tr'));
+}
+async function loadLessons(){
+  try{
+    const o=await getJson('verianalizi002/dersler');
+    if(Array.isArray(o?.lessons)) state.lessons=o.lessons;
+    else if(Array.isArray(o?.dersler)) state.lessons=o.dersler.map(x=>typeof x==='string'?{name:x,topics:[]}:x);
+    else state.lessons=structuredClone(DEFAULT_LESSONS);
+  }catch(e){state.lessons=structuredClone(DEFAULT_LESSONS);}
+  if(!state.lessons.length) state.lessons=structuredClone(DEFAULT_LESSONS);
+}
+async function saveLessons(){await putJson('verianalizi002/dersler',{lessons:state.lessons,guncelleme:nowText(),ogretmenID:state.teacher?.id||''}); await logAction('Ders düzenleme','Dersler / ana konular / alt konular güncellendi');}
+async function loadFollowSettings(){try{const o=await getJson('verianalizi002/takipAyarlari'); state.followClasses=Array.isArray(o?.siniflar)?o.siniflar:[];}catch(e){state.followClasses=[];}}
+async function saveFollowSettings(){await putJson('verianalizi002/takipAyarlari',{siniflar:state.followClasses,guncelleme:nowText(),ogretmenID:state.teacher?.id}); await logAction('Takip ayarı','Admin takip sınıflarını güncelledi');}
+async function loadTasks(){
+  try{const root=await getJson('verianalizi001/haftalikGorevler')||{}; state.tasks=Object.entries(root).map(([key,o])=>normalizeTask(key,o)).filter(Boolean).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}
+  catch(e){state.tasks=[];}
+}
+function normalizeTask(key,o){if(!o || typeof o!=='object') return null; const start=isoFromAny(o.start||o.baslangic); const days=Number(o.days||o.sureGun||7); const targetType=targetTypeFromLabel(o.targetType||o.hedefTipi); return {key,start,days,end:addDaysISO(start,days-1),targetType,className:o.className||o.sinif||'',studentNos:Array.isArray(o.studentNos)?o.studentNos.map(cleanId):(Array.isArray(o.ogrenciler)?o.ogrenciler.map(cleanId):[]),plan:o.plan||{},teacherId:cleanId(o.teacherId||o.ogretmenID||''),teacherName:o.teacherName||getTeacherName(o.teacherId||o.ogretmenID),createdAt:o.createdAt||o.olusturmaZamani||'',updatedAt:o.updatedAt||'',status:o.status||'aktif'};}
+function targetTypeFromLabel(v){const s=String(v||'').toLocaleLowerCase('tr-TR'); if(s.includes('tüm')||s==='all') return 'all'; if(s.includes('öğr')||s.includes('student')) return 'students'; return 'class';}
+function targetLabel(task){if(task.targetType==='all') return 'Tüm öğrenciler'; if(task.targetType==='students') return `${task.studentNos.length} öğrenci`; return `${task.className} sınıfı`;}
+function studentsForTask(task, students=state.students){if(task.targetType==='all') return students.map(s=>s.no); if(task.targetType==='class') return students.filter(s=>s.className===task.className).map(s=>s.no); return task.studentNos.map(cleanId);}
+function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);}
+function planKey(dayIndex, lesson){return `d${dayIndex}_${lesson.replaceAll(' ','_')}`;}
+function defaultPlan(days){const m={}; for(let d=0; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
+function resizePlan(old,days){const m=defaultPlan(days); for(const [k,v] of Object.entries(old||{})) if(k in m) m[k]=v; return m;}
+function applyTemplate(plan,days,type){const names=lessonNames(); const base={hafif:[20,15,15,10,10,10],dengeli:[30,30,25,15,15,15],yogun:[40,40,30,20,20,20]}[type] || [30,30,25,15,15,15]; const m={...plan}; for(let d=0; d<days; d++){ if(d%7<5) names.forEach((l,i)=>m[planKey(d,l)]=String(base[i]??10)); } return m;}
+function clearWeekends(plan,days){const m={...plan}; for(let d=0; d<days; d++) if(d%7>=5) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
+function copyFirstWeek(plan,days){const m={...plan}; for(let d=7; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=plan[planKey(d%7,l)]||''; return m;}
+function buildTaskFromWizard(){const mode=document.querySelector('input[name="targetMode"]:checked')?.value||'class'; const start=document.getElementById('taskStart')?.value||todayISO(); const days=Number(document.getElementById('taskDays')?.value||7); const className=document.getElementById('taskClass')?.value||''; const domStudentNos=[...document.querySelectorAll('.student-check:checked')].map(x=>cleanId(x.value)); const studentNos=[...new Set([...(state.taskWizard?.studentNos||[]),...domStudentNos])].filter(Boolean); let plan={}; document.querySelectorAll('[data-plan-key]').forEach(inp=>{const v=String(inp.value||'').replace(/\D/g,'').slice(0,4); if(v && v!=='0') plan[inp.dataset.planKey]=v;}); return {start,days,end:addDaysISO(start,days-1),targetType:mode,className,studentNos,plan,teacherId:state.teacher.id,teacherName:state.teacher.name,status:'aktif'};}
+function findConflicts(task, ignoreKey=''){
+  const targetSet=new Set(studentsForTask(task));
+  const conflicts=[];
+  for(const old of state.tasks){
+    if(old.key===ignoreKey || old.status==='silindi') continue;
+    if(!rangesOverlap(task.start,task.end,old.start,old.end)) continue;
+    const oldSet=new Set(studentsForTask(old));
+    const both=[...targetSet].filter(no=>oldSet.has(no));
+    if(both.length){conflicts.push({task:old, students:both});}
+  }
+  return conflicts;
+}
+async function saveTaskFromWizard(){
+  const task=buildTaskFromWizard();
+  if(task.targetType==='class' && !task.className) throw new Error('Sınıf seçilmedi.');
+  if(task.targetType==='students' && !task.studentNos.length) throw new Error('En az bir öğrenci seçin.');
+  const targetCount=studentsForTask(task).length; if(!targetCount) throw new Error('Bu hedefte öğrenci bulunamadı.');
+  const conflicts=findConflicts(task,state.editingTaskKey||'');
+  if(conflicts.length){
+    const names=conflicts[0].students.slice(0,5).map(no=>state.students.find(s=>s.no===no)?.name||no).join(', ');
+    throw new Error(`Bu tarihlerde bu öğrencinin/program hedefinin görevi vardır: ${names}${conflicts[0].students.length>5?'...':''}. Çakışan görev: ${targetLabel(conflicts[0].task)} (${fmtDate(conflicts[0].task.start)}-${fmtDate(conflicts[0].task.end)}), veren: ${getTeacherName(conflicts[0].task.teacherId)}.`);
+  }
+  const payload={...task,createdAt:state.editingTaskKey?(state.tasks.find(t=>t.key===state.editingTaskKey)?.createdAt||nowText()):nowText(),updatedAt:nowText()};
+  let key=state.editingTaskKey;
+  if(key){await putJson(`verianalizi001/haftalikGorevler/${key}`,payload);} else {const r=await postJson('verianalizi001/haftalikGorevler',payload); key=r.name;}
+  const verify=await getJson(`verianalizi001/haftalikGorevler/${key}`);
+  if(!verify) throw new Error('Firebase doğrulaması başarısız: kayıt görünmüyor. Realtime Database kurallarını kontrol edin.');
+  await logAction(state.editingTaskKey?'Görev güncelleme':'Görev kaydı',`${targetLabel({...task,key})} için ${fmtDate(task.start)}-${fmtDate(task.end)} programı kaydedildi. Firebase key: ${key}`);
+  state.editingTaskKey=null; await loadTasks(); setToast(`Görev Firebase'e kaydedildi: ${key}`,'ok'); resetWizardAfterSave(); render();
+}
+async function deleteTask(key){if(!confirm('Bu görevlendirmeyi silmek istiyor musunuz?')) return; await deleteJson(`verianalizi001/haftalikGorevler/${key}`); await logAction('Görev silme',`Görev silindi: ${key}`); await loadTasks(); setToast('Görev silindi','ok'); render();}
+async function logAction(type,detail){try{await postJson('verianalizi001/ogretmenIslemleri',{type,detail,teacherId:state.teacher?.id||'',teacherName:state.teacher?.name||'',time:nowText()});}catch(e){}}
+
+async function loadStats(studentNo,start,end){
+  try{const root=await getJson(`verianalizi001/calismaKayitlari/${studentNo}`)||{}; let total=0,correct=0,wrong=0,empty=0,entryCount=0; const active=new Set(); const subjects={};
+    for(const rec of Object.values(root)){if(!rec||typeof rec!=='object') continue; const date=rec.tarih||rec.date||rec.tarihSaat||''; if(!dateInRange(date,start,end)) continue; const lesson=rec.ders||rec.lesson||'Genel'; const t=Number(rec.toplam??rec.toplamSoru??rec.total??0); const w=Number(rec.yanlis??rec.wrong??0); const e=Number(rec.bos??rec.empty??0); const c=Number(rec.dogru??rec.correct??Math.max(0,t-w-e)); total+=t; correct+=c; wrong+=w; empty+=e; entryCount++; const iso=isoFromAny(date); if(iso) active.add(iso); if(!subjects[lesson]) subjects[lesson]={lesson,total:0,correct:0,wrong:0,empty:0}; subjects[lesson].total+=t; subjects[lesson].correct+=c; subjects[lesson].wrong+=w; subjects[lesson].empty+=e;}
+    return {total,correct,wrong,empty,entryCount,activeDays:active.size,subjects:Object.values(subjects).sort((a,b)=>b.total-a.total)};
+  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[]};}
+}
+async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.tarih||rec?.date||rec?.tarihSaat||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
+async function loadAlerts(){
+  if(!state.followClasses.length) return {configured:false,items:[]};
+  const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).slice(0,160); const r=weekRange(); const items=[];
+  for(const st of tracked){const s=await loadStats(st.no,r.start,r.end); if(s.entryCount===0) items.push({student:st,reason:'Bu hafta veri girişi yok',level:'high'}); else if(s.total<50) items.push({student:st,reason:`Soru sayısı düşük: ${s.total}`,level:'mid'});}
+  return {configured:true,items};
+}
+async function logParentNotification(student,channel,message){await postJson(`verianalizi001/veliBildirimGecmisi/${student.no}`,{kanal:channel,mesajMetni:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,durum:'gonderildi'}); await logAction('Veli bildirimi',`${student.name} velisine ${channel} bildirimi gönderildi olarak işlendi.`);}
+async function sendStudentPanelMessage(student,title,message){await postJson(`verianalizi001/ogrenciMesajlari/${student.no}`,{baslik:title,mesaj:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,okundu:false}); await logAction('Öğrenci mesajı',`${student.name} öğrencisine panel mesajı gönderildi.`);}
+async function loadStudentMessages(no){try{const root=await getJson(`verianalizi001/ogrenciMesajlari/${no}`)||{}; return Object.entries(root).map(([key,o])=>({key,...o})).sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||'')));}catch(e){return [];}}
+
+function buildWhatsAppMessage(st,stats,range,note){
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• *${s.lesson}:* ${s.total} soru, ${s.correct} doğru, ${s.wrong} yanlış, ${s.empty} boş`).join('\n'):'• Bu tarih aralığında çalışma girişi görünmüyor.';
+  const auto=stats.entryCount===0?'⚠️ Öğrencimizin bu aralıkta sisteme çalışma girişi yapmadığı görülmektedir.':stats.total<50?'📌 Çalışma miktarının artırılması faydalı olacaktır.':'✅ Çalışma takibi olumlu ilerlemektedir.';
+  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf:* ${st.className}\n*Tarih:* ${fmtDate(range.start)} - ${fmtDate(range.end)}\n\n📊 *Çalışma Özeti*\n*Toplam:* ${stats.total} soru\n*Doğru:* ${stats.correct}  *Yanlış:* ${stats.wrong}  *Boş:* ${stats.empty}\n*Aktif gün:* ${stats.activeDays}\n\n📚 *Ders Özeti*\n${ders}\n\n${note.trim()||auto}\n\n*Gönderen Öğretmen:* ${state.teacher.name}\n${state.settings.kurumAdi}`;
+}
+function buildEmailMessage(st,stats,range,note){
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• ${s.lesson}: ${s.total} soru | ${s.correct} doğru | ${s.wrong} yanlış | ${s.empty} boş`).join('\n'):'Kayıtlı çalışma bulunmamaktadır.';
+  const auto=stats.entryCount===0?'Bu tarih aralığında sistemde çalışma kaydı bulunmamaktadır. Düzenli takip için öğrencimizin günlük çalışma girişlerini yapması önemlidir.':stats.total<50?'Çalışma girişi vardır ancak soru sayısı beklenen seviyenin altındadır. Kısa ve düzenli ev takibi faydalı olacaktır.':'Öğrencimizin çalışma takibi olumlu ilerlemektedir.';
+  return `Sayın Velimiz,\n\n${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.\n\nÖğrenci Bilgisi\nAd Soyad: ${st.name}\nSınıf: ${st.className}\nÖğrenci No: ${st.no}\n\nÇalışma Özeti\nToplam Soru: ${stats.total}\nDoğru: ${stats.correct}\nYanlış: ${stats.wrong}\nBoş: ${stats.empty}\nAktif Çalışma Günü: ${stats.activeDays}\n\nDers Bazlı Özet\n${ders}\n\nÖğretmen Değerlendirmesi\n${note.trim()||auto}\n\nGönderen Öğretmen: ${state.teacher.name}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
+}
+function buildSmsMessage(st,stats,range){
+  const durum=stats.entryCount===0?'calisma yok':stats.total<50?'soru az':'olumlu';
+  const msg=`${st.name.slice(0,18)} ${fmtDate(range.start).slice(0,5)}-${fmtDate(range.end).slice(0,5)}: ${stats.total} soru, D:${stats.correct} Y:${stats.wrong} B:${stats.empty}. Durum:${durum}. Öğrt:${state.teacher.name.slice(0,16)}.`;
+  return msg.length<=155?msg:msg.slice(0,152)+'...';
+}
+function buildStudentMsg(level,st,stats,range){const who=`\n\nGönderen Öğretmen: ${state.teacher.name}`; if(level==='positive') return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığında ${stats.total} soru girişi yaptın. Bu iyi bir başlangıç. Düzenli devam edersen gelişimin çok daha net görülecek.${who}`; if(level==='high') return `Sevgili ${st.name}, bu aralıktaki çalışma takibin beklenen seviyenin altında görünüyor. Bugünden itibaren kısa ama düzenli çalışma yapmanı ve girişlerini aksatmamanı bekliyorum.${who}`; if(level==='excellent') return `Sevgili ${st.name}, çalışman çok güzel ilerliyor. Toplam ${stats.total} soru çözmen ve düzenli takip yapman çok değerli. Aynı tempoyla devam etmeni bekliyorum.${who}`; return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığındaki çalışma durumunu kontrol etmeni istiyorum. Toplam soru: ${stats.total}. Günlük girişlerini düzenli yapmayı unutma.${who}`;}
+
+async function bootstrap(){
+  setLoading(true);
+  await loadSettings(); await Promise.all([loadTeachers(), loadStudents(), loadLessons(), loadFollowSettings(), loadTasks()]);
+  state.range=weekRange(); state.loading=false; render();
+}
+
+function render(){
+  if(state.loading && !state.teacher){app.innerHTML=`<div class="login-wrap"><div class="login-card"><span class="loader"></span><h1>Yükleniyor</h1><p>Öğretmen, öğrenci ve Firebase bağlantıları hazırlanıyor.</p></div></div>`;return;}
+  if(!state.teacher){renderLogin(); return;}
+  app.innerHTML=`${topbarHtml()}<main class="container" id="mainArea"></main>${bottomNavHtml()}`;
+  const main=document.getElementById('mainArea');
+  if(state.selectedStudent) renderStudentDetail(main,state.selectedStudent);
+  else if(state.activeTab==='dashboard') renderDashboard(main);
+  else if(state.activeTab==='students') renderStudents(main);
+  else if(state.activeTab==='tasks') renderTasks(main);
+  else if(state.activeTab==='admin') renderAdmin(main);
+  bindGlobal();
+}
+function renderLogin(){
+  app.innerHTML=`<div class="login-wrap"><div class="login-card">
+    <div class="login-icon"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:28px" onerror="this.src='${DEFAULT_LOGO}'"></div>
+    <h1>${esc(state.settings.kurumAdi)}</h1><p>Öğretmen yönetim paneli</p>
+    <div class="field" style="text-align:left"><label>Öğretmen ID</label><input id="loginId" class="input" inputmode="numeric" placeholder="Örn. 101"></div>
+    <button id="loginBtn" class="primary" style="width:100%;margin-top:14px;min-height:52px">Giriş Yap</button>
+    <p class="tiny" style="margin-top:16px">Program Tasarımı: Ferhat Karagöz</p>
+  </div></div>`;
+  document.getElementById('loginBtn').onclick=async()=>{const id=cleanId(document.getElementById('loginId').value); if(!id){setToast('ID giriniz','error'); return;} if(!state.teachers.length) await loadTeachers(); const t=state.teachers.find(x=>cleanId(x.id)===id); if(!t){setToast('Öğretmen bulunamadı. E-tablo veya Firebase öğretmen kayıtlarını kontrol edin.','error');return;} state.teacher=t; state.activeTab='dashboard'; render();};
+}
+function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
+function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
+function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{state.teacher=null; state.selectedStudent=null; render();});}
+function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2><p>${esc(sub)}</p></div>`;}
+function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
+
+async function renderDashboard(main){
+  main.innerHTML=`${section('Kontrol Paneli','Bugün, hafta ve risk durumları')}<div class="grid"><div class="card"><span class="loader"></span> Veriler hesaplanıyor...</div></div>`;
+  const today=await countEntries(todayISO(),todayISO()); const alertData=await loadAlerts();
+  main.innerHTML=`${section('Kontrol Paneli','Bugün, hafta ve risk durumları')}
+    ${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',today,'Çalışma girişi'],['Takip',alertData.configured?alertData.items.length:'Kapalı','Uyarı listesi'],['Yetki',state.teacher.isAdmin?'Admin':'Öğretmen',`ID ${state.teacher.id}`]])}
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3>Haftalık Takip</h3><p class="muted">Hafta: <b>${fmtDate(weekRange().start)} / ${fmtDate(weekRange().end)}</b></p><p class="muted">Uyarı listesi yalnızca adminin seçtiği sınıflar için üretilir.</p></div>
+      <div class="card"><h3>Takip Ayarı</h3>${state.followClasses.length?`<div class="chipbar">${state.followClasses.map(c=>`<span class="chip active">${esc(c)}</span>`).join('')}</div>`:'<div class="empty">Admin takip edilecek sınıfları seçmediği için takip/uyarı listesi gösterilmiyor.</div>'}</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Takip Gereken Öğrenciler</h3><div class="thin-list">${!alertData.configured?'<div class="empty">Liste kapalı. Admin panelinden takip edilecek sınıfları seçin.</div>':alertData.items.length?alertData.items.slice(0,12).map(a=>`<div class="thin-item"><div class="row"><span class="badge ${a.level==='high'?'red':'orange'}">${a.level==='high'?'Acil':'Uyarı'}</span><b>${esc(a.student.name)}</b><span class="muted">${esc(a.student.className)}</span></div><div class="muted">${esc(a.reason)}</div></div>`).join(''):'<div class="empty">Seçilen sınıflarda şu anda kritik uyarı yok.</div>'}</div></div>
+    <footer class="muted tiny" style="text-align:center;margin:20px">Program Tasarımı: Ferhat Karagöz</footer>`;
+}
+function renderStudents(main){
+  const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean))];
+  main.innerHTML=`${section('Öğrenciler','Ara, filtrele, detay ve veli işlemleri')}
+    <div class="card"><div class="compact-grid"><div class="field"><label>Öğrenci ara</label><input id="studentSearch" class="input" placeholder="Ad, no veya sınıf"></div><div class="field"><label>Sınıf</label><select id="classFilter">${classes.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div></div><p class="muted tiny" id="studentCount"></p></div>
+    <div id="studentList" class="grid" style="margin-top:12px"></div>`;
+  const draw=()=>{const q=document.getElementById('studentSearch').value.toLocaleLowerCase('tr-TR'); const c=document.getElementById('classFilter').value; const list=state.students.filter(s=>(c==='Tümü'||s.className===c)&&`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q)); document.getElementById('studentCount').textContent=`${list.length} öğrenci listeleniyor`; document.getElementById('studentList').innerHTML=list.map(s=>`<div class="student-row" data-student="${esc(s.no)}"><div class="avatar">${esc(s.name.charAt(0).toLocaleUpperCase('tr-TR'))}</div><div class="spacer"><h3>${esc(s.name)}</h3><p>No ${esc(s.no)} • ${esc(s.className)}</p></div><span class="badge">Aç</span></div>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>'; document.querySelectorAll('[data-student]').forEach(x=>x.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===x.dataset.student); render();});};
+  document.getElementById('studentSearch').oninput=draw; document.getElementById('classFilter').onchange=draw; draw();
+}
+async function renderStudentDetail(main,st){
+  const range=state.range||weekRange(); main.innerHTML=`${section(st.name,`No ${st.no} • ${st.className}`)}<div class="card"><span class="loader"></span> Öğrenci detayları hazırlanıyor...</div>`;
+  const [stats,messages]=await Promise.all([loadStats(st.no,range.start,range.end),loadStudentMessages(st.no)]);
+  const tasks=state.tasks.filter(t=>studentsForTask(t).includes(st.no) && rangesOverlap(t.start,t.end,range.start,range.end));
+  main.innerHTML=`<div class="row" style="margin-bottom:12px"><button class="ghost" id="backStudents">← Geri</button><div>${section(st.name,`No ${st.no} • ${st.className}`)}</div></div>
+    <div class="grid two">
+      <div class="card"><h3>Öğrenci Özeti</h3><p class="muted">Veli Tel: <b>${esc(st.parentPhone||'Yok')}</b></p><p class="muted">Veli Mail: <b>${esc(st.parentMail||'Yok')}</b></p></div>
+      <div class="card"><h3>Tarih Aralığı</h3>${rangeSelectorHtml()}</div>
+    </div>
+    <div style="margin-top:14px">${statsHtml([['Soru',stats.total,'Toplam'],['Doğru',stats.correct,'Hesaplanan'],['Yanlış',stats.wrong,'Giriş'],['Boş',stats.empty,'Giriş']])}</div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3>Ders Dağılımı</h3>${subjectBarsHtml(stats)}</div>
+      <div class="card"><h3>Haftalık Görevlendirmeleri</h3>${studentTasksHtml(tasks)}</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Veli Bildirimi</h3><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="secondary" data-send-channel="SMS">SMS Aç</button><button class="secondary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><div id="confirmBox" style="margin-top:12px"></div></div>
+    <div class="card" style="margin-top:14px"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}<div style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div></div>`;
+  document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; render();}; bindRangeSelector(); bindPreview(st,stats,range); bindStudentMessage(st,stats,range);
+}
+function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bu hafta</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
+function bindRangeSelector(){document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{const type=b.dataset.range; state.range=type==='today'?{title:'Bugün',start:todayISO(),end:todayISO()}:type==='week'?weekRange():type==='month'?monthRange():last30Range(); render();}); document.getElementById('applyRange')?.addEventListener('click',()=>{state.range={title:'Özel',start:document.getElementById('rangeStart').value,end:document.getElementById('rangeEnd').value}; render();});}
+function subjectBarsHtml(stats){if(!stats.subjects.length) return '<div class="empty">Bu aralıkta çalışma girişi yok.</div>'; return stats.subjects.map(s=>{const ratio=s.total?Math.round((s.correct/s.total)*100):0; return `<div style="margin:10px 0"><div class="row"><b>${esc(s.lesson)}</b><span class="spacer"></span><span class="muted tiny">${s.total} soru</span></div><div class="bar"><span style="width:${Math.min(100,ratio)}%"></span></div><p class="muted tiny">Doğru ${s.correct} • Yanlış ${s.wrong} • Boş ${s.empty}</p></div>`;}).join('');}
+function studentTasksHtml(tasks){if(!tasks.length) return '<div class="empty">Bu tarih aralığında öğrenciye atanmış görev görünmüyor.</div>'; return `<div class="thin-list">${tasks.map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))} • Toplam ${taskQuestionTotal(t)} soru</div></div>`).join('')}</div>`;}
+function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
+function bindStudentMessage(st,stats,range){document.querySelectorAll('[data-msg-level]').forEach(b=>b.onclick=()=>{const level=b.dataset.msgLevel; document.getElementById('studentMsgTitle').value=level==='excellent'?'Harika İlerleme':level==='positive'?'Güzel İlerleme':level==='high'?'Önemli Uyarı':'Çalışma Hatırlatması'; document.getElementById('studentMsgText').value=buildStudentMsg(level,st,stats,range);}); document.getElementById('sendStudentMsg').onclick=async()=>{try{await sendStudentPanelMessage(st,document.getElementById('studentMsgTitle').value,document.getElementById('studentMsgText').value); setToast('Öğrenci panel mesajı kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};}
+function bindPreview(st,stats,range){const draw=(sel='WhatsApp')=>{const note=document.getElementById('teacherNote')?.value||''; const msg=sel==='SMS'?buildSmsMessage(st,stats,range):sel==='E-posta'?buildEmailMessage(st,stats,range,note):buildWhatsAppMessage(st,stats,range,note); document.getElementById('previewBox').innerHTML=`<div class="tabs"><button class="tab ${sel==='WhatsApp'?'active':''}" data-prev="WhatsApp">WhatsApp</button><button class="tab ${sel==='E-posta'?'active':''}" data-prev="E-posta">E-posta</button><button class="tab ${sel==='SMS'?'active':''}" data-prev="SMS">SMS</button></div><div class="message-preview" style="margin-top:10px">${esc(msg)}</div>${sel==='SMS'?`<p class="muted tiny">SMS karakter sayısı: ${msg.length}</p>`:''}`; document.querySelectorAll('[data-prev]').forEach(b=>b.onclick=()=>draw(b.dataset.prev));}; draw(); document.getElementById('teacherNote').oninput=()=>draw(document.querySelector('.tab.active')?.dataset.prev||'WhatsApp'); document.querySelectorAll('[data-send-channel]').forEach(b=>b.onclick=async()=>{const ch=b.dataset.sendChannel; const note=document.getElementById('teacherNote').value; const message=ch==='SMS'?buildSmsMessage(st,stats,range):ch==='E-posta'?buildEmailMessage(st,stats,range,note):buildWhatsAppMessage(st,stats,range,note); try{if(ch==='WhatsApp'){const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.'); window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');} else if(ch==='SMS'){const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.'); window.location.href=`sms:+${phone}?&body=${enc(message)}`;} else if(ch==='E-posta'){if(!st.parentMail) throw new Error('Veli e-posta adresi yok.'); window.location.href=`mailto:${enc(st.parentMail)}?subject=${enc(state.settings.kurumAdi+' - Öğrenci Bilgilendirme')}&body=${enc(message)}`;} else {await copyText(message); setToast('Metin kopyalandı','ok');} state.draftConfirm={student:st,channel:ch,message}; renderConfirmBox();}catch(e){setToast(e.message,'error');}});}
+function renderConfirmBox(){const box=document.getElementById('confirmBox'); if(!box||!state.draftConfirm) return; box.innerHTML=`<div class="confirm-panel"><b>Bu bildirimi gerçekten veliye gönderdiniz mi?</b><p class="muted tiny">Sadece “Gönderdim” derseniz Firebase veli bildirim geçmişine işlenecek. Hazırlanmış ama gönderilmemiş mesaj kayıt sayılmayacak.</p><div class="row"><button id="confirmSent" class="success-btn">Gönderdim, kaydet</button><button id="confirmNo" class="danger-btn">Göndermedim, kaydetme</button></div></div>`; document.getElementById('confirmSent').onclick=async()=>{try{await logParentNotification(state.draftConfirm.student,state.draftConfirm.channel,state.draftConfirm.message); state.draftConfirm=null; setToast('Veli bildirimi gönderildi olarak işlendi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.getElementById('confirmNo').onclick=()=>{state.draftConfirm=null; box.innerHTML='<div class="empty">Mesaj gönderildi olarak kaydedilmedi.</div>';};}
+
+function renderTasks(main){
+  if(!state.taskWizard) resetWizardAfterSave(false);
+  main.innerHTML=`${section('Görevlendirme Sihirbazı','Hedef seç, otomatik tarih belirle, programı Firebase’e doğrulayarak kaydet')}
+  <div class="grid"><div class="card">${taskWizardHtml()}</div><div class="card"><h3>Verdiğim Görevler</h3><div class="thin-list">${teacherTasksHtml()}</div></div></div>`;
+  bindTaskWizard(); bindTaskList(); updatePreviewLive();
+}
+function resetWizardAfterSave(doRender=true){state.taskWizard={targetType:'class',className:state.students.find(s=>s.className)?.className||'',studentNos:[],start:weekRange().start,days:7,plan:defaultPlan(7)}; state.editingTaskKey=null; if(doRender) render();}
+function taskWizardHtml(){const w=state.taskWizard; const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))]; const selectedClass=w.className||classes[0]||''; w.className=selectedClass; w.plan=resizePlan(w.plan,w.days); return `<div class="grid two">
+    <div><h3>1. Hedef</h3><div class="chipbar"><label class="chip ${w.targetType==='all'?'active':''}"><input type="radio" name="targetMode" value="all" ${w.targetType==='all'?'checked':''} hidden> Tüm Öğrenciler</label><label class="chip ${w.targetType==='class'?'active':''}"><input type="radio" name="targetMode" value="class" ${w.targetType==='class'?'checked':''} hidden> Sınıf</label><label class="chip ${w.targetType==='students'?'active':''}"><input type="radio" name="targetMode" value="students" ${w.targetType==='students'?'checked':''} hidden> Öğrenci Seç</label></div><div id="targetFields" style="margin-top:12px">${targetFieldsHtml(w,classes)}</div></div>
+    <div><h3>2. Tarih ve Süre</h3><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="taskStart" class="input" type="date" value="${w.start}"></div><div class="field"><label>Süre</label><select id="taskDays">${[7,14,21,28,30,60].map(d=>`<option value="${d}" ${w.days===d?'selected':''}>${d} gün</option>`).join('')}</select></div></div><p class="muted tiny">Görünen tarih: <b id="taskDateHuman">${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</b></p></div>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"><h3>3. Hızlı Program</h3><div class="chipbar"><button class="chip" data-template="hafif">Hafif</button><button class="chip" data-template="dengeli">Dengeli</button><button class="chip" data-template="yogun">Yoğun</button><button class="chip" data-template="copyWeek">1. haftayı kopyala</button><button class="chip" data-template="weekendOff">Hafta sonu boş</button><button class="chip" data-template="clear">Temizle</button></div><div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div>
+  <div class="card" style="background:#f8fafc;margin-top:14px"><h3>4. Önizleme</h3><div id="taskPreview"></div></div><div class="row" style="margin-top:14px"><button id="saveTask" class="primary">${state.editingTaskKey?'Görevi Güncelle':'Görevi Kaydet'}</button>${state.editingTaskKey?'<button id="cancelEdit" class="ghost">Düzenlemeyi İptal Et</button>':''}<span id="taskStatus" class="muted tiny"></span></div>`;}
+function targetFieldsHtml(w,classes){if(w.targetType==='all') return '<div class="empty">Tüm aktif öğrenciler seçildi.</div>'; if(w.targetType==='class') return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="muted tiny" id="classCount"></p>`; const list=state.students; return `<div class="field"><label>Öğrenci ara</label><input id="taskStudentSearch" class="input" placeholder="Ad / no / sınıf"></div><div id="studentPickList" class="thin-list" style="max-height:320px;overflow:auto;margin-top:10px">${studentPickListHtml(list,w.studentNos)}</div>`;}
+function studentPickListHtml(list,selected){return list.slice(0,80).map(s=>`<label class="thin-item"><div class="row"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${selected.includes(s.no)?'checked':''}><b>${esc(s.name)}</b><span class="muted tiny">${esc(s.className)}</span></div></label>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';}
+function planHtml(w){const names=lessonNames(); let out=''; const weeks=Math.ceil(w.days/7); for(let week=0; week<weeks; week++){const start=week*7,end=Math.min(start+6,w.days-1); out+=`<div class="card" style="box-shadow:none;background:#fff"><h3>${week+1}. Hafta</h3><div class="grid">`; for(let d=start; d<=end; d++){const date=addDaysISO(w.start,d); const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0); out+=`<div class="day-card"><h4><span>${Days[d%7]} • ${fmtDate(date)}</span><span class="badge">${total} soru</span></h4><div class="lesson-grid">${names.map(l=>`<div class="field"><label>${esc(l)}</label><input class="input" inputmode="numeric" data-plan-key="${esc(planKey(d,l))}" value="${esc(w.plan[planKey(d,l)]||'')}"></div>`).join('')}</div></div>`;} out+=`</div></div>`;} return out;}
+function teacherTasksHtml(){const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id)); if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>'; return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))} • Firebase key: ${esc(t.key)}</div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div></div>`).join('');}
+function bindTaskWizard(){document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{state.taskWizard.targetType=r.value; renderTasks(document.getElementById('mainArea'));}); document.getElementById('taskClass')?.addEventListener('change',e=>{state.taskWizard.className=e.target.value; updatePreviewLive();}); document.getElementById('taskStart').onchange=e=>{state.taskWizard.start=e.target.value; renderTasks(document.getElementById('mainArea'));}; document.getElementById('taskDays').onchange=e=>{state.taskWizard.days=Number(e.target.value); state.taskWizard.plan=resizePlan(state.taskWizard.plan,state.taskWizard.days); renderTasks(document.getElementById('mainArea'));}; document.getElementById('taskStudentSearch')?.addEventListener('input',e=>{const q=e.target.value.toLocaleLowerCase('tr-TR'); const selected=[...document.querySelectorAll('.student-check:checked')].map(x=>x.value); state.taskWizard.studentNos=[...new Set([...state.taskWizard.studentNos,...selected])]; const filtered=state.students.filter(s=>`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q)); document.getElementById('studentPickList').innerHTML=studentPickListHtml(filtered,state.taskWizard.studentNos); bindStudentChecks();}); bindStudentChecks(); document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t); renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();}); document.getElementById('saveTask').onclick=async()=>{try{document.getElementById('taskStatus').textContent='Firebase kaydı yapılıyor...'; await saveTaskFromWizard();}catch(e){document.getElementById('taskStatus').textContent=''; setToast(e.message,'error');}}; document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());}
+function bindStudentChecks(){document.querySelectorAll('.student-check').forEach(ch=>ch.onchange=()=>{const set=new Set(state.taskWizard.studentNos); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.taskWizard.studentNos=[...set]; updatePreviewLive();});}
+function updatePreviewLive(){const w=state.taskWizard; if(!w) return; const task={...w,end:addDaysISO(w.start,w.days-1)}; const count=studentsForTask(task).length; const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0); const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`; const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)}</p><p><b>Plan toplam soru:</b> ${total}</p>`; const human=document.getElementById('taskDateHuman'); if(human) human.textContent=`${fmtDate(w.start)} - ${fmtDate(task.end)}`;}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType,className:t.className,studentNos:[...t.studentNos],start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; renderTasks(document.getElementById('mainArea'));});}
+
+function renderAdmin(main){if(!state.teacher.isAdmin){main.innerHTML='<div class="empty">Admin yetkisi gerekli.</div>';return;} const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))]; main.innerHTML=`${section('Admin Merkezi','Kurum, takip ayarı, dersler ve öğretmen işlemleri')}
+  <div class="grid two"><div class="card"><h3>Kurum</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL / eğitim ikonu</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Günlük limit</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Kurum Ayarlarını Kaydet</button><button id="useEduIcon" class="secondary">Eğitim İkonunu Kullan</button></div></div>
+  <div class="card"><h3>Takip Edilecek Sınıflar</h3><p class="muted tiny">Sınıf seçilmezse uyarı/takip listesi çıkmaz.</p><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarını Kaydet</button></div></div>
+  <div class="grid two" style="margin-top:14px"><div class="card"><h3>Dersleri Kur / Düzenle</h3><p class="muted tiny">Dersler, ana konular ve alt konular Firebase’e kaydedilir. Görevlendirme sihirbazı buradan beslenir.</p><textarea id="lessonsJson" class="code" style="min-height:330px">${esc(JSON.stringify(state.lessons,null,2))}</textarea><div class="row" style="margin-top:10px"><button id="saveLessons" class="primary">Dersleri Firebase’e Kaydet</button><button id="resetLessons" class="secondary">Varsayılanı Yükle</button></div></div><div class="card"><h3>Öğretmen İşlemleri Analizi</h3><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>`;
+  bindAdmin();
+}
+function bindAdmin(){document.getElementById('useEduIcon').onclick=()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;}; document.getElementById('saveSettings').onclick=async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM; state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO; state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3; await saveSettings(); setToast('Kurum ayarları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);}); document.getElementById('saveFollow').onclick=async()=>{try{await saveFollowSettings(); setToast('Takip sınıfları kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.getElementById('resetLessons').onclick=()=>{document.getElementById('lessonsJson').value=JSON.stringify(DEFAULT_LESSONS,null,2);}; document.getElementById('saveLessons').onclick=async()=>{try{const parsed=JSON.parse(document.getElementById('lessonsJson').value); if(!Array.isArray(parsed)) throw new Error('Ders JSON kökü dizi olmalı.'); state.lessons=parsed; await saveLessons(); setToast('Dersler Firebase’e kaydedildi','ok'); render();}catch(e){setToast('Ders kaydı hatası: '+e.message,'error');}}; document.getElementById('loadOps').onclick=loadAdminOperations;}
+async function loadAdminOperations(){const box=document.getElementById('adminOpsBox'); box.innerHTML='<span class="loader"></span> Analiz yükleniyor...'; try{const [logs,notifications,msgs]=await Promise.all([getJson('verianalizi001/ogretmenIslemleri').catch(()=>({})), getJson('verianalizi001/veliBildirimGecmisi').catch(()=>({})), getJson('verianalizi001/ogrenciMesajlari').catch(()=>({}))]); const byTeacher={}; for(const l of Object.values(logs||{})){const id=cleanId(l.ogretmenID||l.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:l.ogretmenAdi||l.teacherName||getTeacherName(id),actions:0}; byTeacher[id].actions++;} for(const stu of Object.values(notifications||{})) for(const n of Object.values(stu||{})){const id=cleanId(n.ogretmenID||n.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:n.ogretmenAdi||n.teacherName||getTeacherName(id),actions:0}; byTeacher[id].notifications=(byTeacher[id].notifications||0)+1;} for(const stu of Object.values(msgs||{})) for(const m of Object.values(stu||{})){const id=cleanId(m.ogretmenID||m.teacherId); if(!byTeacher[id]) byTeacher[id]={id,name:m.ogretmenAdi||m.teacherName||getTeacherName(id),actions:0}; byTeacher[id].studentMessages=(byTeacher[id].studentMessages||0)+1;} const taskRows=state.tasks.slice(0,30).map(t=>`<tr><td>${esc(getTeacherName(t.teacherId))}</td><td>${esc(targetLabel(t))}</td><td>${fmtDate(t.start)}-${fmtDate(t.end)}</td><td><button class="danger-btn" data-admin-del-task="${esc(t.key)}">Sil</button></td></tr>`).join(''); box.innerHTML=`${statsHtml([['Öğretmen',Object.keys(byTeacher).length,'İşlem yapan'],['Görev',state.tasks.length,'Kayıtlı'],['Veli Bildirimi',Object.values(byTeacher).reduce((s,x)=>s+(x.notifications||0),0),'Gönderildi onaylı'],['Panel Mesajı',Object.values(byTeacher).reduce((s,x)=>s+(x.studentMessages||0),0),'Öğrenciye']])}<h3 style="margin-top:14px">Özet</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>İşlem</th><th>Veli bildirimi</th><th>Öğrenci mesajı</th></tr></thead><tbody>${Object.values(byTeacher).map(x=>`<tr><td>${esc(x.name)}<br><span class="muted tiny">ID ${esc(x.id)}</span></td><td>${x.actions||0}</td><td>${x.notifications||0}</td><td>${x.studentMessages||0}</td></tr>`).join('')||'<tr><td colspan="4">Kayıt yok</td></tr>'}</tbody></table></div><h3 style="margin-top:14px">Görev Kayıtları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Öğretmen</th><th>Hedef</th><th>Tarih</th><th>İşlem</th></tr></thead><tbody>${taskRows||'<tr><td colspan="4">Görev yok</td></tr>'}</tbody></table></div>`; document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));}catch(e){box.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}}
+
+bootstrap();
+</script>
+</body>
+</html>
