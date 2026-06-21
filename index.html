@@ -605,6 +605,23 @@ const FIREBASE_CONFIG = {
   appId: '1:662757516934:web:0042188832f63deb6fd307',
   measurementId: 'G-4Q99NQRB38'
 };
+const PROGRAM_FIREBASE_DELETE_PATHS = Object.freeze([
+  'verianalizi001/haftalikGorevler',
+  'verianalizi001/ogretmenIslemleri',
+  'verianalizi001/veliBildirimGecmisi',
+  'verianalizi001/ogrenciMesajlari',
+  'verianalizi001/calismaKayitlari',
+  'verianalizi001/ogrenciOzetleri',
+  'verianalizi002/kurumAyarlari',
+  'verianalizi002/ayarlar',
+  'verianalizi002/lgsKonulari',
+  'verianalizi002/dersler',
+  'verianalizi002/takipAyarlari',
+  'verianalizi002/takipAyarlariOgretmen',
+  'verianalizi002/sistemAyarlari',
+  'verianalizi002/ogrenciler',
+  'verianalizi002/ogretmenler'
+]);
 const ADMIN_ID = '101';
 const DEFAULT_KURUM = 'Fenomen Eğitim Kurumları';
 const DEFAULT_LOGO = 'https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg';
@@ -834,9 +851,10 @@ async function deleteJsonAtDbBase(base,path=''){
   const b=String(base||'').trim().replace(/\/+$/,'');
   if(!b) throw new Error('Database URL boş.');
   const p=firebasePath(path);
-  const url=p ? `${b}/${p}.json` : `${b}/.json`;
+  if(!p) throw new Error('Güvenlik nedeniyle Firebase kök yolu silinemez. Sadece izin verilen program klasörleri silinebilir.');
+  const url=`${b}/${p}.json`;
   const r=await fetch(url,{method:'DELETE'});
-  if(!r.ok) throw new Error(`Firebase toplu silme hatası: HTTP ${r.status}`);
+  if(!r.ok) throw new Error(`Firebase toplu silme hatası (${p}): HTTP ${r.status}`);
   return true;
 }
 
@@ -1883,21 +1901,36 @@ function adminSystemHtml(){
     <div class="card system-setting-card system-full"><h3>Firebase Uygulama Bilgileri</h3><div class="system-subgrid"><div class="field"><label>Auth Domain</label><input id="sysAuthDomain" class="input secret-input" value="${esc(cfg.authDomain||'')}"></div><div class="field"><label>Project ID</label><input id="sysProjectId" class="input secret-input" value="${esc(cfg.projectId||'')}"></div><div class="field"><label>Storage Bucket</label><input id="sysStorageBucket" class="input secret-input" value="${esc(cfg.storageBucket||'')}"></div><div class="field"><label>Messaging Sender ID</label><input id="sysMessagingSenderId" class="input secret-input" value="${esc(cfg.messagingSenderId||'')}"></div><div class="field"><label>App ID</label><input id="sysAppId" class="input secret-input" value="${esc(cfg.appId||'')}"></div><div class="field"><label>Measurement ID</label><input id="sysMeasurementId" class="input secret-input" value="${esc(cfg.measurementId||'')}"></div></div></div>
   </div>
   <div class="card" style="margin-top:14px"><h3>Otomatik Firebase Denetimi</h3><div class="compact-grid"><div class="field"><label>Denetim sıklığı / saniye</label><input id="sysRefresh" class="input" inputmode="numeric" value="${esc(sys.autoRefreshSeconds||45)}"></div><div class="field"><label>Son kayıt</label><input class="input" value="${esc(sys.lastUpdate||'Varsayılan ayarlar kullanılıyor')}" disabled></div></div><div class="row" style="margin-top:12px"><button id="saveSystemSettings" class="primary">Sistem Ayarlarını Firebase’e Kaydet</button><button id="resetSystemDefaults" class="ghost">Varsayılan Ayarları Doldur</button></div><p class="muted tiny" style="margin-top:10px">Database URL, Sheet ID, Firebase uygulama alanları ve SMS metni bu ekrandan öğretmen/admin tarafından değiştirilebilir.</p></div>
-  <div class="card system-setting-card system-full" style="margin-top:14px;border-color:#fecaca;background:linear-gradient(180deg,#fff,#fff7f7)"><h3 style="color:#991b1b">Tehlikeli İşlem</h3><p class="muted" style="margin:6px 0 12px;font-weight:700;line-height:1.55">Bu tuş aktif Realtime Database adresindeki kök dahil tüm Firebase veriyollarını kalıcı olarak siler. Öğrenci listesi E-Tablo’dan tekrar okunabilir; ancak Firebase’deki görevler, mesajlar, takip ayarları, ders düzenleri ve işlem kayıtları geri alınamaz.</p><div class="row"><button id="deleteAllFirebasePaths" class="danger-btn">Tüm Firebase Veriyollarını Sil</button><span class="badge red">Çift onay + metin doğrulama</span></div></div>`;
+  <div class="card system-setting-card system-full" style="margin-top:14px;border-color:#fecaca;background:linear-gradient(180deg,#fff,#fff7f7)"><h3 style="color:#991b1b">Tehlikeli İşlem</h3><p class="muted" style="margin:6px 0 12px;font-weight:700;line-height:1.55">Bu tuş Firebase kökünü silmez. Yalnızca bu öğretmen panelinin ve öğrenci paneli index 2’nin kullandığı kayıt klasörlerini siler: görevler, öğretmen işlemleri, veli bildirimleri, öğrenci mesajları, çalışma kayıtları, öğrenci özetleri ve program ayar klasörleri. Aynı veritabanındaki başka yollar korunur.</p><details class="muted tiny" style="margin-bottom:12px"><summary>Silinecek izinli klasörleri göster</summary><div style="margin-top:8px;line-height:1.65">${PROGRAM_FIREBASE_DELETE_PATHS.map(p=>`<code>${esc(p)}</code>`).join('<br>')}</div></details><div class="row"><button id="deleteProgramFirebasePaths" class="danger-btn">Sadece Program Firebase Klasörlerini Sil</button><span class="badge red">Kök silme engelli + metin doğrulama</span></div></div>`;
 }
-async function deleteAllFirebasePaths(){
+async function deleteProgramFirebasePaths(){
   if(!state.teacher?.isAdmin){setToast('Bu işlem için admin yetkisi gerekli.','error');return;}
   const dbBase=(document.getElementById('sysDbBase')?.value.trim()||getDbBase()).replace(/\/+$/,'');
   if(!dbBase){setToast('Database URL boş olduğu için işlem durduruldu.','error');return;}
-  const ok=confirm(`DİKKAT!\n\n${dbBase} adresindeki TÜM Firebase veriyolları kalıcı olarak silinecek.\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?`);
+  const paths=[...PROGRAM_FIREBASE_DELETE_PATHS];
+  const ok=confirm(`DİKKAT!\n\n${dbBase} adresinde yalnızca bu programın Firebase kayıt klasörleri silinecek.\n\nSilinecek klasörler:\n- ${paths.join('\n- ')}\n\nFirebase kökü ve bu listenin dışındaki yollar silinmeyecek. Devam etmek istiyor musunuz?`);
   if(!ok) return;
-  const typed=prompt('Silme işlemini başlatmak için kutuya aynen şunu yazın: TÜM VERİYİ SİL');
-  if(typed !== 'TÜM VERİYİ SİL'){setToast('Toplu silme iptal edildi. Doğrulama metni eşleşmedi.','error');return;}
-  const finalOk=confirm('Son onay: Firebase veritabanı kökündeki bütün kayıtlar silinecek. Emin misiniz?');
+  const typed=prompt('Silme işlemini başlatmak için kutuya aynen şunu yazın: PROGRAM VERİLERİNİ SİL');
+  if(typed !== 'PROGRAM VERİLERİNİ SİL'){setToast('Program klasörü silme işlemi iptal edildi. Doğrulama metni eşleşmedi.','error');return;}
+  const finalOk=confirm('Son onay: Sadece listelenen program klasörleri silinecek. Bu listenin dışındaki Firebase verileri korunacak. Emin misiniz?');
   if(!finalOk) return;
+  const deleted=[];
+  const failed=[];
   try{
-    setToast('Firebase veriyolları siliniyor...');
-    await deleteJsonAtDbBase(dbBase,'');
+    setToast('Program Firebase klasörleri siliniyor...');
+    for(const p of paths){
+      try{
+        await deleteJsonAtDbBase(dbBase,p);
+        deleted.push(p);
+      }catch(err){
+        failed.push(`${p}: ${err.message}`);
+      }
+    }
+    if(failed.length){
+      console.error('Silinemeyen Firebase klasörleri:', failed);
+      setToast(`Bazı klasörler silinemedi: ${failed.length}. Konsolu kontrol edin.`,'error');
+      return;
+    }
     state.tasks=[];
     state.followClasses=[];
     state.adminOpsMap={};
@@ -1907,10 +1940,11 @@ async function deleteAllFirebasePaths(){
     state.systemSettings={firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',smsPrefix:'',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}};
     state.lessons=structuredClone(DEFAULT_LESSONS);
     closeModal();
-    setToast('Tüm Firebase veriyolları silindi. Sistem varsayılan ayarlarla yenilendi.','ok');
+    setToast(`${deleted.length} program Firebase klasörü silindi. Veritabanındaki diğer yollar korunmuştur.`,'ok');
     render();
-  }catch(e){setToast('Toplu silme hatası: '+e.message,'error');}
+  }catch(e){setToast('Program klasörlerini silme hatası: '+e.message,'error');}
 }
+
 function bindAdmin(){
   document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab;renderAdmin(document.getElementById('mainArea'));});
   document.getElementById('useEduIcon')?.addEventListener('click',()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;});
@@ -1928,7 +1962,7 @@ function bindAdmin(){
     state.systemSettings={firebaseEnabled:document.getElementById('sysFirebase').checked,sheetsEnabled:document.getElementById('sysSheets').checked,smsEnabled:document.getElementById('sysSms').checked,smsSignature:document.getElementById('sysSmsSignature').value.trim()||'Fenomen',smsPrefix:document.getElementById('sysSmsPrefix').value.trim(),sheetId:document.getElementById('sysSheetId').value.trim()||SHEET_ID,dbBase,firebaseConfig,autoRefreshSeconds:Number(document.getElementById('sysRefresh').value)||45};
     await saveSystemSettings();await loadSettings();startAutoRefresh();setToast('Sistem ayarları kaydedildi ve aktif edildi','ok');render();
   }catch(e){setToast(e.message,'error');}});
-  document.getElementById('deleteAllFirebasePaths')?.addEventListener('click',deleteAllFirebasePaths);
+  document.getElementById('deleteProgramFirebasePaths')?.addEventListener('click',deleteProgramFirebasePaths);
   bindLessonDesigner();document.getElementById('loadOps')?.addEventListener('click',loadAdminOperations);
 }
 
