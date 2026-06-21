@@ -1910,8 +1910,8 @@ async function deleteProgramFirebasePaths(){
   const paths=[...PROGRAM_FIREBASE_DELETE_PATHS];
   const ok=confirm(`DİKKAT!\n\n${dbBase} adresinde yalnızca bu programın Firebase kayıt klasörleri silinecek.\n\nSilinecek klasörler:\n- ${paths.join('\n- ')}\n\nFirebase kökü ve bu listenin dışındaki yollar silinmeyecek. Devam etmek istiyor musunuz?`);
   if(!ok) return;
-  const typed=prompt('Silme işlemini başlatmak için kutuya aynen şunu yazın: PROGRAM VERİLERİNİ SİL');
-  if(typed !== 'PROGRAM VERİLERİNİ SİL'){setToast('Program klasörü silme işlemi iptal edildi. Doğrulama metni eşleşmedi.','error');return;}
+  const typed=prompt('Silme işlemini başlatmak için kutuya aynen şunu yazın: VERİ SİL');
+  if(typed !== 'VERİ SİL'){setToast('Program klasörü silme işlemi iptal edildi. Doğrulama metni eşleşmedi.','error');return;}
   const finalOk=confirm('Son onay: Sadece listelenen program klasörleri silinecek. Bu listenin dışındaki Firebase verileri korunacak. Emin misiniz?');
   if(!finalOk) return;
   const deleted=[];
