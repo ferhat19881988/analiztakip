@@ -411,6 +411,104 @@ input:focus,select:focus,textarea:focus,.input:focus{border-color:var(--primary-
 .legend span{white-space:nowrap}
 @media(max-width:620px){.pie-card{padding:18px!important}.pie-chart.pro-chart{width:min(214px,72vw)!important}.pie-center strong{font-size:28px}.pie-center small{font-size:11px}}
 
+
+/* Ders ders görev hedef / çözüm takip kartları */
+.task-track-box{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:linear-gradient(180deg,#fff,#fffaf6);
+  padding:12px;
+}
+.task-track-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.task-track-title{
+  font-size:13px;
+  font-weight:900;
+  color:var(--ink);
+}
+.assignment-lesson-list{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+.assignment-lesson-row{
+  display:grid;
+  grid-template-columns:minmax(120px,1fr) repeat(3,minmax(72px,auto));
+  gap:8px;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  padding:10px 11px;
+}
+.assignment-lesson-row.header{
+  background:#f8fafc;
+  color:#475569;
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.assignment-lesson-row b{
+  color:var(--ink);
+  font-size:13px;
+  font-weight:900;
+}
+.assignment-lesson-row span{
+  font-size:12px;
+  font-weight:900;
+  color:#334155;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.lesson-diff-badge{
+  justify-self:end;
+  min-width:54px;
+  text-align:center!important;
+  border-radius:999px;
+  padding:6px 9px;
+  border:1px solid var(--line);
+}
+.lesson-diff-badge.plus{
+  background:#dcfce7;
+  color:#166534!important;
+  border-color:#bbf7d0;
+}
+.lesson-diff-badge.minus{
+  background:#fff1f2;
+  color:#991b1b!important;
+  border-color:#fecaca;
+}
+.lesson-diff-badge.equal{
+  background:#eef4ff;
+  color:#1d4ed8!important;
+  border-color:#dbeafe;
+}
+.student-lesson-detail{
+  margin-top:10px;
+}
+.student-lesson-detail summary{
+  cursor:pointer;
+  font-size:12px;
+  font-weight:900;
+  color:#9a3412;
+  padding:8px 0;
+}
+@media(max-width:620px){
+  .assignment-lesson-row{grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;padding:9px}
+  .assignment-lesson-row b{grid-column:1 / -1}
+  .assignment-lesson-row.header{display:none}
+  .assignment-lesson-row span{text-align:left}
+  .lesson-diff-badge{justify-self:start}
+}
+
   </style>
 </head>
 <body>
@@ -1307,6 +1405,78 @@ async function captureElementAsPng(id,filename){
 }
 function downloadCanvas(canvas,filename){const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=filename; document.body.appendChild(a); a.click(); a.remove();}
 function fallbackTextCanvas(el,filename){const canvas=document.createElement('canvas'); canvas.width=1100; canvas.height=700; const ctx=canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0f172a'; ctx.font='bold 34px Inter, Arial'; const lines=el.innerText.split('\n').filter(Boolean); let y=60; lines.forEach((line,i)=>{ctx.font=i===0?'bold 34px Arial':'24px Arial'; ctx.fillText(line.slice(0,70),60,y); y+=i===0?48:34;}); downloadCanvas(canvas,filename);}
+
+function taskItemLesson(item){return String(item?.ders||item?.course||item?.lesson||'Genel').trim()||'Genel';}
+function taskItemTarget(item){return Number(item?.soruSayisi??item?.hedefSoru??item?.soru??item?.total??0)||0;}
+function aggregateTaskItemsByLesson(items){
+  const map={};
+  (items||[]).forEach(item=>{
+    const lesson=taskItemLesson(item);
+    const target=taskItemTarget(item);
+    if(!map[lesson]) map[lesson]={lesson,target:0};
+    map[lesson].target+=target;
+  });
+  return Object.values(map).filter(x=>x.target>0).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
+}
+function taskLessonTargets(task,dayFilter=''){
+  const obj=task.daysObj||task.daysObject||planToDaysObject(task);
+  const map={};
+  Object.entries(obj||{}).forEach(([date,val])=>{
+    const iso=isoFromAny(date);
+    if(dayFilter && iso!==dayFilter) return;
+    normalizeTaskItems(val).forEach(item=>{
+      const lesson=taskItemLesson(item);
+      const target=taskItemTarget(item);
+      if(!map[lesson]) map[lesson]={lesson,target:0};
+      map[lesson].target+=target;
+    });
+  });
+  return Object.values(map).filter(x=>x.target>0).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
+}
+function recordDoneByLesson(records,start='',end=''){
+  const map={};
+  (records||[]).forEach(r=>{
+    const d=r.date||isoFromAny(r.raw?.tarih||r.raw?.date||r.raw?.dateKey||r.raw?.tarihSaat||'');
+    if(start && end && (!d || !dateInRange(d,start,end))) return;
+    const lesson=String(r.lesson||'Genel').trim()||'Genel';
+    map[lesson]=(map[lesson]||0)+(Number(r.total)||0);
+  });
+  return map;
+}
+function signedDiff(n){n=Number(n)||0; return n>0?`+${n}`:String(n);}
+function diffClass(n){n=Number(n)||0; return n>0?'plus':(n<0?'minus':'equal');}
+function assignmentLessonHeaderHtml(){return `<div class="assignment-lesson-row header"><b>Ders</b><span>Hedef</span><span>Çözdü</span><span>Fark</span></div>`;}
+function assignmentLessonRowHtml(lesson,target,done){
+  target=Number(target)||0; done=Number(done)||0;
+  const diff=done-target;
+  return `<div class="assignment-lesson-row"><b>${esc(lesson)}</b><span>Hedef ${target}</span><span>Çözdü ${done}</span><span class="lesson-diff-badge ${diffClass(diff)}">${signedDiff(diff)}</span></div>`;
+}
+async function loadTaskLessonTrack(taskKey){
+  const box=document.getElementById(`taskTrack_${taskKey}`);
+  const task=state.tasks.find(t=>t.key===taskKey);
+  if(!box||!task) return;
+  const lessonTargets=taskLessonTargets(task);
+  if(!lessonTargets.length){box.innerHTML='<div class="empty">Bu görevde ders hedefi bulunamadı.</div>';return;}
+  const studentNos=studentsForTask(task).map(cleanId).filter(Boolean);
+  if(!studentNos.length){box.innerHTML='<div class="empty">Bu görev için öğrenci bulunamadı.</div>';return;}
+  box.innerHTML='<div class="muted tiny"><span class="loader"></span>Ders ders hedef/çözüm verisi hazırlanıyor...</div>';
+  const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:''});
+  const perStudent=[];
+  const summary={};
+  lessonTargets.forEach(x=>summary[x.lesson]={lesson:x.lesson,target:x.target*students.length,done:0});
+  for(const st of students){
+    const stats=await loadStats(st.no,task.start,task.end);
+    const doneMap=recordDoneByLesson(stats.records,task.start,task.end);
+    const rows=lessonTargets.map(x=>({lesson:x.lesson,target:x.target,done:Number(doneMap[x.lesson]||0)}));
+    rows.forEach(r=>{summary[r.lesson].done+=r.done;});
+    perStudent.push({student:st,rows});
+  }
+  const summaryRows=Object.values(summary).map(x=>assignmentLessonRowHtml(x.lesson,x.target,x.done)).join('');
+  const single=students.length===1;
+  const detailRows=perStudent.map(ps=>`<details class="student-lesson-detail" ${single?'open':''}><summary>${esc(ps.student.name)}${ps.student.className?' • '+esc(ps.student.className):''}</summary><div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${ps.rows.map(r=>assignmentLessonRowHtml(r.lesson,r.target,r.done)).join('')}</div></details>`).join('');
+  box.innerHTML=`<div class="task-track-head"><span class="task-track-title">Ders ders hedef / çözülen / fark</span><span class="badge">${students.length} öğrenci</span></div>${!single?`<div class="muted tiny">Toplam görünümde hedefler öğrenci sayısıyla çarpılarak hesaplanır.</div><div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${summaryRows}</div>`:''}${detailRows}`;
+}
+
 function studentTasksHtml(tasks,st,stats,range){
   if(!tasks.length) return '<div class="empty">Bu tarih aralığında öğrenciye atanmış görev görünmüyor.</div>';
   const today=todayISO();
@@ -1330,12 +1500,14 @@ function studentTasksHtml(tasks,st,stats,range){
       const matchedKey=Object.keys(obj||{}).find(k=>isoFromAny(k)===day);
       const items=normalizeTaskItems(matchedKey?obj[matchedKey]:[]);
       if(!items.length)return;
-      const hedef=items.reduce((a,it)=>a+Number(it.soruSayisi||it.hedefSoru||it.soru||0),0);
-      const done=items.reduce((a,it)=>a+doneFor(day,it.ders||it.course),0);
+      const lessonTargets=aggregateTaskItemsByLesson(items);
+      const hedef=lessonTargets.reduce((a,it)=>a+Number(it.target||0),0);
+      const done=lessonTargets.reduce((a,it)=>a+doneFor(day,it.lesson),0);
       const kalan=Math.max(hedef-done,0);
       const status=done>=hedef&&hedef>0?'done':(day<today?'missing':'pending');
       const label=status==='done'?'Yapıldı':status==='missing'?`Eksik: ${kalan} soru`:'Devam';
-      rows.push(`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="task-status-pill ${status}">${label}</span><span class="spacer"></span><span class="muted tiny">${done}/${hedef} soru</span></div><div class="muted tiny">${items.map(it=>`${it.ders||it.course}: ${it.soruSayisi||it.hedefSoru||0}`).join(' • ')}</div></div>`);
+      const lessonRows=lessonTargets.map(it=>assignmentLessonRowHtml(it.lesson,it.target,doneFor(day,it.lesson))).join('');
+      rows.push(`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="task-status-pill ${status}">${label}</span><span class="spacer"></span><span class="muted tiny">${done}/${hedef} soru</span></div><div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${lessonRows}</div></div>`);
     });
     return `<div class="task-day-group"><h4><span>${fmtDate(day)} ${dayName(day)?'• '+dayName(day):''}</span><span class="badge">${rows.length} görev</span></h4>${rows.join('')||'<div class="empty">Bu gün için görev yok.</div>'}</div>`;
   }).join('');
@@ -1406,7 +1578,11 @@ function planHtml(w){
   }
   return out;
 }
-function teacherTasksHtml(){const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id)); if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>'; return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div></div>`).join('');}
+function teacherTasksHtml(){
+  const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
+  if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>';
+  return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div><div class="actions"><button class="secondary" data-load-task-track="${esc(t.key)}">Ders Ders Takip</button><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div><div class="task-track-box" id="taskTrack_${esc(t.key)}"><div class="muted tiny">Ders bazında hedef/çözüm farkını görmek için “Ders Ders Takip”e basın.</div></div></div>`).join('');
+}
 function syncTaskWizardFromDom(){
   if(!state.taskWizard) return;
   const w=state.taskWizard;
@@ -1447,7 +1623,7 @@ function updatePreviewLive(){
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}`;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(addDaysISO(w.start,w.days-1))}</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));});}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-load-task-track]').forEach(b=>b.onclick=()=>loadTaskLessonTrack(b.dataset.loadTaskTrack)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));});}
 
 
 function lessonDesignerHtml(){
