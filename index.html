@@ -509,6 +509,68 @@ input:focus,select:focus,textarea:focus,.input:focus{border-color:var(--primary-
   .lesson-diff-badge{justify-self:start}
 }
 
+
+
+/* Seçili veli bildirim kanalına göre aksiyon görünümü ve telefon taşma düzeltmeleri */
+.channel-tabs,
+.parent-action-grid,
+.channel-actions{
+  width:100%;
+  max-width:100%;
+}
+.parent-action-grid.channel-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  align-items:stretch;
+}
+.parent-action-grid.channel-actions button,
+.channel-actions button,
+.channel-tabs .tab{
+  min-width:0;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  text-align:center;
+}
+.channel-tabs{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.channel-tabs::-webkit-scrollbar{display:none}
+.message-preview{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.card,.section-card,.student-hero,.thin-item,.task-card,.message-card,.day-card,.lesson-card,.topic-card,.entry-row,.student-row,.confirm-panel{
+  max-width:100%;
+}
+.grid,.compact-grid,.button-grid,.parent-action-grid,.row,.actions,.chipbar,.meta-row{
+  min-width:0;
+  max-width:100%;
+}
+.row > *, .actions > *, .chipbar > *, .meta-row > *{min-width:0}
+.table-wrap,.lesson-tabbar,.day-filter-strip,.tabs,.detail-tabs,.admin-main-tabs,.admin-ops-tabs,.local-tabs{
+  max-width:100%;
+  -webkit-overflow-scrolling:touch;
+}
+input,select,textarea,button,.btn,.primary,.secondary,.ghost,.danger-btn,.success-btn,.warning-btn{
+  max-width:100%;
+}
+@media(max-width:480px){
+  .parent-action-grid.channel-actions{grid-template-columns:1fr!important}
+  .channel-tabs{display:grid;grid-template-columns:1fr;overflow:visible}
+  .channel-tabs .tab{width:100%;min-height:42px}
+  .message-preview{font-size:13px;line-height:1.52;padding:13px}
+}
+@media(max-width:360px){
+  .card,.section-card,.student-hero{padding-left:14px;padding-right:14px}
+  .btn,.primary,.secondary,.ghost,.danger-btn,.success-btn,.warning-btn,.tab,.detail-tab,.admin-tab-btn,.admin-ops-tab{font-size:12px;padding-left:9px;padding-right:9px}
+}
+
   </style>
 </head>
 <body>
@@ -678,6 +740,15 @@ async function deleteJson(path){
   const p=firebasePath(path);
   const database=getFirebaseDb(); if(database){await database.ref(p).remove(); return true;}
   const url=`${getDbBase()}/${p}.json`; const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(`Firebase silme hatası: HTTP ${r.status}`); return true;
+}
+async function deleteJsonAtDbBase(base,path=''){
+  const b=String(base||'').trim().replace(/\/+$/,'');
+  if(!b) throw new Error('Database URL boş.');
+  const p=firebasePath(path);
+  const url=p ? `${b}/${p}.json` : `${b}/.json`;
+  const r=await fetch(url,{method:'DELETE'});
+  if(!r.ok) throw new Error(`Firebase toplu silme hatası: HTTP ${r.status}`);
+  return true;
 }
 
 function parseCsv(csv){
@@ -1327,7 +1398,7 @@ function bindStudentDetailTabs(){
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
   if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
-  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="secondary" data-send-channel="SMS">SMS Aç</button><button class="secondary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><div id="confirmBox" style="margin-top:12px"></div></div>`;
+  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS Aç</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
 }
@@ -1516,8 +1587,52 @@ function studentTasksHtml(tasks,st,stats,range){
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
 function bindStudentMessage(st,stats,range){document.querySelectorAll('[data-msg-level]').forEach(b=>b.onclick=()=>{const level=b.dataset.msgLevel; document.getElementById('studentMsgTitle').value=level==='excellent'?'Harika İlerleme':level==='positive'?'Güzel İlerleme':level==='high'?'Önemli Uyarı':'Çalışma Hatırlatması'; document.getElementById('studentMsgText').value=buildStudentMsg(level,st,stats,range);}); document.getElementById('sendStudentMsg').onclick=async()=>{try{await sendStudentPanelMessage(st,document.getElementById('studentMsgTitle').value,document.getElementById('studentMsgText').value); setToast('Öğrenci panel mesajı kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};}
 function bindPreview(st,stats,range){
-  const draw=(sel=state.parentChannel||'WhatsApp')=>{state.parentChannel=sel; const note=document.getElementById('teacherNote')?.value||''; const msg=sel==='SMS'?buildSmsMessage(st,stats,range):sel==='E-posta'?buildEmailMessage(st,stats,range,note):buildWhatsAppMessage(st,stats,range,note); document.getElementById('previewBox').innerHTML=`<div class="tabs"><button class="tab ${sel==='WhatsApp'?'active':''}" data-prev="WhatsApp">WhatsApp</button><button class="tab ${sel==='E-posta'?'active':''}" data-prev="E-posta">E-posta</button><button class="tab ${sel==='SMS'?'active':''}" data-prev="SMS">SMS</button></div><div class="message-preview" style="margin-top:10px">${esc(msg)}</div>${sel==='SMS'?`<p class="muted tiny">SMS karakter sayısı: ${msg.length}</p>`:''}`; document.querySelectorAll('[data-prev]').forEach(b=>b.onclick=()=>draw(b.dataset.prev)); document.querySelectorAll('[data-send-channel]').forEach(btn=>btn.classList.toggle('active-channel',btn.dataset.sendChannel===sel));};
-  draw(state.parentChannel||'WhatsApp'); document.getElementById('teacherNote').oninput=()=>draw(state.parentChannel||'WhatsApp'); document.querySelectorAll('[data-send-channel]').forEach(b=>b.onclick=async()=>{const ch=b.dataset.sendChannel; const note=document.getElementById('teacherNote').value; const active=ch==='Kopyala'?(state.parentChannel||'WhatsApp'):ch; const message=active==='SMS'?buildSmsMessage(st,stats,range):active==='E-posta'?buildEmailMessage(st,stats,range,note):buildWhatsAppMessage(st,stats,range,note); try{if(ch==='WhatsApp'){const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.'); window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank'); state.draftConfirm={student:st,channel:ch,message}; renderConfirmBox();}else if(ch==='SMS'){const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.'); window.location.href=`sms:+${phone}?&body=${enc(message)}`; state.draftConfirm={student:st,channel:ch,message}; renderConfirmBox();}else if(ch==='E-posta'){if(!st.parentMail) throw new Error('Veli e-posta adresi yok.'); window.location.href=`mailto:${enc(st.parentMail)}?subject=${enc(state.settings.kurumAdi+' - Öğrenci Bilgilendirme')}&body=${enc(message)}`; state.draftConfirm={student:st,channel:ch,message}; renderConfirmBox();}else{await copyText(message); setToast('Seçili kanal metni kopyalandı','ok');} draw(active);}catch(e){setToast(e.message,'error');}});
+  const actionLabel={WhatsApp:'WhatsApp Aç',SMS:'SMS Aç','E-posta':'E-posta Aç'};
+  const buildMessage=(channel,note)=>channel==='SMS'?buildSmsMessage(st,stats,range):channel==='E-posta'?buildEmailMessage(st,stats,range,note):buildWhatsAppMessage(st,stats,range,note);
+  const syncChannelActions=(sel)=>{
+    document.querySelectorAll('[data-send-channel]').forEach(btn=>{
+      const channel=btn.dataset.sendChannel;
+      const isCopy=channel==='Kopyala';
+      const isActive=channel===sel;
+      btn.classList.toggle('hidden',!isCopy&&!isActive);
+      btn.classList.toggle('active-channel',isActive);
+      if(isActive) btn.textContent=actionLabel[sel]||`${sel} Aç`;
+    });
+  };
+  const draw=(sel=state.parentChannel||'WhatsApp')=>{
+    state.parentChannel=sel;
+    const note=document.getElementById('teacherNote')?.value||'';
+    const msg=buildMessage(sel,note);
+    document.getElementById('previewBox').innerHTML=`<div class="tabs channel-tabs"><button class="tab ${sel==='WhatsApp'?'active':''}" data-prev="WhatsApp">WhatsApp</button><button class="tab ${sel==='E-posta'?'active':''}" data-prev="E-posta">E-posta</button><button class="tab ${sel==='SMS'?'active':''}" data-prev="SMS">SMS</button></div><div class="message-preview" style="margin-top:10px">${esc(msg)}</div>${sel==='SMS'?`<p class="muted tiny">SMS karakter sayısı: ${msg.length}</p>`:''}`;
+    document.querySelectorAll('[data-prev]').forEach(b=>b.onclick=()=>draw(b.dataset.prev));
+    syncChannelActions(sel);
+  };
+  draw(state.parentChannel||'WhatsApp');
+  document.getElementById('teacherNote').oninput=()=>draw(state.parentChannel||'WhatsApp');
+  document.querySelectorAll('[data-send-channel]').forEach(b=>b.onclick=async()=>{
+    const ch=b.dataset.sendChannel;
+    const note=document.getElementById('teacherNote').value;
+    const active=ch==='Kopyala'?(state.parentChannel||'WhatsApp'):ch;
+    const message=buildMessage(active,note);
+    try{
+      if(active==='WhatsApp' && ch!=='Kopyala'){
+        const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.');
+        window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
+        state.draftConfirm={student:st,channel:active,message}; renderConfirmBox();
+      }else if(active==='SMS' && ch!=='Kopyala'){
+        const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.');
+        window.location.href=`sms:+${phone}?&body=${enc(message)}`;
+        state.draftConfirm={student:st,channel:active,message}; renderConfirmBox();
+      }else if(active==='E-posta' && ch!=='Kopyala'){
+        if(!st.parentMail) throw new Error('Veli e-posta adresi yok.');
+        window.location.href=`mailto:${enc(st.parentMail)}?subject=${enc(state.settings.kurumAdi+' - Öğrenci Bilgilendirme')}&body=${enc(message)}`;
+        state.draftConfirm={student:st,channel:active,message}; renderConfirmBox();
+      }else{
+        await copyText(message); setToast('Seçili kanal metni kopyalandı','ok');
+      }
+      draw(active);
+    }catch(e){setToast(e.message,'error');}
+  });
 }
 function renderConfirmBox(){
   const box=document.getElementById('confirmBox'); if(!box||!state.draftConfirm) return; box.innerHTML=`<div class="confirm-panel"><b>Bu bildirimi gerçekten veliye gönderdiniz mi?</b><p class="muted tiny">Sadece “Gönderdim” derseniz Firebase veli bildirim geçmişine işlenecek. Hazırlanmış ama gönderilmemiş mesaj kayıt sayılmayacak.</p><div class="row"><button id="confirmSent" class="success-btn">Gönderdim, kaydet</button><button id="confirmNo" class="danger-btn">Göndermedim, kaydetme</button></div></div>`; document.getElementById('confirmSent').onclick=async()=>{try{await logParentNotification(state.draftConfirm.student,state.draftConfirm.channel,state.draftConfirm.message); state.draftConfirm=null; setToast('Veli bildirimi gönderildi olarak işlendi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.getElementById('confirmNo').onclick=()=>{const last={...state.draftConfirm}; state.draftConfirm=null; box.innerHTML='<div class="empty">Mesaj gönderildi olarak kaydedilmedi. 10 saniye sonra tekrar sorulacak.</div>'; setTimeout(()=>{if(!state.draftConfirm&&document.getElementById('confirmBox')){state.draftConfirm=last; renderConfirmBox();}},10000);};
@@ -1674,7 +1789,34 @@ function adminSystemHtml(){
     <div class="card system-setting-card"><h3>SMS</h3><span class="setting-status">Yönetilebilir</span><label class="row" style="margin-top:12px"><input id="sysSms" type="checkbox" ${sys.smsEnabled!==false?'checked':''}> SMS hazırlama aktif</label><div class="field" style="margin-top:10px"><label>SMS imzası</label><input id="sysSmsSignature" class="input" value="${esc(sys.smsSignature||'Fenomen')}"></div><div class="field" style="margin-top:10px"><label>SMS başlangıç metni</label><input id="sysSmsPrefix" class="input" value="${esc(sys.smsPrefix||'')}"></div></div>
     <div class="card system-setting-card system-full"><h3>Firebase Uygulama Bilgileri</h3><div class="system-subgrid"><div class="field"><label>Auth Domain</label><input id="sysAuthDomain" class="input secret-input" value="${esc(cfg.authDomain||'')}"></div><div class="field"><label>Project ID</label><input id="sysProjectId" class="input secret-input" value="${esc(cfg.projectId||'')}"></div><div class="field"><label>Storage Bucket</label><input id="sysStorageBucket" class="input secret-input" value="${esc(cfg.storageBucket||'')}"></div><div class="field"><label>Messaging Sender ID</label><input id="sysMessagingSenderId" class="input secret-input" value="${esc(cfg.messagingSenderId||'')}"></div><div class="field"><label>App ID</label><input id="sysAppId" class="input secret-input" value="${esc(cfg.appId||'')}"></div><div class="field"><label>Measurement ID</label><input id="sysMeasurementId" class="input secret-input" value="${esc(cfg.measurementId||'')}"></div></div></div>
   </div>
-  <div class="card" style="margin-top:14px"><h3>Otomatik Firebase Denetimi</h3><div class="compact-grid"><div class="field"><label>Denetim sıklığı / saniye</label><input id="sysRefresh" class="input" inputmode="numeric" value="${esc(sys.autoRefreshSeconds||45)}"></div><div class="field"><label>Son kayıt</label><input class="input" value="${esc(sys.lastUpdate||'Varsayılan ayarlar kullanılıyor')}" disabled></div></div><div class="row" style="margin-top:12px"><button id="saveSystemSettings" class="primary">Sistem Ayarlarını Firebase’e Kaydet</button><button id="resetSystemDefaults" class="ghost">Varsayılan Ayarları Doldur</button></div><p class="muted tiny" style="margin-top:10px">Database URL, Sheet ID, Firebase uygulama alanları ve SMS metni bu ekrandan öğretmen/admin tarafından değiştirilebilir.</p></div>`;
+  <div class="card" style="margin-top:14px"><h3>Otomatik Firebase Denetimi</h3><div class="compact-grid"><div class="field"><label>Denetim sıklığı / saniye</label><input id="sysRefresh" class="input" inputmode="numeric" value="${esc(sys.autoRefreshSeconds||45)}"></div><div class="field"><label>Son kayıt</label><input class="input" value="${esc(sys.lastUpdate||'Varsayılan ayarlar kullanılıyor')}" disabled></div></div><div class="row" style="margin-top:12px"><button id="saveSystemSettings" class="primary">Sistem Ayarlarını Firebase’e Kaydet</button><button id="resetSystemDefaults" class="ghost">Varsayılan Ayarları Doldur</button></div><p class="muted tiny" style="margin-top:10px">Database URL, Sheet ID, Firebase uygulama alanları ve SMS metni bu ekrandan öğretmen/admin tarafından değiştirilebilir.</p></div>
+  <div class="card system-setting-card system-full" style="margin-top:14px;border-color:#fecaca;background:linear-gradient(180deg,#fff,#fff7f7)"><h3 style="color:#991b1b">Tehlikeli İşlem</h3><p class="muted" style="margin:6px 0 12px;font-weight:700;line-height:1.55">Bu tuş aktif Realtime Database adresindeki kök dahil tüm Firebase veriyollarını kalıcı olarak siler. Öğrenci listesi E-Tablo’dan tekrar okunabilir; ancak Firebase’deki görevler, mesajlar, takip ayarları, ders düzenleri ve işlem kayıtları geri alınamaz.</p><div class="row"><button id="deleteAllFirebasePaths" class="danger-btn">Tüm Firebase Veriyollarını Sil</button><span class="badge red">Çift onay + metin doğrulama</span></div></div>`;
+}
+async function deleteAllFirebasePaths(){
+  if(!state.teacher?.isAdmin){setToast('Bu işlem için admin yetkisi gerekli.','error');return;}
+  const dbBase=(document.getElementById('sysDbBase')?.value.trim()||getDbBase()).replace(/\/+$/,'');
+  if(!dbBase){setToast('Database URL boş olduğu için işlem durduruldu.','error');return;}
+  const ok=confirm(`DİKKAT!\n\n${dbBase} adresindeki TÜM Firebase veriyolları kalıcı olarak silinecek.\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?`);
+  if(!ok) return;
+  const typed=prompt('Silme işlemini başlatmak için kutuya aynen şunu yazın: TÜM VERİYİ SİL');
+  if(typed !== 'TÜM VERİYİ SİL'){setToast('Toplu silme iptal edildi. Doğrulama metni eşleşmedi.','error');return;}
+  const finalOk=confirm('Son onay: Firebase veritabanı kökündeki bütün kayıtlar silinecek. Emin misiniz?');
+  if(!finalOk) return;
+  try{
+    setToast('Firebase veriyolları siliniyor...');
+    await deleteJsonAtDbBase(dbBase,'');
+    state.tasks=[];
+    state.followClasses=[];
+    state.adminOpsMap={};
+    state.statsCache={};
+    state.selectedStudent=null;
+    state.settings={kurumAdi:DEFAULT_KURUM,logoUrl:DEFAULT_LOGO,dailyLimit:3};
+    state.systemSettings={firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',smsPrefix:'',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}};
+    state.lessons=structuredClone(DEFAULT_LESSONS);
+    closeModal();
+    setToast('Tüm Firebase veriyolları silindi. Sistem varsayılan ayarlarla yenilendi.','ok');
+    render();
+  }catch(e){setToast('Toplu silme hatası: '+e.message,'error');}
 }
 function bindAdmin(){
   document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab;renderAdmin(document.getElementById('mainArea'));});
@@ -1693,6 +1835,7 @@ function bindAdmin(){
     state.systemSettings={firebaseEnabled:document.getElementById('sysFirebase').checked,sheetsEnabled:document.getElementById('sysSheets').checked,smsEnabled:document.getElementById('sysSms').checked,smsSignature:document.getElementById('sysSmsSignature').value.trim()||'Fenomen',smsPrefix:document.getElementById('sysSmsPrefix').value.trim(),sheetId:document.getElementById('sysSheetId').value.trim()||SHEET_ID,dbBase,firebaseConfig,autoRefreshSeconds:Number(document.getElementById('sysRefresh').value)||45};
     await saveSystemSettings();await loadSettings();startAutoRefresh();setToast('Sistem ayarları kaydedildi ve aktif edildi','ok');render();
   }catch(e){setToast(e.message,'error');}});
+  document.getElementById('deleteAllFirebasePaths')?.addEventListener('click',deleteAllFirebasePaths);
   bindLessonDesigner();document.getElementById('loadOps')?.addEventListener('click',loadAdminOperations);
 }
 
