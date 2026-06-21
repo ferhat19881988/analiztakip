@@ -729,6 +729,20 @@ async function sendParentSmsViaApi(student,message){
   setToast('SMS API isteği gönderildi ve veli bildirim geçmişine kaydedildi.','ok');
   return true;
 }
+function sendParentSmsViaDevice(student,message){
+  const phone=normalizePhoneTR(student?.parentPhone);
+  const msg=String(message||'').trim();
+  if(!phone) throw new Error('Veli telefonu yok veya geçersiz.');
+  if(!msg) throw new Error('SMS metni boş.');
+  const number=`+${phone}`;
+  const isiOS=/iPad|iPhone|iPod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  const separator=isiOS?'&':'?';
+  window.location.href=`sms:${number}${separator}body=${enc(msg)}`;
+  const box=document.getElementById('confirmBox');
+  if(box) box.innerHTML=`<div class="confirm-panel"><b>Telefon SMS uygulaması açılıyor.</b><p class="muted tiny">Alıcı: +${phone}. Mesaj metni hazır gelir; gönderimi telefonunuzun kendi SMS ekranından onaylayın. Gönderdiyseniz aşağıdaki onayla veli bildirim geçmişine kaydedebilirsiniz.</p></div>`;
+  setToast('Telefonun SMS uygulaması açılıyor. Mesajı telefondan gönderin.','ok');
+  return true;
+}
 
 function firebasePath(path){return String(path||'').replace(/^\/+|\/+$/g,'');}
 function getDbBase(){return String(state.systemSettings?.dbBase || state.systemSettings?.databaseURL || DB_BASE).trim().replace(/\/+$/,'');}
@@ -1473,7 +1487,7 @@ function bindStudentDetailTabs(){
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
   if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
-  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS Aç</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
+  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
 }
@@ -1668,17 +1682,19 @@ function bindPreview(st,stats,range){
     document.querySelectorAll('[data-send-channel]').forEach(btn=>{
       const channel=btn.dataset.sendChannel;
       const isCopy=channel==='Kopyala';
-      const isActive=channel===sel;
+      const isDeviceSms=channel==='SMS_DEVICE';
+      const isActive=channel===sel || (isDeviceSms && sel==='SMS');
       btn.classList.toggle('hidden',!isCopy&&!isActive);
       btn.classList.toggle('active-channel',isActive);
-      if(isActive) btn.textContent=actionLabel[sel]||`${sel} Aç`;
+      if(channel===sel) btn.textContent=actionLabel[sel]||`${sel} Aç`;
+      if(isDeviceSms) btn.textContent='SMS Gönder';
     });
   };
   const draw=(sel=state.parentChannel||'WhatsApp')=>{
     state.parentChannel=sel;
     const note=document.getElementById('teacherNote')?.value||'';
     const msg=buildMessage(sel,note);
-    document.getElementById('previewBox').innerHTML=`<div class="tabs channel-tabs"><button class="tab ${sel==='WhatsApp'?'active':''}" data-prev="WhatsApp">WhatsApp</button><button class="tab ${sel==='E-posta'?'active':''}" data-prev="E-posta">E-posta</button><button class="tab ${sel==='SMS'?'active':''}" data-prev="SMS">SMS</button></div><div class="message-preview" style="margin-top:10px">${esc(msg)}</div>${sel==='SMS'?`<p class="muted tiny">SMS karakter sayısı: ${msg.length}</p><div class="sms-api-note">SMS API gönderimi aktif: “SMS API Gönder” tuşu mesajı doğrudan veli telefonuna yollar. Metin kopyalama tuşu yedek olarak kalır.</div>`:''}`;
+    document.getElementById('previewBox').innerHTML=`<div class="tabs channel-tabs"><button class="tab ${sel==='WhatsApp'?'active':''}" data-prev="WhatsApp">WhatsApp</button><button class="tab ${sel==='E-posta'?'active':''}" data-prev="E-posta">E-posta</button><button class="tab ${sel==='SMS'?'active':''}" data-prev="SMS">SMS</button></div><div class="message-preview" style="margin-top:10px">${esc(msg)}</div>${sel==='SMS'?`<p class="muted tiny">SMS karakter sayısı: ${msg.length}</p><div class="sms-api-note">SMS API Gönder: mesajı doğrudan API ile yollar. SMS Gönder: aynı metni telefonun kendi SMS uygulamasında hazır açar; gönderimi telefondan onaylarsınız. Metni Kopyala yedek olarak kalır.</div>`:''}`;
     document.querySelectorAll('[data-prev]').forEach(b=>b.onclick=()=>draw(b.dataset.prev));
     syncChannelActions(sel);
   };
@@ -1687,13 +1703,16 @@ function bindPreview(st,stats,range){
   document.querySelectorAll('[data-send-channel]').forEach(b=>b.onclick=async()=>{
     const ch=b.dataset.sendChannel;
     const note=document.getElementById('teacherNote').value;
-    const active=ch==='Kopyala'?(state.parentChannel||'WhatsApp'):ch;
+    const active=(ch==='Kopyala'||ch==='SMS_DEVICE')?(state.parentChannel||'WhatsApp'):ch;
     const message=buildMessage(active,note);
     try{
       if(active==='WhatsApp' && ch!=='Kopyala'){
         const phone=normalizePhoneTR(st.parentPhone); if(!phone) throw new Error('Veli telefonu yok.');
         window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
         state.draftConfirm={student:st,channel:active,message}; renderConfirmBox();
+      }else if(active==='SMS' && ch==='SMS_DEVICE'){
+        sendParentSmsViaDevice(st,message);
+        state.draftConfirm={student:st,channel:'SMS Telefon',message}; renderConfirmBox();
       }else if(active==='SMS' && ch!=='Kopyala'){
         const sent=await sendParentSmsViaApi(st,message);
         if(!sent) return;
