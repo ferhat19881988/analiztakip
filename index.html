@@ -1281,25 +1281,110 @@ function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v
 function planKey(dayIndex, lesson){return `d${dayIndex}_${String(lesson||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[.#$\[\]\/\s]+/g,'_').replace(/[^A-Za-z0-9_ğüşöçıİĞÜŞÖÇ-]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')}`;}
 function defaultPlan(days){const m={}; for(let d=0; d<days; d++) for(const l of lessonNames()) m[planKey(d,l)]=''; return m;}
 function resizePlan(old,days){const m=defaultPlan(days); for(const [k,v] of Object.entries(old||{})) if(k in m) m[k]=v; return m;}
-function quickProgramTemplates(){return [
-  ['cokHafif','Çok Hafif'],['hafif','Hafif'],['orta','Orta'],['dengeli','Dengeli'],['guclu','Güçlü'],['yogun','Yoğun'],
-  ['kamp','LGS Kampı'],['deneme','Deneme Sonrası'],['turkceFocus','Türkçe Odak'],['matematikFocus','Matematik Odak'],['fenFocus','Fen Odak'],['sayisalFocus','Sayısal Odak'],
-  ['sozelFocus','Sözel Odak'],['haftaIciDengeli','Hafta İçi Dengeli'],['haftaSonuTekrar','Hafta Sonu Tekrar'],['copyWeek','1. Haftayı Kopyala'],
-  ['weekendOff','Hafta Sonu Boş'],['bulkAdd10','Her Güne +10'],['bulkAdd20','Her Güne +20'],['bulkAdd30','Her Güne +30'],['clear','Tümünü Temizle']
-];}
-function quickProgramToolbarHtml(){return `<div class="quick-program-tools">${lastStudentProgramCopyHtml()}<div class="quick-template-grid">${quickProgramTemplates().map(([key,label])=>`<button type="button" class="chip ${key==='clear'?'danger-chip':(['bulkAdd10','bulkAdd20','bulkAdd30','kamp'].includes(key)?'strong-chip':'')}" data-template="${key}">${label}</button>`).join('')}</div><p class="quick-program-note">Gün kartlarının içinde +10 / +20 / +30 ile o günün bütün derslerine hızlı ekleme yapabilir, “Günü temizle” ile sadece o günü sıfırlayabilir, ders satırındaki × ile tek dersi temizleyebilirsiniz.</p></div>`;}
-function templateNumberForLesson(type,lesson,index){
-  const base={cokHafif:[10,10,8,5,5,5],hafif:[20,15,15,10,10,10],orta:[25,25,20,12,12,12],dengeli:[30,30,25,15,15,15],guclu:[35,35,30,20,20,20],yogun:[40,40,30,20,20,20],kamp:[60,60,50,35,30,30],deneme:[35,35,35,20,20,20]};
-  const s=String(lesson||'').toLocaleLowerCase('tr-TR');
-  if(type==='turkceFocus') return s.includes('türk') ? 55 : (s.includes('mat')||s.includes('fen') ? 20 : 10);
-  if(type==='matematikFocus') return s.includes('mat') ? 60 : (s.includes('türk')||s.includes('fen') ? 20 : 10);
-  if(type==='fenFocus') return s.includes('fen') ? 55 : (s.includes('mat')||s.includes('türk') ? 20 : 10);
-  if(type==='sayisalFocus') return (s.includes('mat')||s.includes('fen')) ? 45 : (s.includes('türk') ? 20 : 10);
-  if(type==='sozelFocus') return (s.includes('türk')||s.includes('inkılap')||s.includes('din')||s.includes('ing')||s.includes('i̇ng')) ? 35 : 15;
-  const arr=base[type]||base.dengeli;
-  return arr[index]??10;
+function quickProgramTemplates(){
+  const focusTemplates=lessonNames().map(l=>[`focus:${enc(l)}`,`${l} Odak`]);
+  return [
+    ['cokHafif','Çok Hafif 40 soru'],['hafif','Hafif 60 soru'],['orta','Orta 90 soru'],['dengeli','Dengeli 120 soru'],['guclu','Güçlü 150 soru'],['yogun','Yoğun 180 soru'],
+    ['kamp','LGS Kampı 200 soru'],...focusTemplates,['sayisalFocus','Sayısal Odak 120 soru'],['sozelFocus','Sözel Odak 120 soru'],
+    ['haftaSonuTekrar','Hafta Sonu Tekrar'],['copyWeek','1. Haftayı Kopyala'],
+    ['weekendOff','Hafta Sonu Boş'],['bulkAdd10','Her Güne +10'],['bulkAdd20','Her Güne +20'],['bulkAdd30','Her Güne +30'],['clear','Tümünü Temizle']
+  ];
 }
-function applyTemplate(plan,days,type){const names=lessonNames(); const m={...plan}; const start=state.taskWizard?.start||todayISO(); for(let d=0; d<days; d++){ const real=parseAnyDate(addDaysISO(start,d)); const weekend=real ? [0,6].includes(real.getDay()) : false; if(type==='haftaIciDengeli' && weekend){for(const l of names) delete m[planKey(d,l)]; continue;} if(type==='haftaSonuTekrar' && !weekend) continue; names.forEach((l,i)=>m[planKey(d,l)]=String(templateNumberForLesson(type==='haftaIciDengeli'?'dengeli':type,l,i))); } return m;}
+function quickProgramToolbarHtml(){return `<div class="quick-program-tools">${lastStudentProgramCopyHtml()}<div class="quick-template-grid">${quickProgramTemplates().map(([key,label])=>`<button type="button" class="chip ${key==='clear'?'danger-chip':(['bulkAdd10','bulkAdd20','bulkAdd30','kamp'].includes(key)||key.startsWith('focus:')?'strong-chip':'')}" data-template="${esc(key)}">${esc(label)}</button>`).join('')}</div><p class="quick-program-note">Hazır programlar günlük toplam soru sayısına göre akıllı dağıtılır. Ders odakta seçilen ders 40 soru olur; kalan derslerle günlük toplam 100 soruya tamamlanır. Sayısal/Sözel odak günlük 120 soru üzerinden planlanır.</p></div>`;}
+const QUICK_PROGRAM_TOTALS=Object.freeze({cokHafif:40,hafif:60,orta:90,dengeli:120,guclu:150,yogun:180,kamp:200,haftaSonuTekrar:120,haftaIciDengeli:120});
+function lessonKind(lesson){
+  const s=String(lesson||'').toLocaleLowerCase('tr-TR');
+  if(s.includes('türk')) return 'turkce';
+  if(s.includes('mat')) return 'matematik';
+  if(s.includes('fen')) return 'fen';
+  if(s.includes('inkılap')||s.includes('i̇nkılap')||s.includes('inkilap')||s.includes('t.c')||s.includes('tc')) return 'inkilap';
+  if(s.includes('din')) return 'din';
+  if(s.includes('ing')||s.includes('i̇ng')||s.includes('english')) return 'ingilizce';
+  return 'diger';
+}
+function lessonImportanceWeight(lesson,type='base'){
+  const k=lessonKind(lesson);
+  if(type==='sayisalFocus'){
+    if(k==='matematik'||k==='fen') return 40;
+    if(k==='turkce') return 20;
+    if(k==='inkilap') return 10;
+    if(k==='din'||k==='ingilizce') return 5;
+    return 5;
+  }
+  if(type==='sozelFocus'){
+    if(k==='turkce') return 40;
+    if(k==='inkilap'||k==='din'||k==='ingilizce') return 20;
+    if(k==='matematik'||k==='fen') return 10;
+    return 10;
+  }
+  if(k==='turkce'||k==='matematik'||k==='fen') return 20;
+  if(k==='inkilap'||k==='din'||k==='ingilizce') return 10;
+  return 10;
+}
+function normalizeLessonText(v){return String(v||'').toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9ğüşöçıİĞÜŞÖÇ]+/gi,'').trim();}
+function sameLesson(a,b){const x=normalizeLessonText(a), y=normalizeLessonText(b); return x && y && x===y;}
+function focusLessonFromTemplate(type){
+  const legacy={turkceFocus:'Türkçe',matematikFocus:'Matematik',fenFocus:'Fen Bilimleri',inkilapFocus:'T.C. İnkılap Tarihi',dinFocus:'Din Kültürü',ingilizceFocus:'İngilizce'};
+  if(legacy[type]) return legacy[type];
+  if(String(type||'').startsWith('focus:')){try{return decodeURIComponent(String(type).slice(6));}catch(e){return String(type).slice(6);}}
+  return '';
+}
+function distributeQuestionTotal(total,names,type='base',fixed={}){
+  const out={};
+  const lessonList=(names||[]).filter(Boolean);
+  if(!lessonList.length) return out;
+  lessonList.forEach(l=>out[l]=0);
+  Object.entries(fixed||{}).forEach(([lesson,value])=>{
+    const real=lessonList.find(l=>sameLesson(l,lesson)) || lesson;
+    if(lessonList.includes(real)) out[real]=Math.max(0,Number(value)||0);
+  });
+  let remaining=Math.max(0,Number(total||0)-Object.values(out).reduce((s,v)=>s+(Number(v)||0),0));
+  const available=lessonList.filter(l=>!Object.keys(fixed||{}).some(f=>sameLesson(f,l)));
+  if(!available.length){
+    const first=lessonList[0];
+    out[first]=(out[first]||0)+remaining;
+    return out;
+  }
+  const weightSum=available.reduce((s,l)=>s+lessonImportanceWeight(l,type),0)||available.length;
+  const rows=available.map((lesson,idx)=>{
+    const raw=remaining*(lessonImportanceWeight(lesson,type)/weightSum);
+    const base=Math.floor(raw/5)*5;
+    return {lesson,idx,raw,base,rem:raw-base,weight:lessonImportanceWeight(lesson,type)};
+  });
+  rows.forEach(r=>{out[r.lesson]=(out[r.lesson]||0)+r.base;});
+  let used=rows.reduce((s,r)=>s+r.base,0);
+  const sorted=[...rows].sort((a,b)=>(b.rem-a.rem)||(b.weight-a.weight)||(a.idx-b.idx));
+  let i=0;
+  while(used+5<=remaining && sorted.length){out[sorted[i%sorted.length].lesson]+=5; used+=5; i++;}
+  if(used<remaining) out[sorted[0]?.lesson||available[0]]+=remaining-used;
+  return out;
+}
+function templateNumbersForType(type,names){
+  if(type==='sayisalFocus'||type==='sozelFocus') return distributeQuestionTotal(120,names,type);
+  const focus=focusLessonFromTemplate(type);
+  if(focus){return distributeQuestionTotal(100,names,'base',{[focus]:40});}
+  const total=QUICK_PROGRAM_TOTALS[type]||QUICK_PROGRAM_TOTALS.dengeli;
+  return distributeQuestionTotal(total,names,'base');
+}
+function templateNumberForLesson(type,lesson,index){
+  const names=lessonNames();
+  const dist=templateNumbersForType(type,names);
+  return dist[lesson] ?? 0;
+}
+function applyTemplate(plan,days,type){
+  const names=lessonNames();
+  const m={...plan};
+  const start=state.taskWizard?.start||todayISO();
+  const fill=templateNumbersForType(type,names);
+  for(let d=0; d<days; d++){
+    const real=parseAnyDate(addDaysISO(start,d));
+    const weekend=real ? [0,6].includes(real.getDay()) : false;
+    if(type==='haftaIciDengeli' && weekend){for(const l of names) delete m[planKey(d,l)]; continue;}
+    if(type==='haftaSonuTekrar' && !weekend) continue;
+    names.forEach(l=>{const n=Number(fill[l]||0); if(n>0) m[planKey(d,l)]=String(n); else delete m[planKey(d,l)];});
+  }
+  return m;
+}
 function addToPlanDay(plan,dayIndex,delta){const m={...plan}; const d=Number(dayIndex); for(const l of lessonNames()){const k=planKey(d,l); const next=Math.max(0,Math.min(9999,(Number(m[k])||0)+Number(delta||0))); if(next) m[k]=String(next); else delete m[k];} return m;}
 function addToEveryPlanDay(plan,days,delta){let m={...plan}; for(let d=0; d<days; d++) m=addToPlanDay(m,d,delta); return m;}
 function clearPlanDay(plan,dayIndex){const m={...plan}; const d=Number(dayIndex); for(const l of lessonNames()) delete m[planKey(d,l)]; return m;}
