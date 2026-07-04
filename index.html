@@ -1731,38 +1731,41 @@ function studentAssignmentDaySummaries(tasks,range){
 function buildAssignmentParentWhatsAppMessage(st,tasks,range){
   const days=studentAssignmentDaySummaries(tasks,range);
   const br=String.fromCharCode(10);
+  const kurum=state.settings?.kurumAdi||DEFAULT_KURUM;
+  const teacherName=state.teacher?.name||'Öğretmen Adı';
+  const grandTotal=days.reduce((sum,d)=>sum+d.assignments.reduce((daySum,a)=>daySum+Number(a.total||0),0),0);
   const dayText=days.length ? days.map(d=>{
-    const rows=d.assignments.map(a=>{
-      const total=a.total?` (${a.total} soru)`:'';
-      return `• ${a.items.join(`${br}• `)}${total}`;
-    }).join(br);
-    return `📅 *${fmtDate(d.day)} ${dayName(d.day)?'• '+dayName(d.day):''}*${br}${rows}`;
+    const dailyTotal=d.assignments.reduce((sum,a)=>sum+Number(a.total||0),0);
+    const rows=d.assignments.flatMap(a=>(a.items||[]).map(item=>`• ${item}`)).join(br);
+    return `📅 *${fmtDate(d.day)}${dayName(d.day)?' • '+dayName(d.day):''}*${br}${rows}${br}👉🏻 Toplam Günlük ${dailyTotal} soru`;
   }).join(`${br}${br}`) : 'Bu tarih aralığında aktif görevlendirme görünmüyor.';
+  const grandTotalLine=days.length ? `${br}👉🏻 Tüm verilen sorular toplamı ${grandTotal} soru` : '';
   return `Sayın Velimiz, merhaba. 👋
 
-${state.settings.kurumAdi} çalışma takip sistemi üzerinden ${st.name} öğrencimize ait görevlendirme bilgileri aşağıda bilgilerinize sunulmuştur.
+${kurum} çalışma takip sistemi üzerinden ${st.name} öğrencimize ait görevlendirme bilgileri aşağıda bilgilerinize sunulmuştur.
 
 *Öğrenci:* ${st.name}
 *Sınıf:* ${st.className||'-'}
 *Öğrenci No:* ${st.no}
-*Tarih Aralığı:* ${fmtDate(range.start)} - ${fmtDate(range.end)}
 
 🗓️ *Gün Gün Görevlendirme Özeti*
-${dayText}
+${dayText}${grandTotalLine}
 
 Öğrencimiz görevlendirmelerini ve çalışma girişlerini aşağıdaki bağlantıdan kontrol edebilir:
+*Öğrenci numarası ile giriş yapabilecektir.*
 
 ${STUDENT_ASSIGNMENT_URL}
 
 Bilginize sunar, iyi günler dileriz.
-${state.settings.kurumAdi}`;
+*${kurum}*
+*${teacherName}*`;
 }
 function studentTaskParentNotifyHtml(tasks,st,range){
   const days=studentAssignmentDaySummaries(tasks,range);
   if(!days.length) return '';
   const msg=buildAssignmentParentWhatsAppMessage(st,tasks,range);
-  const totalAssignments=days.reduce((s,d)=>s+d.assignments.length,0);
-  return `<div class="task-parent-notify"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Öğrencinin gördüğü görevlendirmeleri veliye WhatsApp metni olarak iletmek için hazırlanmıştır.</p></div><span class="badge">${days.length} gün • ${totalAssignments} görev</span></div><div class="message-preview">${esc(msg)}</div><div class="student-panel-link-box"><a href="${esc(STUDENT_ASSIGNMENT_URL)}" target="_blank" rel="noopener">${esc(STUDENT_ASSIGNMENT_URL)}</a></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="ghost" data-task-parent-action="copy">Metni Kopyala</button><button class="primary" data-task-parent-action="whatsapp">WhatsApp Aç</button></div><p class="muted tiny" style="margin-top:8px">Bağlantı mesaj içinde tek satır olarak yer alır; WhatsApp’ta tıklanınca doğrudan öğrenci giriş sayfasına yönlendirir.</p><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
+  const totalQuestions=days.reduce((s,d)=>s+d.assignments.reduce((daySum,a)=>daySum+Number(a.total||0),0),0);
+  return `<div class="task-parent-notify"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Öğrencinin gördüğü görevlendirmeleri veliye WhatsApp metni olarak iletmek için hazırlanmıştır.</p></div><span class="badge">${days.length} gün • ${totalQuestions} soru</span></div><div class="message-preview">${esc(msg)}</div><div class="student-panel-link-box"><a href="${esc(STUDENT_ASSIGNMENT_URL)}" target="_blank" rel="noopener">${esc(STUDENT_ASSIGNMENT_URL)}</a></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="ghost" data-task-parent-action="copy">Metni Kopyala</button><button class="primary" data-task-parent-action="whatsapp">WhatsApp Aç</button></div><p class="muted tiny" style="margin-top:8px">Bağlantı mesaj içinde tek satır olarak yer alır; WhatsApp’ta tıklanınca doğrudan öğrenci giriş sayfasına yönlendirir.</p><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
 }
 function bindAssignmentParentNotify(st,tasks,range){
   document.querySelectorAll('[data-task-parent-action]').forEach(btn=>btn.onclick=async()=>{
