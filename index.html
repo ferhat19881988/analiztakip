@@ -2355,7 +2355,7 @@ function renderAdmin(main){
   const tabs=[['overview','Genel'],['settings','Kurum'],['system','Firebase / E-Tablo / SMS'],['lessons','Dersler'],['ops','İşlemler']];
   main.innerHTML=`${section('Admin Merkezi','')}<div class="admin-main-tabs">${tabs.map(([id,label])=>`<button type="button" class="admin-tab-btn ${active===id?'active':''}" data-admin-tab="${id}">${label}</button>`).join('')}</div><div class="admin-tab-panel ${active==='overview'?'active':''}">${adminOverviewHtml()}</div><div class="admin-tab-panel ${active==='settings'?'active':''}">${adminSettingsHtml(classes)}</div><div class="admin-tab-panel ${active==='system'?'active':''}">${adminSystemHtml()}</div><div class="admin-tab-panel ${active==='lessons'?'active':''}"><div class="card"><h3>Dersleri Kur / Düzenle</h3>${lessonDesignerHtml()}</div></div><div class="admin-tab-panel ${active==='ops'?'active':''}"><div class="card"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>`; bindAdmin();
 }
-function adminOverviewHtml(){return `<div class="grid four"><div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Kayıtlı</span></div><div class="admin-metric"><small>Öğretmen</small><strong>${state.teachers.length}</strong><span class="muted tiny">Tanımlı</span></div><div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase</span></div><div class="admin-metric"><small>Takip</small><strong>${state.followClasses.length}</strong><span class="muted tiny">Benim sınıflarım</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Bağlantı Durumu</h3><div class="risk-list"><div class="risk-card good"><b>Firebase ayarı açık</b><p>Realtime Database varsayılan olarak aktiftir.</p></div><div class="risk-card good"><b>E-Tablo ayarı açık</b><p>Öğrenci ve öğretmen listeleri varsayılan kaynaktan okunur.</p></div><div class="risk-card good"><b>SMS imzası</b><p>${esc(state.systemSettings?.smsSignature||'Fenomen')}</p></div></div></div><div class="card"><h3>Hızlı İşlem</h3><div class="row"><button class="secondary" data-admin-tab="system">Sistem Ayarları</button><button class="secondary" data-admin-tab="ops">İşlem Analizi</button><button class="secondary" data-admin-tab="lessons">Dersleri Düzenle</button></div></div></div>`;}
+function adminOverviewHtml(){return `<div class="grid four"><div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Kayıtlı</span></div><div class="admin-metric"><small>Öğretmen</small><strong>${state.teachers.length}</strong><span class="muted tiny">Tanımlı</span></div><div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase</span></div><div class="admin-metric"><small>Takip</small><strong>${state.followClasses.length}</strong><span class="muted tiny">Benim sınıflarım</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Bağlantı Durumu</h3><div class="risk-list"><div class="risk-card good"><b>Firebase ayarı açık</b><p>Realtime Database varsayılan olarak aktiftir.</p></div><div class="risk-card good"><b>E-Tablo ayarı açık</b><p>Öğrenci ve öğretmen listeleri varsayılan kaynaktan okunur.</p></div><div class="risk-card good"><b>SMS imzası</b><p>${esc(state.systemSettings?.smsSignature||'Fenomen')}</p></div></div></div><div class="card"><h3>Hızlı İşlem</h3><div class="row"><button class="secondary" data-admin-tab="system">Sistem Ayarları</button><button class="secondary" data-admin-tab="ops">İşlem Analizi</button><button class="secondary" data-admin-tab="lessons">Dersleri Düzenle</button><button id="resetStudyRecords" class="danger-btn">Çalışma Kayıtlarını Sıfırla</button></div></div></div>`;}
 function adminSettingsHtml(classes){return `<div class="grid two"><div class="card"><h3>Kurum Ayarları</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Ders başına günlük giriş limiti</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Ayarları Kaydet</button><button id="useEduIcon" class="secondary">Fenomen Logosunu Kullan</button></div></div><div class="card teacher-follow-box"><h3>Benim Takip Sınıflarım</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarımı Kaydet</button></div></div>`;}
 function adminSystemHtml(){
   const sys=state.systemSettings||{};
@@ -2411,6 +2411,18 @@ async function deleteProgramFirebasePaths(){
   }catch(e){setToast('Program klasörlerini silme hatası: '+e.message,'error');}
 }
 
+async function resetStudyRecords(){
+  if(!state.teacher?.isAdmin){setToast('Bu işlem için admin yetkisi gerekli.','error');return;}
+  if(!confirm('Çalışma kayıtları sıfırlansın mı?')) return;
+  try{
+    await deleteJson('verianalizi001/calismaKayitlari');
+    state.statsCache={};
+    await logAction('Çalışma kayıtları sıfırlama','verianalizi001/calismaKayitlari sıfırlandı');
+    setToast('Çalışma kayıtları sıfırlandı','ok');
+    render();
+  }catch(e){setToast('Çalışma kayıtlarını sıfırlama hatası: '+e.message,'error');}
+}
+
 function bindAdmin(){
   document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab;renderAdmin(document.getElementById('mainArea'));});
   document.getElementById('useEduIcon')?.addEventListener('click',()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;});
@@ -2429,6 +2441,7 @@ function bindAdmin(){
     await saveSystemSettings();await loadSettings();startAutoRefresh();setToast('Sistem ayarları kaydedildi ve aktif edildi','ok');render();
   }catch(e){setToast(e.message,'error');}});
   document.getElementById('deleteProgramFirebasePaths')?.addEventListener('click',deleteProgramFirebasePaths);
+  document.getElementById('resetStudyRecords')?.addEventListener('click',resetStudyRecords);
   bindLessonDesigner();document.getElementById('loadOps')?.addEventListener('click',loadAdminOperations);
 }
 
