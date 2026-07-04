@@ -511,6 +511,46 @@ input:focus,select:focus,textarea:focus,.input:focus{border-color:var(--primary-
 
 
 
+
+/* Görevlendirme sekmesi içi veli WhatsApp bilgilendirme paneli */
+.task-parent-notify{
+  margin-top:16px;
+  border:1px solid #fed7aa;
+  border-radius:22px;
+  background:linear-gradient(180deg,#fff,#fffaf6);
+  padding:16px;
+  box-shadow:var(--shadow-xs);
+}
+.task-parent-notify-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.task-parent-notify-head h4{
+  margin:0;
+  color:var(--ink);
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+.student-panel-link-box{
+  margin-top:10px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid #dbeafe;
+  background:#eef4ff;
+  color:#1d4ed8;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+.student-panel-link-box a{color:#1d4ed8;text-decoration:none}
+@media(max-width:520px){.task-parent-notify{padding:14px}.task-parent-notify-head{display:block}.student-panel-link-box{text-align:left}}
+
 /* Seçili veli bildirim kanalına göre aksiyon görünümü ve telefon taşma düzeltmeleri */
 .channel-tabs,
 .parent-action-grid,
@@ -799,6 +839,7 @@ const PROGRAM_FIREBASE_DELETE_PATHS = Object.freeze([
 const ADMIN_ID = '101';
 const DEFAULT_KURUM = 'Fenomen Eğitim Kurumları';
 const DEFAULT_LOGO = 'https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg';
+const STUDENT_ASSIGNMENT_URL = 'https://tinyurl.com/hadikampa';
 const SMS_API_CONFIG = {
   hostname: 'https://api.1sms.com.tr',
   username: 'fenomencocukkulubu',
@@ -1663,6 +1704,84 @@ function buildSmsMessage(st,stats,range){
   const gelisim=weak?` Öncelik: ${weak.label.split('/').pop().trim()}.`:pct>=75?' Düzen korunmalı.':' Günlük tekrar gerekli.'; const tarih=`${fmtDate(range.start).slice(0,5)}-${fmtDate(range.end).slice(0,5)}`; const imza=state.systemSettings?.smsSignature||'Fenomen'; const msg=`${st.name.split(' ')[0]} ${tarih}: ${durum}. Toplam ${total} soru, başarı %${pct}.${gelisim} ${imza}`; return msg.length<=155?msg:msg.slice(0,152)+'...';
 }
 function buildStudentMsg(level,st,stats,range){const who=`\n\nGönderen Öğretmen: ${state.teacher.name}`; if(level==='positive') return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığında ${stats.total} soru girişi yaptın. Bu iyi bir başlangıç. Düzenli devam edersen gelişimin çok daha net görülecek.${who}`; if(level==='high') return `Sevgili ${st.name}, bu aralıktaki çalışma takibin beklenen seviyenin altında görünüyor. Bugünden itibaren kısa ama düzenli çalışma yapmanı ve girişlerini aksatmamanı bekliyorum.${who}`; if(level==='excellent') return `Sevgili ${st.name}, çalışman çok güzel ilerliyor. Toplam ${stats.total} soru çözmen ve düzenli takip yapman çok değerli. Aynı tempoyla devam etmeni bekliyorum.${who}`; return `Sevgili ${st.name}, ${fmtDate(range.start)} - ${fmtDate(range.end)} aralığındaki çalışma durumunu kontrol etmeni istiyorum. Toplam soru: ${stats.total}. Günlük girişlerini düzenli yapmayı unutma.${who}`;}
+function taskItemParentSummary(item){
+  const lesson=taskItemLesson(item);
+  const target=taskItemTarget(item);
+  const topic=[item?.anaKonu||item?.topic||item?.konu||'', item?.altKonu||item?.subtopic||item?.alt||''].map(x=>String(x||'').trim()).filter(Boolean).join(' / ');
+  const desc=String(item?.aciklama||item?.description||'').trim();
+  const parts=[lesson,topic,desc].filter(Boolean).join(' - ');
+  return `${parts}${target?`: ${target} soru`:''}`;
+}
+function studentAssignmentDaySummaries(tasks,range){
+  const map={};
+  (tasks||[]).forEach(task=>{
+    const obj=task.daysObj||task.daysObject||planToDaysObject(task);
+    Object.entries(obj||{}).forEach(([date,val])=>{
+      const iso=isoFromAny(date);
+      if(!iso || !dateInRange(iso,range.start,range.end)) return;
+      const rawItems=normalizeTaskItems(val);
+      const items=rawItems.map(taskItemParentSummary).filter(Boolean);
+      if(!items.length) return;
+      if(!map[iso]) map[iso]=[];
+      map[iso].push({title:targetLabel(task),items,total:rawItems.reduce((s,it)=>s+taskItemTarget(it),0)});
+    });
+  });
+  return Object.keys(map).sort().map(day=>({day,assignments:map[day]}));
+}
+function buildAssignmentParentWhatsAppMessage(st,tasks,range){
+  const days=studentAssignmentDaySummaries(tasks,range);
+  const br=String.fromCharCode(10);
+  const dayText=days.length ? days.map(d=>{
+    const rows=d.assignments.map(a=>{
+      const total=a.total?` (${a.total} soru)`:'';
+      return `• ${a.items.join(`${br}• `)}${total}`;
+    }).join(br);
+    return `📅 *${fmtDate(d.day)} ${dayName(d.day)?'• '+dayName(d.day):''}*${br}${rows}`;
+  }).join(`${br}${br}`) : 'Bu tarih aralığında aktif görevlendirme görünmüyor.';
+  return `Sayın Velimiz, merhaba. 👋
+
+${state.settings.kurumAdi} çalışma takip sistemi üzerinden ${st.name} öğrencimize ait görevlendirme bilgileri aşağıda bilgilerinize sunulmuştur.
+
+*Öğrenci:* ${st.name}
+*Sınıf:* ${st.className||'-'}
+*Öğrenci No:* ${st.no}
+*Tarih Aralığı:* ${fmtDate(range.start)} - ${fmtDate(range.end)}
+
+🗓️ *Gün Gün Görevlendirme Özeti*
+${dayText}
+
+Öğrencimiz görevlendirmelerini ve çalışma girişlerini aşağıdaki bağlantıdan kontrol edebilir:
+
+${STUDENT_ASSIGNMENT_URL}
+
+Bilginize sunar, iyi günler dileriz.
+${state.settings.kurumAdi}`;
+}
+function studentTaskParentNotifyHtml(tasks,st,range){
+  const days=studentAssignmentDaySummaries(tasks,range);
+  if(!days.length) return '';
+  const msg=buildAssignmentParentWhatsAppMessage(st,tasks,range);
+  const totalAssignments=days.reduce((s,d)=>s+d.assignments.length,0);
+  return `<div class="task-parent-notify"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Öğrencinin gördüğü görevlendirmeleri veliye WhatsApp metni olarak iletmek için hazırlanmıştır.</p></div><span class="badge">${days.length} gün • ${totalAssignments} görev</span></div><div class="message-preview">${esc(msg)}</div><div class="student-panel-link-box"><a href="${esc(STUDENT_ASSIGNMENT_URL)}" target="_blank" rel="noopener">${esc(STUDENT_ASSIGNMENT_URL)}</a></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="ghost" data-task-parent-action="copy">Metni Kopyala</button><button class="primary" data-task-parent-action="whatsapp">WhatsApp Aç</button></div><p class="muted tiny" style="margin-top:8px">Bağlantı mesaj içinde tek satır olarak yer alır; WhatsApp’ta tıklanınca doğrudan öğrenci giriş sayfasına yönlendirir.</p><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
+}
+function bindAssignmentParentNotify(st,tasks,range){
+  document.querySelectorAll('[data-task-parent-action]').forEach(btn=>btn.onclick=async()=>{
+    const message=buildAssignmentParentWhatsAppMessage(st,tasks,range);
+    try{
+      if(btn.dataset.taskParentAction==='copy'){
+        await copyText(message);
+        setToast('Görevlendirme veli mesajı kopyalandı','ok');
+        return;
+      }
+      const phone=normalizePhoneTR(st.parentPhone);
+      if(!phone) throw new Error('Veli telefonu yok. Metni kopyalayarak manuel gönderebilirsiniz.');
+      window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
+      state.draftConfirm={student:st,channel:'WhatsApp Görev',message};
+      renderConfirmBox();
+    }catch(e){setToast(e.message,'error');}
+  });
+}
+
 
 
 function stopAutoRefresh(){if(state.refreshTimer){clearInterval(state.refreshTimer);state.refreshTimer=null;}}
@@ -1823,7 +1942,10 @@ async function renderStudentDetail(main,st){
   document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; state.activeTab='students'; state.returnToStudentList=true; render();};
   bindRangeSelector(); bindStudentDetailTabs();
   if(tab==='analysis') bindAnalysisControls(st,stats,range);
-  if(tab==='tasks') document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
+  if(tab==='tasks'){
+    document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
+    bindAssignmentParentNotify(st,tasks,range);
+  }
   if(tab==='parent') bindPreview(st,stats,range);
   if(tab==='messages') bindStudentMessage(st,stats,range);
 }
@@ -1836,7 +1958,7 @@ function bindStudentDetailTabs(){
 }
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
-  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
+  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}${studentTaskParentNotifyHtml(tasks,st,range)}</div>`;
   if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
@@ -2078,7 +2200,11 @@ function bindPreview(st,stats,range){
   });
 }
 function renderConfirmBox(){
-  const box=document.getElementById('confirmBox'); if(!box||!state.draftConfirm) return; box.innerHTML=`<div class="confirm-panel"><b>Bu bildirimi gerçekten veliye gönderdiniz mi?</b><p class="muted tiny">Sadece “Gönderdim” derseniz Firebase veli bildirim geçmişine işlenecek. Hazırlanmış ama gönderilmemiş mesaj kayıt sayılmayacak.</p><div class="row"><button id="confirmSent" class="success-btn">Gönderdim, kaydet</button><button id="confirmNo" class="danger-btn">Göndermedim, kaydetme</button></div></div>`; document.getElementById('confirmSent').onclick=async()=>{try{await logParentNotification(state.draftConfirm.student,state.draftConfirm.channel,state.draftConfirm.message); state.draftConfirm=null; setToast('Veli bildirimi gönderildi olarak işlendi','ok'); render();}catch(e){setToast(e.message,'error');}}; document.getElementById('confirmNo').onclick=()=>{const last={...state.draftConfirm}; state.draftConfirm=null; box.innerHTML='<div class="empty">Mesaj gönderildi olarak kaydedilmedi. 10 saniye sonra tekrar sorulacak.</div>'; setTimeout(()=>{if(!state.draftConfirm&&document.getElementById('confirmBox')){state.draftConfirm=last; renderConfirmBox();}},10000);};
+  const box=document.getElementById('confirmBox') || document.getElementById('taskParentConfirmBox');
+  if(!box||!state.draftConfirm) return;
+  box.innerHTML=`<div class="confirm-panel"><b>Bu bildirimi gerçekten veliye gönderdiniz mi?</b><p class="muted tiny">Sadece “Gönderdim” derseniz Firebase veli bildirim geçmişine işlenecek. Hazırlanmış ama gönderilmemiş mesaj kayıt sayılmayacak.</p><div class="row"><button id="confirmSent" class="success-btn">Gönderdim, kaydet</button><button id="confirmNo" class="danger-btn">Göndermedim, kaydetme</button></div></div>`;
+  document.getElementById('confirmSent').onclick=async()=>{try{await logParentNotification(state.draftConfirm.student,state.draftConfirm.channel,state.draftConfirm.message); state.draftConfirm=null; setToast('Veli bildirimi gönderildi olarak işlendi','ok'); render();}catch(e){setToast(e.message,'error');}};
+  document.getElementById('confirmNo').onclick=()=>{const last={...state.draftConfirm}; state.draftConfirm=null; box.innerHTML='<div class="empty">Mesaj gönderildi olarak kaydedilmedi. 10 saniye sonra tekrar sorulacak.</div>'; setTimeout(()=>{if(!state.draftConfirm&&(document.getElementById('confirmBox')||document.getElementById('taskParentConfirmBox'))){state.draftConfirm=last; renderConfirmBox();}},10000);};
 }
 
 function renderTasks(main){
