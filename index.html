@@ -868,7 +868,176 @@ input,select,textarea,button,.btn,.primary,.secondary,.ghost,.danger-btn,.succes
 }
 
 
-  </style>
+  
+
+/* MOBİL DÜZEN VE GÖREV PAKETİ GÖRÜNÜMÜ */
+html,body,#app,.app,.app-shell,.container{max-width:100%;overflow-x:hidden}
+main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
+.assignment-package-note{
+  margin:0 0 12px;
+  padding:11px 13px;
+  border:1px solid #fed7aa;
+  border-radius:18px;
+  background:#fff7ed;
+  color:#9a3412;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.45;
+}
+.assignment-package-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));
+  gap:10px;
+  margin:12px 0 14px;
+}
+.assignment-package-card{
+  width:100%;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  text-align:left;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:#fff;
+  color:var(--text);
+  padding:14px;
+  box-shadow:var(--shadow-xs);
+  white-space:normal;
+}
+.assignment-package-card.active{
+  border-color:#fed7aa;
+  background:linear-gradient(180deg,#fff7ed,#fff);
+  box-shadow:0 16px 34px rgba(230,96,18,.13);
+}
+.assignment-package-card strong{
+  color:var(--ink);
+  font-size:15px;
+  font-weight:900;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+.assignment-package-card span:not(.package-index),
+.assignment-package-card em{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.35;
+  font-style:normal;
+}
+.package-index{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  font-size:11px;
+  font-weight:900;
+}
+.assignment-package-detail{
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(180deg,#fff,#fbfdff);
+  padding:14px;
+  box-shadow:var(--shadow-xs);
+}
+.assignment-package-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.assignment-package-head h4{
+  margin:6px 0 4px;
+  color:var(--ink);
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:-.03em;
+}
+.assignment-package-head p{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.45;
+}
+.package-day-tabs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(104px,1fr));
+  gap:8px;
+  margin:10px 0 12px;
+}
+.package-day-btn{
+  min-width:0;
+  min-height:48px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  color:#475569;
+  box-shadow:var(--shadow-xs);
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  align-items:center;
+  justify-content:center;
+  white-space:normal;
+}
+.package-day-btn span{font-size:12px;font-weight:900;line-height:1.1}
+.package-day-btn small{font-size:10px;font-weight:900;color:var(--muted)}
+.package-day-btn.active{
+  border-color:#fed7aa;
+  background:#fff7ed;
+  color:#9a3412;
+}
+.package-day-btn.active small{color:#9a3412}
+.package-day-summary{
+  margin:0 0 10px;
+  padding:10px 12px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid var(--line);
+}
+.assignment-lesson-list{width:100%;max-width:100%;overflow:hidden}
+.assignment-lesson-row{min-width:0;max-width:100%}
+@media(max-width:700px){
+  .detail-tabs,.local-tabs,.admin-main-tabs,.admin-ops-tabs{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    overflow:visible;
+    flex-wrap:initial;
+  }
+  .detail-tab,.local-tab,.admin-tab-btn,.admin-ops-tab{
+    width:100%;
+    justify-content:center;
+    white-space:normal!important;
+    text-align:center;
+    line-height:1.15;
+    min-height:44px;
+  }
+  .student-head-card .row,.task-day-group h4,.assignment-package-head{display:grid;grid-template-columns:1fr;align-items:stretch}
+  .student-head-card .row .badge,.student-head-card .row .btn-back-smart{width:100%;justify-content:center}
+  .metric-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .assignment-package-grid{grid-template-columns:1fr}
+  .assignment-package-detail{padding:12px;border-radius:20px}
+  .package-day-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .assignment-lesson-row{grid-template-columns:1fr 1fr!important;gap:7px}
+  .assignment-lesson-row b{grid-column:1 / -1}
+  .assignment-lesson-row span{text-align:left!important}
+  .lesson-diff-badge{justify-self:start}
+  .table{min-width:560px}
+}
+@media(max-width:420px){
+  .detail-tabs,.local-tabs,.admin-main-tabs,.admin-ops-tabs,.package-day-tabs{grid-template-columns:1fr}
+  .metric-strip{grid-template-columns:1fr!important}
+  .assignment-lesson-row{grid-template-columns:1fr!important}
+  .assignment-package-card,.assignment-package-detail,.task-day-group,.thin-item{padding:12px}
+}
+</style>
 </head>
 <body>
 <div id="app" class="app"></div>
@@ -943,7 +1112,7 @@ const state = {
   studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
   returnToStudentList:false,
   studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü',
-  adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
+  adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', studentTaskPackage:null, studentTaskPackageDay:{}, lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
 };
 
 function esc(v){return String(v ?? '').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
@@ -1365,6 +1534,8 @@ function normalizeTask(key,o){
     daysObject:dayObj,daysObj:dayObj,
     teacherId:cleanId(o.teacherId||o.ogretmenID||''),
     teacherName:o.teacherName||o.ogretmenAdi||getTeacherName(o.teacherId||o.ogretmenID),
+    packageId:o.packageId||o.paketId||'',
+    packageTitle:o.packageTitle||o.paketBaslik||'',
     createdAt:o.createdAt||o.olusturmaZamani||'',updatedAt:o.updatedAt||'',status:o.status||'aktif'
   };
 }
@@ -1646,19 +1817,16 @@ async function saveTaskFromWizard(){
     throw new Error(`Bu tarihlerde bu öğrencinin/program hedefinin görevi vardır: ${names}${conflicts[0].students.length>5?'...':''}. Çakışan görev: ${targetLabel(conflicts[0].task)} (${fmtDate(conflicts[0].task.start)}-${fmtDate(conflicts[0].task.end)}), veren: ${getTeacherName(conflicts[0].task.teacherId)}.`);
   }
   const now=nowText();
-  const common={...task,createdAt:state.editingTaskKey?(state.tasks.find(t=>t.key===state.editingTaskKey)?.createdAt||now):now,updatedAt:now,sureGun:task.days,durationDays:task.days,startDate:task.start,endDate:task.end,baslangicTarihi:fmtDate(task.start),bitisTarihi:fmtDate(task.end)};
+  const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
+  const packageId=existingTask?.packageId || state.editingTaskKey || `pkg_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+  const packageTitle=`${targetLabel(task)} • ${fmtDate(task.start)}-${fmtDate(task.end)}`;
+  const common={...task,packageId,paketId:packageId,packageTitle,paketBaslik:packageTitle,createdAt:state.editingTaskKey?(existingTask?.createdAt||now):now,updatedAt:now,sureGun:task.days,durationDays:task.days,startDate:task.start,endDate:task.end,baslangicTarihi:fmtDate(task.start),bitisTarihi:fmtDate(task.end)};
   common.days=planToDaysObject(task);
   const payloads=[];
-  if(task.targetType==='students' && !state.editingTaskKey){
-    task.studentNos.forEach(no=>{
-      const st=state.students.find(s=>s.no===no);
-      payloads.push({...common,targetType:'student',hedefTuru:'student',targetValue:no,hedefDegeri:no,studentNos:[no],className:st?.className||'',sinif:st?.className||''});
-    });
-  }else{
-    const targetType=task.targetType==='students'?'student':task.targetType;
-    const targetValue=targetType==='class'?task.className:(targetType==='student'?(task.studentNos[0]||task.targetValue||''):'all');
-    payloads.push({...common,targetType,hedefTuru:targetType,targetValue,hedefDegeri:targetValue,studentNos:targetType==='student'?[targetValue]:task.studentNos,sinif:task.className||''});
-  }
+  const targetType=task.targetType==='students'?'student':task.targetType;
+  const targetValue=targetType==='class'?task.className:(targetType==='student'?(task.studentNos.length===1?task.studentNos[0]:'multi'):'all');
+  const singleStudent=targetType==='student' && task.studentNos.length===1 ? state.students.find(s=>s.no===task.studentNos[0]) : null;
+  payloads.push({...common,targetType,hedefTuru:targetType,targetValue,hedefDegeri:targetValue,studentNos:targetType==='student'?task.studentNos:[],sinif:targetType==='class'?task.className:(singleStudent?.className||''),className:targetType==='class'?task.className:(singleStudent?.className||'')});
   const savedKeys=[];
   if(state.editingTaskKey){
     await putJson(`verianalizi001/haftalikGorevler/${state.editingTaskKey}`,payloads[0]);
@@ -2071,6 +2239,18 @@ async function renderStudentDetail(main,st){
   bindRangeSelector(); bindStudentDetailTabs();
   if(tab==='analysis') bindAnalysisControls(st,stats,range);
   if(tab==='tasks'){
+    document.querySelectorAll('[data-task-package]').forEach(b=>b.onclick=()=>{
+      const key=b.dataset.taskPackage;
+      state.studentTaskPackage=key;
+      state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:(state.studentTaskPackageDay||{})[key] || b.dataset.firstDay || ''};
+      render();
+    });
+    document.querySelectorAll('[data-package-day]').forEach(b=>b.onclick=()=>{
+      const key=b.dataset.packageKey;
+      state.studentTaskPackage=key;
+      state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:b.dataset.packageDay};
+      render();
+    });
     document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
     bindAssignmentParentNotify(st,tasks,range);
   }
@@ -2237,41 +2417,84 @@ async function loadTaskLessonTrack(taskKey){
   box.innerHTML=`<div class="task-track-head"><span class="task-track-title">Ders ders hedef / çözülen / fark</span><span class="badge">${students.length} öğrenci</span></div>${!single?`<div class="muted tiny">Toplam görünümde hedefler öğrenci sayısıyla çarpılarak hesaplanır.</div><div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${summaryRows}</div>`:''}${detailRows}`;
 }
 
+function taskPackageKey(task){
+  const explicit=String(task?.packageId||task?.paketId||'').trim();
+  if(explicit) return explicit;
+  const planSig=Object.entries(task?.plan||{}).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}:${v}`).join('|');
+  const created=String(task?.createdAt||'').slice(0,16);
+  return `legacy_${cleanId(task?.teacherId||'')}_${task?.start||''}_${task?.end||''}_${created}_${planSig}` || String(task?.key||'');
+}
+function taskDayKeys(task,range){
+  const obj=task.daysObj||task.daysObject||planToDaysObject(task);
+  return [...new Set(Object.keys(obj||{}).map(isoFromAny).filter(Boolean).filter(d=>!range || dateInRange(d,range.start,range.end)))].sort();
+}
+function taskItemsForDay(task,day){
+  const obj=task.daysObj||task.daysObject||planToDaysObject(task);
+  const matchedKey=Object.keys(obj||{}).find(k=>isoFromAny(k)===day);
+  return normalizeTaskItems(matchedKey?obj[matchedKey]:[]);
+}
+function buildStudentTaskPackages(tasks,range){
+  const map=new Map();
+  (tasks||[]).forEach(t=>{
+    const days=taskDayKeys(t,range);
+    if(!days.length) return;
+    const id=taskPackageKey(t);
+    if(!map.has(id)) map.set(id,{id,tasks:[],days:new Set(),start:t.start,end:t.end,createdAt:t.createdAt||'',updatedAt:t.updatedAt||'',title:t.packageTitle||t.paketBaslik||''});
+    const pkg=map.get(id);
+    pkg.tasks.push(t);
+    days.forEach(d=>pkg.days.add(d));
+    if(t.start && (!pkg.start || t.start<pkg.start)) pkg.start=t.start;
+    if(t.end && (!pkg.end || t.end>pkg.end)) pkg.end=t.end;
+    pkg.createdAt=[pkg.createdAt,t.createdAt||''].filter(Boolean).sort().pop()||pkg.createdAt;
+    pkg.updatedAt=[pkg.updatedAt,t.updatedAt||''].filter(Boolean).sort().pop()||pkg.updatedAt;
+    if(!pkg.title && (t.packageTitle||t.paketBaslik)) pkg.title=t.packageTitle||t.paketBaslik;
+  });
+  return [...map.values()].map(pkg=>({...pkg,days:[...pkg.days].sort()})).sort((a,b)=>String(b.createdAt||b.start||'').localeCompare(String(a.createdAt||a.start||'')));
+}
+function packageQuestionTotal(pkg){return (pkg.tasks||[]).reduce((s,t)=>s+taskQuestionTotal(t),0);}
+function packageTargetLabel(pkg){
+  const labels=[...new Set((pkg.tasks||[]).map(targetLabel).filter(Boolean))];
+  return pkg.title || labels.slice(0,2).join(' + ') || 'Görev paketi';
+}
+function packageDayLessonTargets(pkg,day){
+  const map={};
+  (pkg.tasks||[]).forEach(t=>taskItemsForDay(t,day).forEach(item=>{
+    const lesson=taskItemLesson(item);
+    const target=taskItemTarget(item);
+    if(!target) return;
+    if(!map[lesson]) map[lesson]={lesson,target:0};
+    map[lesson].target+=target;
+  }));
+  return Object.values(map).filter(x=>x.target>0).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
+}
 function studentTasksHtml(tasks,st,stats,range){
   if(!tasks.length) return '<div class="empty">Bu tarih aralığında öğrenciye atanmış görev görünmüyor.</div>';
+  const packages=buildStudentTaskPackages(tasks,range);
+  if(!packages.length) return '<div class="empty">Seçili aralıkta gün bazlı görev yok. Tarih aralığını bugünden başlayacak şekilde kontrol edin.</div>';
+  if(!state.studentTaskPackage || !packages.some(p=>p.id===state.studentTaskPackage)) state.studentTaskPackage=packages[0].id;
+  const active=packages.find(p=>p.id===state.studentTaskPackage)||packages[0];
+  const selectedDay=(state.studentTaskPackageDay||{})[active.id];
   const today=todayISO();
-  const daySet=new Set();
-  tasks.forEach(t=>{
-    const obj=t.daysObj||t.daysObject||planToDaysObject(t);
-    Object.keys(obj||{}).forEach(d=>{const iso=isoFromAny(d); if(iso && dateInRange(iso,range.start,range.end)) daySet.add(iso);});
-  });
-  const days=[...daySet].sort();
-  if(!days.length) return '<div class="empty">Seçili aralıkta gün bazlı görev yok. Tarih aralığını bugünden başlayacak şekilde kontrol edin.</div>';
-  if(!state.studentTaskDay || (state.studentTaskDay!=='all'&&!days.includes(state.studentTaskDay))) state.studentTaskDay='all';
-  const selected=state.studentTaskDay||'all';
-  const filteredDays=selected==='all'?days:[selected];
-  const dayButtons=`<div class="day-filter-strip"><button class="day-filter-btn ${selected==='all'?'active':''}" data-task-day="all">Tümü</button>${days.map(d=>`<button class="day-filter-btn ${selected===d?'active':''}" data-task-day="${esc(d)}">${fmtDate(d)}</button>`).join('')}</div>`;
+  const activeDay=selectedDay && active.days.includes(selectedDay) ? selectedDay : (active.days.includes(today)?today:active.days[0]);
+  state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[active.id]:activeDay};
   const dayRecords=stats.records||[];
   const doneFor=(day,lesson)=>dayRecords.filter(r=>r.date===day && String(r.lesson||'').trim()===String(lesson||'').trim()).reduce((s,r)=>s+Number(r.total||0),0);
-  const groups=filteredDays.map(day=>{
-    let rows=[];
-    tasks.forEach(t=>{
-      const obj=t.daysObj||t.daysObject||planToDaysObject(t);
-      const matchedKey=Object.keys(obj||{}).find(k=>isoFromAny(k)===day);
-      const items=normalizeTaskItems(matchedKey?obj[matchedKey]:[]);
-      if(!items.length)return;
-      const lessonTargets=aggregateTaskItemsByLesson(items);
-      const hedef=lessonTargets.reduce((a,it)=>a+Number(it.target||0),0);
-      const done=lessonTargets.reduce((a,it)=>a+doneFor(day,it.lesson),0);
-      const kalan=Math.max(hedef-done,0);
-      const status=done>=hedef&&hedef>0?'done':(day<today?'missing':'pending');
-      const label=status==='done'?'Yapıldı':status==='missing'?`Eksik: ${kalan} soru`:'Devam';
-      const lessonRows=lessonTargets.map(it=>assignmentLessonRowHtml(it.lesson,it.target,doneFor(day,it.lesson))).join('');
-      rows.push(`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="task-status-pill ${status}">${label}</span><span class="spacer"></span><span class="muted tiny">${done}/${hedef} soru</span></div><div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${lessonRows}</div></div>`);
-    });
-    return `<div class="task-day-group"><h4><span>${fmtDate(day)} ${dayName(day)?'• '+dayName(day):''}</span><span class="badge">${rows.length} görev</span></h4>${rows.join('')||'<div class="empty">Bu gün için görev yok.</div>'}</div>`;
-  }).join('');
-  return dayButtons+groups;
+  const packageCards=`<div class="assignment-package-grid">${packages.map((pkg,idx)=>{
+    const total=packageQuestionTotal(pkg);
+    const firstDay=pkg.days[0]||pkg.start||today;
+    const isActive=pkg.id===active.id;
+    return `<button type="button" class="assignment-package-card ${isActive?'active':''}" data-task-package="${esc(pkg.id)}" data-first-day="${esc(firstDay)}"><span class="package-index">Paket ${idx+1}</span><strong>${esc(packageTargetLabel(pkg))}</strong><span>${fmtDate(pkg.start)} - ${fmtDate(pkg.end)} • ${pkg.days.length} gün • ${total} soru</span><em>${isActive?'Açık paket':'Günlerini görmek için dokunun'}</em></button>`;
+  }).join('')}</div>`;
+  const dayButtons=`<div class="package-day-tabs">${active.days.map(d=>`<button type="button" class="package-day-btn ${d===activeDay?'active':''}" data-package-key="${esc(active.id)}" data-package-day="${esc(d)}"><span>${fmtDate(d)}</span><small>${dayName(d)||''}</small></button>`).join('')}</div>`;
+  const targets=packageDayLessonTargets(active,activeDay);
+  const hedef=targets.reduce((s,it)=>s+Number(it.target||0),0);
+  const done=targets.reduce((s,it)=>s+doneFor(activeDay,it.lesson),0);
+  const kalan=Math.max(hedef-done,0);
+  const status=done>=hedef&&hedef>0?'done':(activeDay<today?'missing':'pending');
+  const label=status==='done'?'Yapıldı':status==='missing'?`Eksik: ${kalan} soru`:'Devam';
+  const lessonRows=targets.map(it=>assignmentLessonRowHtml(it.lesson,it.target,doneFor(activeDay,it.lesson))).join('');
+  const detail=`<div class="assignment-package-detail"><div class="assignment-package-head"><div><span class="package-index">Seçili paket</span><h4>${esc(packageTargetLabel(active))}</h4><p>${fmtDate(active.start)} - ${fmtDate(active.end)} aralığında ${active.days.length} gün planlandı.</p></div><span class="badge">${packageQuestionTotal(active)} soru</span></div>${dayButtons}<div class="package-day-panel"><div class="task-day-group"><h4><span>${fmtDate(activeDay)} ${dayName(activeDay)?'• '+dayName(activeDay):''}</span><span class="task-status-pill ${status}">${label}</span></h4><div class="row package-day-summary"><b>${done}/${hedef} soru</b><span class="muted tiny">Bu gün seçili pakete ait ders hedefleri</span></div>${targets.length?`<div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${lessonRows}</div>`:'<div class="empty">Bu gün için paket içinde ders hedefi yok.</div>'}</div></div></div>`;
+  return `<div class="assignment-package-note">Görevler paketler halinde ayrıldı. Bir pakete dokunun, ardından yalnızca görmek istediğiniz günü seçin.</div>${packageCards}${detail}`;
 }
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
 function bindStudentMessage(st,stats,range){document.querySelectorAll('[data-msg-level]').forEach(b=>b.onclick=()=>{const level=b.dataset.msgLevel; document.getElementById('studentMsgTitle').value=level==='excellent'?'Harika İlerleme':level==='positive'?'Güzel İlerleme':level==='high'?'Önemli Uyarı':'Çalışma Hatırlatması'; document.getElementById('studentMsgText').value=buildStudentMsg(level,st,stats,range);}); document.getElementById('sendStudentMsg').onclick=async()=>{try{await sendStudentPanelMessage(st,document.getElementById('studentMsgTitle').value,document.getElementById('studentMsgText').value); setToast('Öğrenci panel mesajı kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};}
