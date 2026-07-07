@@ -1165,7 +1165,7 @@ const state = {
   studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
   returnToStudentList:false,
   studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü',
-  adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', studentTaskPackage:null, studentTaskPackageDay:{}, lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
+  adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', studentTaskPackage:null, studentTaskPackageDay:{}, pendingStudentTaskScroll:null, lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
 };
 
 function esc(v){return String(v ?? '').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
@@ -2106,28 +2106,52 @@ Bilginize sunar, iyi günler dileriz.
 *${kurum}*
 *${teacherName}*`;
 }
-function studentTaskParentNotifyHtml(tasks,st,range){
-  const days=studentAssignmentDaySummaries(tasks,range);
+function studentTaskParentNotifyHtml(pkg,st){
+  if(!pkg || packageLifeStatus(pkg).key!=='active') return '';
+  const days=studentAssignmentDaySummaries(pkg.tasks,null);
   if(!days.length) return '';
-  const msg=buildAssignmentParentWhatsAppMessage(st,tasks,range);
   const totalQuestions=days.reduce((s,d)=>s+d.assignments.reduce((daySum,a)=>daySum+Number(a.total||0),0),0);
-  return `<div class="task-parent-notify"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Öğrencinin gördüğü görevlendirmeleri veliye WhatsApp metni olarak iletmek için hazırlanmıştır.</p></div><span class="badge">${days.length} gün • ${totalQuestions} soru</span></div><div class="message-preview">${esc(msg)}</div><div class="student-panel-link-box"><a href="${esc(STUDENT_ASSIGNMENT_URL)}" target="_blank" rel="noopener">${esc(STUDENT_ASSIGNMENT_URL)}</a></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="ghost" data-task-parent-action="copy">Metni Kopyala</button><button class="primary" data-task-parent-action="whatsapp">WhatsApp Aç</button></div><p class="muted tiny" style="margin-top:8px">Bağlantı mesaj içinde tek satır olarak yer alır; WhatsApp’ta tıklanınca doğrudan öğrenci giriş sayfasına yönlendirir.</p><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
+  return `<div class="task-parent-notify" data-task-parent-package="${esc(pkg.id)}"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Bu aktif paket için mesaj yalnızca “Mesajı Oluştur” tuşuna basınca hazırlanır.</p></div><span class="badge">${days.length} gün • ${totalQuestions} soru</span></div><div class="row"><button class="primary" data-task-parent-action="generate">Mesajı Oluştur</button><span class="muted tiny">Paket kapalıysa veya pasifse mesaj oluşturma tuşu gösterilmez.</span></div><div id="taskParentMessageBox" style="margin-top:12px"></div><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
 }
-function bindAssignmentParentNotify(st,tasks,range){
-  document.querySelectorAll('[data-task-parent-action]').forEach(btn=>btn.onclick=async()=>{
-    const message=buildAssignmentParentWhatsAppMessage(st,tasks,range);
+function bindAssignmentParentNotify(st,tasks){
+  const root=document.querySelector('[data-task-parent-package]');
+  if(!root) return;
+  const packages=buildStudentTaskPackages(tasks,null);
+  const pkg=packages.find(p=>p.id===root.dataset.taskParentPackage && packageLifeStatus(p).key==='active');
+  if(!pkg) return;
+  let generatedMessage='';
+  const drawMessage=()=>{
+    generatedMessage=generatedMessage || buildAssignmentParentWhatsAppMessage(st,pkg.tasks,null);
+    const box=document.getElementById('taskParentMessageBox');
+    if(!box) return generatedMessage;
+    box.innerHTML=`<div class="message-preview">${esc(generatedMessage)}</div><div class="student-panel-link-box"><a href="${esc(STUDENT_ASSIGNMENT_URL)}" target="_blank" rel="noopener">${esc(STUDENT_ASSIGNMENT_URL)}</a></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="ghost" data-task-parent-action="copy">Metni Kopyala</button><button class="primary" data-task-parent-action="whatsapp">WhatsApp Aç</button></div><p class="muted tiny" style="margin-top:8px">Bağlantı mesaj içinde tek satır olarak yer alır; WhatsApp’ta tıklanınca doğrudan öğrenci giriş sayfasına yönlendirir.</p>`;
+    queueUiScroll('taskParentNotify','smooth');
+    runPendingStudentTaskScroll();
+    return generatedMessage;
+  };
+  root.addEventListener('click',async e=>{
+    const btn=e.target.closest('[data-task-parent-action]');
+    if(!btn || !root.contains(btn)) return;
+    const action=btn.dataset.taskParentAction;
     try{
-      if(btn.dataset.taskParentAction==='copy'){
+      if(action==='generate'){
+        drawMessage();
+        return;
+      }
+      const message=generatedMessage || drawMessage();
+      if(action==='copy'){
         await copyText(message);
         setToast('Görevlendirme veli mesajı kopyalandı','ok');
         return;
       }
-      const phone=normalizePhoneTR(st.parentPhone);
-      if(!phone) throw new Error('Veli telefonu yok. Metni kopyalayarak manuel gönderebilirsiniz.');
-      window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
-      state.draftConfirm={student:st,channel:'WhatsApp Görev',message};
-      renderConfirmBox();
-    }catch(e){setToast(e.message,'error');}
+      if(action==='whatsapp'){
+        const phone=normalizePhoneTR(st.parentPhone);
+        if(!phone) throw new Error('Veli telefonu yok. Metni kopyalayarak manuel gönderebilirsiniz.');
+        window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
+        state.draftConfirm={student:st,channel:'WhatsApp Görev',message};
+        renderConfirmBox();
+      }
+    }catch(err){setToast(err.message,'error');}
   });
 }
 
@@ -2162,28 +2186,52 @@ function render(){
   else if(state.activeTab==='tasks') renderTasks(main);
   else if(state.activeTab==='admin') renderAdmin(main);
   bindGlobal();
+  runPendingStudentTaskScroll();
 }
 
-function scrollToStudentTaskArea(target){
+function queueUiScroll(target,behavior='smooth'){
+  state.pendingStudentTaskScroll={target,behavior};
+}
+function scrollToStudentTaskArea(target,attempt=0,behavior='smooth'){
+  const key=typeof target==='object' ? target.target : target;
+  const mode=(typeof target==='object' ? target.behavior : behavior) || 'smooth';
   const map={
+    main:'#mainArea',
+    top:'#mainArea',
+    studentTop:'.student-head-card',
+    studentContent:'#studentDetailContent',
+    detailTabs:'.detail-tabs',
+    analysis:'#studentDetailContent',
+    parent:'#studentDetailContent',
+    messages:'#studentDetailContent',
     packageGrid:'.assignment-package-grid',
     packageDetail:'.assignment-package-detail',
-    dayPanel:'.package-day-panel'
+    dayPanel:'.package-day-panel',
+    taskParentNotify:'.task-parent-notify',
+    wizardPanel:'.wizard-panel',
+    adminTabs:'.admin-main-tabs',
+    adminPanel:'.admin-tab-panel.active',
+    lessonCard:'.lesson-active-note, .lesson-card'
   };
-  const selector=map[target]||target;
+  const selector=map[key]||key;
   const el=document.querySelector(selector);
-  if(!el) return;
+  if(!el){
+    if(attempt<120) requestAnimationFrame(()=>scrollToStudentTaskArea(target,attempt+1,mode));
+    return false;
+  }
   const topbar=document.querySelector('.topbar');
   const topbarHeight=topbar ? topbar.getBoundingClientRect().height : 0;
   const safeGap=14;
   const top=Math.max(0, window.scrollY + el.getBoundingClientRect().top - topbarHeight - safeGap);
-  window.scrollTo({top,behavior:'smooth'});
+  window.scrollTo({top,behavior:mode});
+  const pending=state.pendingStudentTaskScroll;
+  if(pending && (pending===target || pending.target===key)) state.pendingStudentTaskScroll=null;
+  return true;
 }
 function runPendingStudentTaskScroll(){
   const pending=state.pendingStudentTaskScroll;
   if(!pending) return;
-  state.pendingStudentTaskScroll=null;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>scrollToStudentTaskArea(pending.target)));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>scrollToStudentTaskArea(pending)));
 }
 
 async function loginTeacherById(id){
@@ -2239,7 +2287,7 @@ function renderLogin(){
 }
 function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
 function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
-function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
+function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
@@ -2252,7 +2300,7 @@ async function renderDashboard(main){
   main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Günlük Uyarı',dailyAlert.configured?dailyAlert.items.length:'Kapalı','Bugünkü takip'],['7 Günlük Uyarı',weeklyAlert.configured?weeklyAlert.items.length:'Kapalı','Bugünden başlayan takip']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Günlük Takip</h3><p class="muted">Tarih: <b>${fmtDate(todayIso)}</b></p><div class="thin-list">${listHtml(dailyAlert,'Bugün için kritik uyarı yok.')}</div></div><div class="card"><h3>7 Günlük Takip</h3><p class="muted">Aralık: <b>${fmtDate(week.start)} - ${fmtDate(week.end)}</b></p><div class="thin-list">${listHtml(weeklyAlert,'Bu hafta için kritik uyarı yok.')}</div></div></div>`;
   document.querySelectorAll('.teacher-follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
   document.getElementById('saveTeacherFollow')?.addEventListener('click',async()=>{try{await saveFollowSettings(); setToast('Takip sınıfların kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}});
-  document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); render();});
+  document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); queueUiScroll('studentTop','smooth'); render();});
 }
 function renderStudents(main){
   const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr')) )];
@@ -2272,7 +2320,7 @@ function renderStudents(main){
       state.studentListUi={search:document.getElementById('studentSearch').value,classFilter:document.getElementById('classFilter').value,scrollY:window.scrollY,lastStudentNo:x.dataset.student};
       state.selectedStudent=state.students.find(s=>s.no===x.dataset.student);
       state.studentDetailTab='summary';
-      window.scrollTo({top:0,behavior:'smooth'});
+      queueUiScroll('studentTop','smooth');
       render();
     });
   };
@@ -2282,7 +2330,7 @@ function renderStudents(main){
   if(state.returnToStudentList){
     state.returnToStudentList=false;
     const y=Number(state.studentListUi?.scrollY||0);
-    setTimeout(()=>window.scrollTo({top:y,behavior:'instant'}),0);
+    setTimeout(()=>window.scrollTo({top:y,behavior:'auto'}),0);
   }
 }
 async function renderStudentDetail(main,st){
@@ -2294,10 +2342,8 @@ async function renderStudentDetail(main,st){
   const [stats,messages]=await Promise.all([loadStats(st.no,range.start,range.end),loadStudentMessages(st.no)]);
   let contentStats=stats;
   let tasks=rangeTasks;
-  let taskNotifyRange=range;
   if(tab==='tasks'){
     tasks=allStudentTasks;
-    taskNotifyRange=null;
     const taskRange=taskCollectionRange(tasks);
     if(taskRange) contentStats=await loadStats(st.no,taskRange.start,taskRange.end);
   }
@@ -2347,22 +2393,23 @@ async function renderStudentDetail(main,st){
       render();
     });
     document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
-    bindAssignmentParentNotify(st,tasks,taskNotifyRange);
+    bindAssignmentParentNotify(st,tasks);
     runPendingStudentTaskScroll();
   }
   if(tab==='parent') bindPreview(st,stats,range);
   if(tab==='messages') bindStudentMessage(st,stats,range);
+  runPendingStudentTaskScroll();
 }
 function studentDetailTabsHtml(active){
   const tabs=[['summary','Özet'],['analysis','Başarı Analizi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['messages','Panel Mesajı']];
   return `<div class="detail-tabs">${tabs.map(([id,label])=>`<button type="button" class="detail-tab ${active===id?'active':''}" data-student-tab="${id}">${label}</button>`).join('')}</div>`;
 }
 function bindStudentDetailTabs(){
-  document.querySelectorAll('[data-student-tab]').forEach(b=>b.onclick=()=>{state.studentDetailTab=b.dataset.studentTab; render();});
+  document.querySelectorAll('[data-student-tab]').forEach(b=>b.onclick=()=>{state.studentDetailTab=b.dataset.studentTab; queueUiScroll('studentContent','smooth'); render();});
 }
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
-  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}${studentTaskParentNotifyHtml(tasks,st,range)}</div>`;
+  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
   if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
@@ -2382,7 +2429,7 @@ function studentSummaryHtml(st,stats,tasks,range){
   </div>`;
 }
 function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bugünden 7 gün</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
-function bindRangeSelector(){document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{const type=b.dataset.range; state.range=type==='today'?{title:'Bugün',start:todayISO(),end:todayISO()}:type==='week'?weekRange():type==='month'?monthRange():last30Range(); render();}); document.getElementById('applyRange')?.addEventListener('click',()=>{state.range={title:'Özel',start:document.getElementById('rangeStart').value,end:document.getElementById('rangeEnd').value}; render();});}
+function bindRangeSelector(){document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{const type=b.dataset.range; state.range=type==='today'?{title:'Bugün',start:todayISO(),end:todayISO()}:type==='week'?weekRange():type==='month'?monthRange():last30Range(); queueUiScroll('studentContent','smooth'); render();}); document.getElementById('applyRange')?.addEventListener('click',()=>{state.range={title:'Özel',start:document.getElementById('rangeStart').value,end:document.getElementById('rangeEnd').value}; queueUiScroll('studentContent','smooth'); render();});}
 function subjectBarsHtml(stats){if(!stats.subjects.length) return '<div class="empty">Bu aralıkta çalışma girişi yok.</div>'; return stats.subjects.map(s=>{const ratio=s.total?Math.round((s.correct/s.total)*100):0; return `<div style="margin:10px 0"><div class="row"><b>${esc(s.lesson)}</b><span class="spacer"></span><span class="muted tiny">${s.total} soru</span></div><div class="bar"><span style="width:${Math.min(100,ratio)}%"></span></div><p class="muted tiny">Doğru ${s.correct} • Yanlış ${s.wrong} • Boş ${s.empty}</p></div>`;}).join('');}
 
 function accuracyPct(obj){const total=Number(obj?.total||0); return total?Math.round((Number(obj.correct||0)/total)*100):0;}
@@ -2422,8 +2469,8 @@ function studentAnalysisHtml(st,stats,range){
 }
 function analysisRowsHtml(rows){if(!rows.length) return '<div class="empty">Bu seçim için veri yok.</div>'; return rows.map(x=>{const pct=itemAccuracy(x); const label=x.subtopic?`${x.topic} / ${x.subtopic}`:(x.topic||x.lesson); return `<div class="success-row"><div><b>${esc(label)}</b><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><p class="muted tiny">${x.total} soru • Doğru ${x.correct} • Yanlış ${x.wrong} • Boş ${x.empty}</p></div><div class="success-pct">%${pct}</div></div>`;}).join('');}
 function bindAnalysisControls(st,stats,range){
-  document.getElementById('analysisLesson')?.addEventListener('change',e=>{state.analysisLesson=e.target.value; state.analysisTopic='Tümü'; render();});
-  document.getElementById('analysisTopic')?.addEventListener('change',e=>{state.analysisTopic=e.target.value; render();});
+  document.getElementById('analysisLesson')?.addEventListener('change',e=>{state.analysisLesson=e.target.value; state.analysisTopic='Tümü'; queueUiScroll('studentContent','smooth'); render();});
+  document.getElementById('analysisTopic')?.addEventListener('change',e=>{state.analysisTopic=e.target.value; queueUiScroll('studentContent','smooth'); render();});
   document.querySelectorAll('[data-capture]').forEach(b=>b.onclick=()=>captureElementAsPng(b.dataset.capture,`${st.name.replace(/\s+/g,'_')}_${b.dataset.capture}.png`));
   document.querySelectorAll('[data-copy-report]').forEach(b=>b.onclick=async()=>{const text=parentReportText(b.dataset.copyReport,st,stats,range); await copyText(text); setToast('Rapor metni kopyalandı','ok');});
 }
@@ -2619,7 +2666,8 @@ function studentTasksHtml(tasks,st,stats,range){
     const status=done>=hedef&&hedef>0?'done':(activeDay<today?'missing':'pending');
     const label=status==='done'?'Yapıldı':status==='missing'?`Eksik: ${kalan} soru`:'Devam';
     const lessonRows=targets.map(it=>assignmentLessonRowHtml(it.lesson,it.target,doneFor(activeDay,it.lesson))).join('');
-    detail=`<div class="assignment-package-detail"><div class="assignment-package-head"><div><span class="package-index">Açık paket</span><h4>${esc(packageTargetLabel(openPackage))}</h4><p>${fmtDate(openPackage.start)} - ${fmtDate(openPackage.end)} aralığında ${openPackage.days.length} gün planlandı.</p></div><span class="badge">${packageQuestionTotal(openPackage)} soru</span></div>${dayButtons}<div class="package-day-panel"><div class="task-day-group"><h4><span>${fmtDate(activeDay)} ${dayName(activeDay)?'• '+dayName(activeDay):''}</span><span class="task-status-pill ${status}">${label}</span></h4><div class="row package-day-summary"><b>${done}/${hedef} soru</b><span class="muted tiny">Bu gün açık pakete ait ders hedefleri</span></div>${targets.length?`<div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${lessonRows}</div>`:'<div class="empty">Bu gün için paket içinde ders hedefi yok.</div>'}</div></div></div>`;
+    const notifyHtml=studentTaskParentNotifyHtml(openPackage,st);
+    detail=`<div class="assignment-package-detail"><div class="assignment-package-head"><div><span class="package-index">Açık paket</span><h4>${esc(packageTargetLabel(openPackage))}</h4><p>${fmtDate(openPackage.start)} - ${fmtDate(openPackage.end)} aralığında ${openPackage.days.length} gün planlandı.</p></div><span class="badge">${packageQuestionTotal(openPackage)} soru</span></div>${dayButtons}<div class="package-day-panel"><div class="task-day-group"><h4><span>${fmtDate(activeDay)} ${dayName(activeDay)?'• '+dayName(activeDay):''}</span><span class="task-status-pill ${status}">${label}</span></h4><div class="row package-day-summary"><b>${done}/${hedef} soru</b><span class="muted tiny">Bu gün açık pakete ait ders hedefleri</span></div>${targets.length?`<div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${lessonRows}</div>`:'<div class="empty">Bu gün için paket içinde ders hedefi yok.</div>'}</div></div>${notifyHtml}</div>`;
   }
   return `<div class="assignment-package-note">Görevlendirme sekmesinde tarih filtresi kullanılmaz. Paketler en yeni kayıt en üstte olacak şekilde sıralanır; geçmiş süresi bitenler pasif görünür.</div>${packageCards}${detail}`;
 }
@@ -2838,9 +2886,9 @@ function bindLessonDesigner(){
     document.querySelectorAll('.lesson-name').forEach(inp=>{const li=Number(inp.dataset.li); if(state.lessons[li]) state.lessons[li].name=inp.value.trim();});
     document.querySelectorAll('.topic-name').forEach(inp=>{const li=Number(inp.dataset.li),ti=Number(inp.dataset.ti); if(state.lessons[li]?.topics?.[ti]) state.lessons[li].topics[ti].name=inp.value.trim();});
   };
-  document.querySelectorAll('[data-lesson-tab]').forEach(b=>b.onclick=()=>{sync(); state.lessonDesignerTab=Number(b.dataset.lessonTab); renderAdmin(document.getElementById('mainArea'));});
-  document.querySelector('[data-lesson-add]')?.addEventListener('click',()=>{sync(); state.lessons.push({name:'Yeni Ders',topics:[{name:'Yeni Ana Konu',subtopics:['Alt Konu']} ]}); state.lessonDesignerTab=state.lessons.length-1; renderAdmin(document.getElementById('mainArea'));});
-  document.querySelectorAll('[data-lesson-del]').forEach(b=>b.onclick=()=>{sync(); const idx=Number(b.dataset.lessonDel); state.lessons.splice(idx,1); state.lessonDesignerTab=Math.max(0,Math.min(idx,state.lessons.length-1)); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-lesson-tab]').forEach(b=>b.onclick=()=>{sync(); state.lessonDesignerTab=Number(b.dataset.lessonTab); queueUiScroll('lessonCard','smooth'); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelector('[data-lesson-add]')?.addEventListener('click',()=>{sync(); state.lessons.push({name:'Yeni Ders',topics:[{name:'Yeni Ana Konu',subtopics:['Alt Konu']} ]}); state.lessonDesignerTab=state.lessons.length-1; queueUiScroll('lessonCard','smooth'); renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-lesson-del]').forEach(b=>b.onclick=()=>{sync(); const idx=Number(b.dataset.lessonDel); state.lessons.splice(idx,1); state.lessonDesignerTab=Math.max(0,Math.min(idx,state.lessons.length-1)); queueUiScroll('lessonCard','smooth'); renderAdmin(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-topic-add]').forEach(b=>b.onclick=()=>{sync(); const li=Number(b.dataset.topicAdd); state.lessons[li].topics=state.lessons[li].topics||[]; state.lessons[li].topics.push({name:'Yeni Ana Konu',subtopics:[]}); renderAdmin(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-topic-del]').forEach(b=>b.onclick=()=>{sync(); const [li,ti]=b.dataset.topicDel.split(':').map(Number); state.lessons[li].topics.splice(ti,1); renderAdmin(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-subtopic-add]').forEach(b=>b.onclick=()=>{sync(); const [li,ti]=b.dataset.subtopicAdd.split(':').map(Number); const input=document.querySelector(`.subtopic-new[data-li="${li}"][data-ti="${ti}"]`); const val=(input?.value||'').trim(); if(!val){setToast('Alt konu adı yazın','error'); return;} state.lessons[li].topics[ti].subtopics=state.lessons[li].topics[ti].subtopics||[]; state.lessons[li].topics[ti].subtopics.push(val); renderAdmin(document.getElementById('mainArea'));});
@@ -2852,7 +2900,7 @@ function renderAdmin(main){
   if(!state.teacher.isAdmin){main.innerHTML='<div class="empty">Admin yetkisi gerekli.</div>';return;}
   const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')); const active=state.adminTab||'overview';
   const tabs=[['overview','Genel'],['settings','Kurum'],['system','Firebase / E-Tablo / SMS'],['lessons','Dersler'],['ops','İşlemler']];
-  main.innerHTML=`${section('Admin Merkezi','')}<div class="admin-main-tabs">${tabs.map(([id,label])=>`<button type="button" class="admin-tab-btn ${active===id?'active':''}" data-admin-tab="${id}">${label}</button>`).join('')}</div><div class="admin-tab-panel ${active==='overview'?'active':''}">${adminOverviewHtml()}</div><div class="admin-tab-panel ${active==='settings'?'active':''}">${adminSettingsHtml(classes)}</div><div class="admin-tab-panel ${active==='system'?'active':''}">${adminSystemHtml()}</div><div class="admin-tab-panel ${active==='lessons'?'active':''}"><div class="card"><h3>Dersleri Kur / Düzenle</h3>${lessonDesignerHtml()}</div></div><div class="admin-tab-panel ${active==='ops'?'active':''}"><div class="card"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>`; bindAdmin();
+  main.innerHTML=`${section('Admin Merkezi','')}<div class="admin-main-tabs">${tabs.map(([id,label])=>`<button type="button" class="admin-tab-btn ${active===id?'active':''}" data-admin-tab="${id}">${label}</button>`).join('')}</div><div class="admin-tab-panel ${active==='overview'?'active':''}">${adminOverviewHtml()}</div><div class="admin-tab-panel ${active==='settings'?'active':''}">${adminSettingsHtml(classes)}</div><div class="admin-tab-panel ${active==='system'?'active':''}">${adminSystemHtml()}</div><div class="admin-tab-panel ${active==='lessons'?'active':''}"><div class="card"><h3>Dersleri Kur / Düzenle</h3>${lessonDesignerHtml()}</div></div><div class="admin-tab-panel ${active==='ops'?'active':''}"><div class="card"><h3>Öğretmen İşlemleri ve Sistem Analizi</h3><div id="adminOpsBox"><button id="loadOps" class="primary">Analizi Yükle</button></div></div></div>`; bindAdmin(); runPendingStudentTaskScroll();
 }
 function adminOverviewHtml(){return `<div class="grid four"><div class="admin-metric"><small>Öğrenci</small><strong>${state.students.length}</strong><span class="muted tiny">Kayıtlı</span></div><div class="admin-metric"><small>Öğretmen</small><strong>${state.teachers.length}</strong><span class="muted tiny">Tanımlı</span></div><div class="admin-metric"><small>Görev</small><strong>${state.tasks.length}</strong><span class="muted tiny">Firebase</span></div><div class="admin-metric"><small>Takip</small><strong>${state.followClasses.length}</strong><span class="muted tiny">Benim sınıflarım</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Bağlantı Durumu</h3><div class="risk-list"><div class="risk-card good"><b>Firebase ayarı açık</b><p>Realtime Database varsayılan olarak aktiftir.</p></div><div class="risk-card good"><b>E-Tablo ayarı açık</b><p>Öğrenci ve öğretmen listeleri varsayılan kaynaktan okunur.</p></div><div class="risk-card good"><b>SMS imzası</b><p>${esc(state.systemSettings?.smsSignature||'Fenomen')}</p></div></div></div><div class="card"><h3>Hızlı İşlem</h3><div class="row"><button class="secondary" data-admin-tab="system">Sistem Ayarları</button><button class="secondary" data-admin-tab="ops">İşlem Analizi</button><button class="secondary" data-admin-tab="lessons">Dersleri Düzenle</button><button id="resetStudyRecords" class="danger-btn">Çalışma Kayıtlarını Sıfırla</button></div></div></div>`;}
 function adminSettingsHtml(classes){return `<div class="grid two"><div class="card"><h3>Kurum Ayarları</h3><div class="field"><label>Kurum adı</label><input id="setKurum" class="input" value="${esc(state.settings.kurumAdi)}"></div><div class="field" style="margin-top:10px"><label>Logo URL</label><input id="setLogo" class="input" value="${esc(state.settings.logoUrl)}"></div><div class="field" style="margin-top:10px"><label>Ders başına günlük giriş limiti</label><input id="setLimit" class="input" inputmode="numeric" value="${esc(state.settings.dailyLimit)}"></div><div class="row" style="margin-top:12px"><button id="saveSettings" class="primary">Ayarları Kaydet</button><button id="useEduIcon" class="secondary">Fenomen Logosunu Kullan</button></div></div><div class="card teacher-follow-box"><h3>Benim Takip Sınıflarım</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><button id="saveFollow" class="primary" style="margin-top:12px">Takip Ayarımı Kaydet</button></div></div>`;}
@@ -2923,7 +2971,7 @@ async function resetStudyRecords(){
 }
 
 function bindAdmin(){
-  document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab;renderAdmin(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab; queueUiScroll('adminPanel','smooth'); renderAdmin(document.getElementById('mainArea'));});
   document.getElementById('useEduIcon')?.addEventListener('click',()=>{document.getElementById('setLogo').value=DEFAULT_LOGO;});
   document.getElementById('saveSettings')?.addEventListener('click',async()=>{try{state.settings.kurumAdi=document.getElementById('setKurum').value.trim()||DEFAULT_KURUM;state.settings.logoUrl=document.getElementById('setLogo').value.trim()||DEFAULT_LOGO;state.settings.dailyLimit=Number(document.getElementById('setLimit').value)||3;await saveSettings();setToast('Kurum ayarları kaydedildi','ok');render();}catch(e){setToast(e.message,'error');}});
   document.querySelectorAll('.follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses);if(ch.checked)set.add(ch.value);else set.delete(ch.value);state.followClasses=[...set];ch.closest('.chip').classList.toggle('active',ch.checked);});
@@ -3012,7 +3060,7 @@ async function loadAdminOperations(){
       <h3 style="margin-top:14px">Veli Bildirimleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Kanal</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${notificationHtml||'<tr><td colspan="5">Veli bildirimi yok</td></tr>'}</tbody></table></div>
       <h3 style="margin-top:14px">Öğrenci Panel Mesajları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Başlık</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${messageHtml||'<tr><td colspan="5">Mesaj yok</td></tr>'}</tbody></table></div>`;
     document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));
-    document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:{...t.plan}}; state.taskWizardStep=1; state.activeTab='tasks'; render();});
+    document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:{...t.plan}}; state.taskWizardStep=1; state.activeTab='tasks'; queueUiScroll('wizardPanel','smooth'); render();});
     bindAdminRecordButtons(); bindBulkSelectors();
   }catch(e){box.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}
 }
