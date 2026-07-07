@@ -682,7 +682,7 @@ input,select,textarea,button,.btn,.primary,.secondary,.ghost,.danger-btn,.succes
 }
 .day-quick-actions{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:7px;
   margin-top:-2px;
 }
@@ -710,6 +710,24 @@ input,select,textarea,button,.btn,.primary,.secondary,.ghost,.danger-btn,.succes
   color:#991b1b;
   background:#fff1f2;
   border-color:#fecdd3;
+}
+.quick-mini.copy-mini{
+  color:#1d4ed8;
+  background:#eef4ff;
+  border-color:#dbeafe;
+}
+.quick-mini.paste-mini{
+  color:#166534;
+  background:#dcfce7;
+  border-color:#bbf7d0;
+}
+.quick-mini:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none!important;
+  background:#f8fafc!important;
+  color:#94a3b8!important;
+  border-color:var(--line)!important;
 }
 .plan-lesson-grid{
   grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
@@ -1432,6 +1450,42 @@ function clearPlanDay(plan,dayIndex){const m={...plan}; const d=Number(dayIndex)
 function clearPlanKey(plan,key){const m={...plan}; delete m[key]; return m;}
 function clearWeekends(plan,days){const m={...plan}; const start=state.taskWizard?.start||todayISO(); for(let d=0; d<days; d++){ const real=parseAnyDate(addDaysISO(start,d)); if(real && [0,6].includes(real.getDay())) for(const l of lessonNames()) delete m[planKey(d,l)]; } return m;}
 function copyFirstWeek(plan,days){const m={...plan}; for(let d=7; d<days; d++) for(const l of lessonNames()){const v=plan[planKey(d%7,l)]||''; if(v) m[planKey(d,l)]=v; else delete m[planKey(d,l)];} return m;}
+function planDaySnapshot(plan,dayIndex){
+  const d=Number(dayIndex);
+  const values={};
+  let total=0;
+  for(const l of lessonNames()){
+    const v=String(plan?.[planKey(d,l)]||'').replace(/\D/g,'').slice(0,4);
+    const n=Number(v||0);
+    if(n>0){values[l]=String(n); total+=n;}
+  }
+  return {dayIndex:d,values,total,lessonCount:Object.keys(values).length};
+}
+function copyPlanDayToWizard(dayIndex){
+  if(!state.taskWizard) return false;
+  const snap=planDaySnapshot(state.taskWizard.plan,dayIndex);
+  if(!snap.total){setToast('Bu gün boş olduğu için kopyalama yapılmadı. Önce soru sayısı girin.','error'); return false;}
+  const date=addDaysISO(state.taskWizard.start||todayISO(),snap.dayIndex);
+  state.taskWizard.dayCopyBuffer={...snap,date,label:fmtDateWithDay(date),copiedAt:Date.now()};
+  setToast(`${fmtDateWithDay(date)} kopyalandı: ${snap.total} soru`,'ok');
+  return true;
+}
+function pastePlanDayToWizard(dayIndex){
+  if(!state.taskWizard) return false;
+  const clip=state.taskWizard.dayCopyBuffer;
+  if(!clip || !clip.values){setToast('Önce kopyalamak istediğiniz günde C tuşuna basın.','error'); return false;}
+  const d=Number(dayIndex);
+  const m={...(state.taskWizard.plan||{})};
+  for(const l of lessonNames()){
+    const k=planKey(d,l);
+    const v=String(clip.values[l]||'').replace(/\D/g,'').slice(0,4);
+    if(v && v!=='0') m[k]=v; else delete m[k];
+  }
+  state.taskWizard.plan=m;
+  const targetDate=addDaysISO(state.taskWizard.start||todayISO(),d);
+  setToast(`${clip.label||'Kopyalanan gün'} → ${fmtDateWithDay(targetDate)} yapıştırıldı: ${Number(clip.total)||0} soru`,'ok');
+  return true;
+}
 
 function taskDurationOptions(current){const base=[1,3,5,7,14,21,28,30,60]; const n=Number(current||0); if(n>0 && !base.includes(n)) base.push(n); return base.sort((a,b)=>a-b);}
 function wizardStudentNosForCopy(){const w=state.taskWizard||{}; if(!['student','students'].includes(w.targetType)) return []; const nos=w.studentNos?.length?w.studentNos:(w.targetValue?[w.targetValue]:[]); return [...new Set((nos||[]).map(cleanId).filter(Boolean))];}
@@ -2260,7 +2314,7 @@ function planHtml(w){
       const date=addDaysISO(w.start,d);
       const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0);
       const filled=names.filter(l=>Number(w.plan[planKey(d,l)])>0).length;
-      out+=`<div class="day-card plan-day-card" data-day-index="${d}"><h4 class="task-day-title"><span class="date-label">${fmtDateWithDay(date)}</span><span class="badge question-total-badge">${total} soru</span></h4><div class="day-quick-actions"><button type="button" class="quick-mini" data-day-add="${d}" data-delta="10">+10</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="20">+20</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="30">+30</button><button type="button" class="quick-mini danger-mini" data-day-clear="${d}">Günü temizle</button></div><p class="muted tiny" style="margin:0">${filled}/${names.length} ders dolu</p><div class="lesson-grid plan-lesson-grid">${names.map(l=>{const key=planKey(d,l); return `<div class="field lesson-control"><label>${esc(l)}</label><div class="lesson-input-row"><input class="input" inputmode="numeric" data-plan-key="${esc(key)}" value="${esc(w.plan[key]||'')}"><button type="button" class="lesson-clear-btn" title="Bu dersi temizle" data-lesson-clear="${esc(key)}">×</button></div></div>`;}).join('')}</div></div>`;
+      out+=`<div class="day-card plan-day-card" data-day-index="${d}"><h4 class="task-day-title"><span class="date-label">${fmtDateWithDay(date)}</span><span class="badge question-total-badge">${total} soru</span></h4><div class="day-quick-actions"><button type="button" class="quick-mini copy-mini" title="Bu günü kopyala" data-day-copy="${d}">C</button><button type="button" class="quick-mini paste-mini" title="Kopyalanan günü buraya yapıştır" data-day-paste="${d}" ${state.taskWizard?.dayCopyBuffer?'':'disabled'}>P</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="10">+10</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="20">+20</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="30">+30</button><button type="button" class="quick-mini danger-mini" data-day-clear="${d}">Temizle</button></div><p class="muted tiny" style="margin:0">${filled}/${names.length} ders dolu</p><div class="lesson-grid plan-lesson-grid">${names.map(l=>{const key=planKey(d,l); return `<div class="field lesson-control"><label>${esc(l)}</label><div class="lesson-input-row"><input class="input" inputmode="numeric" data-plan-key="${esc(key)}" value="${esc(w.plan[key]||'')}"><button type="button" class="lesson-clear-btn" title="Bu dersi temizle" data-lesson-clear="${esc(key)}">×</button></div></div>`;}).join('')}</div></div>`;
     }
     out+=`</div></div>`;
   }
@@ -2297,6 +2351,8 @@ function bindTaskWizard(){
   document.querySelector('[data-copy-last-program]')?.addEventListener('click',()=>{syncTaskWizardFromDom(); if(copyLastStudentProgramToWizard()) renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-template]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); const t=b.dataset.template; if(t==='clear') state.taskWizard.plan=defaultPlan(state.taskWizard.days); else if(t==='copyWeek') state.taskWizard.plan=copyFirstWeek(state.taskWizard.plan,state.taskWizard.days); else if(t==='weekendOff') state.taskWizard.plan=clearWeekends(state.taskWizard.plan,state.taskWizard.days); else if(t==='bulkAdd10') state.taskWizard.plan=addToEveryPlanDay(state.taskWizard.plan,state.taskWizard.days,10); else if(t==='bulkAdd20') state.taskWizard.plan=addToEveryPlanDay(state.taskWizard.plan,state.taskWizard.days,20); else if(t==='bulkAdd30') state.taskWizard.plan=addToEveryPlanDay(state.taskWizard.plan,state.taskWizard.days,30); else state.taskWizard.plan=applyTemplate(state.taskWizard.plan,state.taskWizard.days,t); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-day-add]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizard.plan=addToPlanDay(state.taskWizard.plan,Number(b.dataset.dayAdd),Number(b.dataset.delta||0)); renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-day-copy]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); if(copyPlanDayToWizard(Number(b.dataset.dayCopy))) renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-day-paste]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); if(pastePlanDayToWizard(Number(b.dataset.dayPaste))) renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-day-clear]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizard.plan=clearPlanDay(state.taskWizard.plan,Number(b.dataset.dayClear)); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-lesson-clear]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizard.plan=clearPlanKey(state.taskWizard.plan,b.dataset.lessonClear); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();});
