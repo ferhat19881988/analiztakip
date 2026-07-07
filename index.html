@@ -1075,6 +1075,21 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
   .assignment-lesson-row{grid-template-columns:1fr!important}
   .assignment-package-card,.assignment-package-detail,.task-day-group,.thin-item{padding:12px}
 }
+
+/* Görev paketi gün seçimi sonrası doğru alana kaydırma dengesi */
+.assignment-package-grid,
+.assignment-package-detail,
+.package-day-panel{
+  scroll-margin-top:calc(96px + env(safe-area-inset-top));
+}
+@media(max-width:700px){
+  .assignment-package-grid,
+  .assignment-package-detail,
+  .package-day-panel{
+    scroll-margin-top:calc(84px + env(safe-area-inset-top));
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2149,6 +2164,28 @@ function render(){
   bindGlobal();
 }
 
+function scrollToStudentTaskArea(target){
+  const map={
+    packageGrid:'.assignment-package-grid',
+    packageDetail:'.assignment-package-detail',
+    dayPanel:'.package-day-panel'
+  };
+  const selector=map[target]||target;
+  const el=document.querySelector(selector);
+  if(!el) return;
+  const topbar=document.querySelector('.topbar');
+  const topbarHeight=topbar ? topbar.getBoundingClientRect().height : 0;
+  const safeGap=14;
+  const top=Math.max(0, window.scrollY + el.getBoundingClientRect().top - topbarHeight - safeGap);
+  window.scrollTo({top,behavior:'smooth'});
+}
+function runPendingStudentTaskScroll(){
+  const pending=state.pendingStudentTaskScroll;
+  if(!pending) return;
+  state.pendingStudentTaskScroll=null;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>scrollToStudentTaskArea(pending.target)));
+}
+
 async function loginTeacherById(id){
   const clean=cleanId(id);
   if(!clean){setToast('ID giriniz','error'); return;}
@@ -2293,21 +2330,25 @@ async function renderStudentDetail(main,st){
       const key=b.dataset.taskPackage;
       if(state.studentTaskPackage===key){
         state.studentTaskPackage='';
+        state.pendingStudentTaskScroll={target:'packageGrid'};
         render();
         return;
       }
       state.studentTaskPackage=key;
       state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:(state.studentTaskPackageDay||{})[key] || b.dataset.firstDay || ''};
+      state.pendingStudentTaskScroll={target:'packageDetail'};
       render();
     });
     document.querySelectorAll('[data-package-day]').forEach(b=>b.onclick=()=>{
       const key=b.dataset.packageKey;
       state.studentTaskPackage=key;
       state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:b.dataset.packageDay};
+      state.pendingStudentTaskScroll={target:'dayPanel'};
       render();
     });
     document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
     bindAssignmentParentNotify(st,tasks,taskNotifyRange);
+    runPendingStudentTaskScroll();
   }
   if(tab==='parent') bindPreview(st,stats,range);
   if(tab==='messages') bindStudentMessage(st,stats,range);
