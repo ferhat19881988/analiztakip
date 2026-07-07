@@ -2107,17 +2107,17 @@ Bilginize sunar, iyi günler dileriz.
 *${teacherName}*`;
 }
 function studentTaskParentNotifyHtml(pkg,st){
-  if(!pkg || packageLifeStatus(pkg).key!=='active') return '';
+  if(!packageAllowsParentNotify(pkg)) return '';
   const days=studentAssignmentDaySummaries(pkg.tasks,null);
   if(!days.length) return '';
   const totalQuestions=days.reduce((s,d)=>s+d.assignments.reduce((daySum,a)=>daySum+Number(a.total||0),0),0);
-  return `<div class="task-parent-notify" data-task-parent-package="${esc(pkg.id)}"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Bu aktif paket için mesaj yalnızca “Mesajı Oluştur” tuşuna basınca hazırlanır.</p></div><span class="badge">${days.length} gün • ${totalQuestions} soru</span></div><div class="row"><button class="primary" data-task-parent-action="generate">Mesajı Oluştur</button><span class="muted tiny">Paket kapalıysa veya pasifse mesaj oluşturma tuşu gösterilmez.</span></div><div id="taskParentMessageBox" style="margin-top:12px"></div><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
+  return `<div class="task-parent-notify" data-task-parent-package="${esc(pkg.id)}"><div class="task-parent-notify-head"><div><h4>Veliye Görevlendirme Bildirimi</h4><p class="muted tiny" style="margin:5px 0 0">Bu süresi geçmemiş paket için mesaj yalnızca “Mesajı Oluştur” tuşuna basınca hazırlanır.</p></div><span class="badge">${days.length} gün • ${totalQuestions} soru</span></div><div class="row"><button class="primary" data-task-parent-action="generate">Mesajı Oluştur</button><span class="muted tiny">Paket kapalıysa veya süresi geçmişse mesaj oluşturma tuşu gösterilmez.</span></div><div id="taskParentMessageBox" style="margin-top:12px"></div><div id="taskParentConfirmBox" style="margin-top:12px"></div></div>`;
 }
 function bindAssignmentParentNotify(st,tasks){
   const root=document.querySelector('[data-task-parent-package]');
   if(!root) return;
   const packages=buildStudentTaskPackages(tasks,null);
-  const pkg=packages.find(p=>p.id===root.dataset.taskParentPackage && packageLifeStatus(p).key==='active');
+  const pkg=packages.find(p=>p.id===root.dataset.taskParentPackage && packageAllowsParentNotify(p));
   if(!pkg) return;
   let generatedMessage='';
   const drawMessage=()=>{
@@ -2158,7 +2158,7 @@ function bindAssignmentParentNotify(st,tasks){
 
 
 function stopAutoRefresh(){if(state.refreshTimer){clearInterval(state.refreshTimer);state.refreshTimer=null;}}
-function startAutoRefresh(){stopAutoRefresh();const sec=Math.max(20,Number(state.systemSettings?.autoRefreshSeconds||45));state.refreshTimer=setInterval(async()=>{if(!state.teacher)return;try{const before=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));await Promise.all([loadSettings(),loadTasks(),loadFollowSettings()]);state.statsCache={};const after=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));if(state.selectedStudent||before!==after) render();}catch(e){console.warn('Otomatik Firebase denetimi başarısız:',e);}},sec*1000);}
+function startAutoRefresh(){stopAutoRefresh();const sec=Math.max(20,Number(state.systemSettings?.autoRefreshSeconds||45));state.refreshTimer=setInterval(async()=>{if(!state.teacher)return;try{const before=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));await Promise.all([loadSettings(),loadTasks(),loadFollowSettings()]);state.statsCache={};const after=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));if(state.selectedStudent||before!==after) render({preserveScroll:true});}catch(e){console.warn('Otomatik Firebase denetimi başarısız:',e);}},sec*1000);}
 
 async function bootstrap(){
   state.range=weekRange();
@@ -2175,18 +2175,30 @@ async function bootstrap(){
   }
 }
 
-function render(){
+function render(options={}){
+  const preserveScroll=!!options.preserveScroll && !state.pendingStudentTaskScroll;
+  const savedScrollY=preserveScroll ? window.scrollY : null;
+  const savedMainHeight=preserveScroll ? Math.max(0,document.getElementById('mainArea')?.offsetHeight||0) : 0;
   if(state.loading && !state.teacher){app.innerHTML=`<div class="login-wrap"><div class="card loading-card"><span class="spinner"></span><h1>Yükleniyor</h1><p>Öğretmen, öğrenci ve Firebase bağlantıları hazırlanıyor.</p></div></div>`;return;}
   if(!state.teacher){renderLogin(); return;}
-  app.innerHTML=`${topbarHtml()}<main class="container" id="mainArea"></main>${bottomNavHtml()}`;
+  app.innerHTML=`${topbarHtml()}<main class="container" id="mainArea" ${savedMainHeight?`style="min-height:${savedMainHeight}px"`:''}></main>${bottomNavHtml()}`;
   const main=document.getElementById('mainArea');
-  if(state.selectedStudent) renderStudentDetail(main,state.selectedStudent);
-  else if(state.activeTab==='dashboard') renderDashboard(main);
-  else if(state.activeTab==='students') renderStudents(main);
-  else if(state.activeTab==='tasks') renderTasks(main);
-  else if(state.activeTab==='admin') renderAdmin(main);
+  let viewResult=null;
+  if(state.selectedStudent) viewResult=renderStudentDetail(main,state.selectedStudent);
+  else if(state.activeTab==='dashboard') viewResult=renderDashboard(main);
+  else if(state.activeTab==='students') viewResult=renderStudents(main);
+  else if(state.activeTab==='tasks') viewResult=renderTasks(main);
+  else if(state.activeTab==='admin') viewResult=renderAdmin(main);
   bindGlobal();
-  runPendingStudentTaskScroll();
+  if(state.pendingStudentTaskScroll){runPendingStudentTaskScroll(); return;}
+  if(preserveScroll) Promise.resolve(viewResult).finally(()=>{restoreSavedScroll(savedScrollY); document.getElementById('mainArea')?.style.removeProperty('min-height');});
+}
+function restoreSavedScroll(savedScrollY,attempt=0){
+  if(savedScrollY===null || savedScrollY===undefined) return;
+  const maxY=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  const targetY=Math.min(Math.max(0,Number(savedScrollY)||0),maxY);
+  window.scrollTo({top:targetY,behavior:'auto'});
+  if(attempt<4) requestAnimationFrame(()=>restoreSavedScroll(savedScrollY,attempt+1));
 }
 
 function queueUiScroll(target,behavior='smooth'){
@@ -2620,6 +2632,9 @@ function packageLifeStatus(pkg){
   if(pkg.end && pkg.end<today) return {key:'passive',label:'Pasif'};
   if(pkg.start && pkg.start>today) return {key:'future',label:'Planlı'};
   return {key:'active',label:'Aktif'};
+}
+function packageAllowsParentNotify(pkg){
+  return !!pkg && packageLifeStatus(pkg).key!=='passive';
 }
 function packageQuestionTotal(pkg){return (pkg.tasks||[]).reduce((s,t)=>s+taskQuestionTotal(t),0);}
 function packageTargetLabel(pkg){
