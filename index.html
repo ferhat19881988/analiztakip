@@ -2390,7 +2390,7 @@ function planHtml(w){
       const date=addDaysISO(w.start,d);
       const total=names.reduce((s,l)=>s+(Number(w.plan[planKey(d,l)])||0),0);
       const filled=names.filter(l=>Number(w.plan[planKey(d,l)])>0).length;
-      out+=`<div class="day-card plan-day-card" data-day-index="${d}"><h4 class="task-day-title"><span class="date-label">${fmtDateWithDay(date)}</span><span class="badge question-total-badge">${total} soru</span></h4><div class="day-quick-actions"><button type="button" class="quick-mini" data-day-add="${d}" data-delta="10">+10</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="20">+20</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="30">+30</button><button type="button" class="quick-mini danger-mini" data-day-clear="${d}">Günü temizle</button></div><div class="day-copy-actions"><button type="button" class="quick-mini copy-mini" title="Bu günün tüm ders soru sayılarını kopyala" data-day-copy="${d}">C-Copy</button><button type="button" class="quick-mini paste-mini" title="Kopyalanan günü bu güne yapıştır" data-day-paste="${d}">V-Paste</button></div><p class="muted tiny" style="margin:0">${filled}/${names.length} ders dolu</p><div class="lesson-grid plan-lesson-grid">${names.map(l=>{const key=planKey(d,l); return `<div class="field lesson-control"><label>${esc(l)}</label><div class="lesson-input-row"><input class="input" inputmode="numeric" data-plan-key="${esc(key)}" value="${esc(w.plan[key]||'')}"><button type="button" class="lesson-clear-btn" title="Bu dersi temizle" data-lesson-clear="${esc(key)}">×</button></div></div>`;}).join('')}</div></div>`;
+      out+=`<div class="day-card plan-day-card" data-day-index="${d}"><h4 class="task-day-title"><span class="date-label">${fmtDateWithDay(date)}</span><span class="badge question-total-badge">${total} soru</span></h4><div class="day-quick-actions"><button type="button" class="quick-mini" data-day-add="${d}" data-delta="10">+10</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="20">+20</button><button type="button" class="quick-mini" data-day-add="${d}" data-delta="30">+30</button><button type="button" class="quick-mini danger-mini" data-day-clear="${d}">Günü temizle</button></div><div class="day-copy-actions"><button type="button" class="quick-mini copy-mini" title="Bu günün tüm ders soru sayılarını kopyala" data-day-copy="${d}">C-Copy</button><button type="button" class="quick-mini paste-mini" title="Kopyalanan günü bu güne yapıştır" data-day-paste="${d}">V-Paste</button></div><p class="muted tiny" data-day-filled="${d}" style="margin:0">${filled}/${names.length} ders dolu</p><div class="lesson-grid plan-lesson-grid">${names.map(l=>{const key=planKey(d,l); return `<div class="field lesson-control"><label>${esc(l)}</label><div class="lesson-input-row"><input class="input" inputmode="numeric" data-plan-key="${esc(key)}" value="${esc(w.plan[key]||'')}"><button type="button" class="lesson-clear-btn" title="Bu dersi temizle" data-lesson-clear="${esc(key)}">×</button></div></div>`;}).join('')}</div></div>`;
     }
     out+=`</div></div>`;
   }
@@ -2434,18 +2434,32 @@ function bindTaskWizard(){
   document.querySelectorAll('[data-day-copy]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); copyPlanDayToClipboard(Number(b.dataset.dayCopy)); renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-day-paste]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); if(pastePlanDayFromClipboard(Number(b.dataset.dayPaste))) renderTasks(document.getElementById('mainArea'));});
   document.querySelectorAll('[data-lesson-clear]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizard.plan=clearPlanKey(state.taskWizard.plan,b.dataset.lessonClear); renderTasks(document.getElementById('mainArea'));});
-  document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{state.taskWizard.plan[inp.dataset.planKey]=inp.value.replace(/\D/g,'').slice(0,4); inp.value=state.taskWizard.plan[inp.dataset.planKey]; updatePreviewLive();});
+  document.querySelectorAll('[data-plan-key]').forEach(inp=>inp.oninput=()=>{const v=inp.value.replace(/\D/g,'').slice(0,4); if(v && v!=='0') state.taskWizard.plan[inp.dataset.planKey]=v; else delete state.taskWizard.plan[inp.dataset.planKey]; inp.value=v; updatePreviewLive();});
   document.getElementById('saveTask')?.addEventListener('click',async()=>{try{syncTaskWizardFromDom(); document.getElementById('taskStatus').textContent='Kaydediliyor...'; await saveTaskFromWizard();}catch(e){const el=document.getElementById('taskStatus'); if(el) el.textContent=''; setToast(e.message,'error');}});
   document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());
   updatePreviewLive(); updateSelectedCount();
 }
 function updateSelectedCount(){const el=document.getElementById('selectedCount'); if(el) el.textContent=`Seçili öğrenci: ${(state.taskWizard?.studentNos||[]).length}`;}
 function bindStudentChecks(){document.querySelectorAll('.student-check').forEach(ch=>ch.onchange=()=>{const set=new Set((state.taskWizard.studentNos||[]).map(cleanId)); if(ch.checked) set.add(cleanId(ch.value)); else set.delete(cleanId(ch.value)); state.taskWizard.studentNos=[...set]; ch.closest('.student-option')?.classList.toggle('selected',ch.checked); updateSelectedCount(); updatePreviewLive();});}
+function updatePlanDayTotalsLive(){
+  const w=state.taskWizard; if(!w) return;
+  const names=lessonNames();
+  document.querySelectorAll('.plan-day-card[data-day-index]').forEach(card=>{
+    const d=Number(card.dataset.dayIndex);
+    const total=names.reduce((s,l)=>s+(Number(w.plan?.[planKey(d,l)]||0)||0),0);
+    const filled=names.filter(l=>Number(w.plan?.[planKey(d,l)]||0)>0).length;
+    const badge=card.querySelector('.question-total-badge');
+    if(badge) badge.textContent=`${total} soru`;
+    const filledEl=card.querySelector('[data-day-filled]');
+    if(filledEl) filledEl.textContent=`${filled}/${names.length} ders dolu`;
+  });
+}
 function updatePreviewLive(){
   const w=state.taskWizard; if(!w) return;
   const task={...w,end:taskWizardEndDate(w)};
   const count=studentsForTask(task).length;
   const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
+  updatePlanDayTotalsLive();
   const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`;
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
