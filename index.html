@@ -1145,15 +1145,17 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 
 
 /* GÜNCEL: görev kartları ve veri girişi analiz paneli */
-.teacher-task-section{display:grid;gap:12px;margin-top:12px}
-.teacher-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;align-items:start}
-.teacher-task-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:13px;box-shadow:var(--shadow-xs);display:grid;gap:9px;min-width:0}
-.teacher-task-card.past{background:#f8fafc;opacity:.88}
-.teacher-task-card h4{margin:0;color:var(--ink);font-size:14px;font-weight:900;line-height:1.25;overflow-wrap:anywhere}
+.teacher-task-section{display:grid;gap:14px;margin-top:12px}
+.teacher-task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,300px));gap:12px;align-items:start;justify-content:start}
+.teacher-task-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px;box-shadow:var(--shadow-xs);display:grid;gap:8px;min-width:0;max-width:300px}
+.teacher-task-card.past{background:#f8fafc;opacity:.9}
+.teacher-task-card h4{margin:0;color:var(--ink);font-size:13px;font-weight:900;line-height:1.22;overflow-wrap:anywhere}
 .teacher-task-card .task-card-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.teacher-task-card .actions{display:grid;grid-template-columns:1fr;gap:7px}
-.teacher-task-card .actions button{width:100%;min-height:36px;font-size:12px;padding:8px 9px}
-.teacher-task-card .task-track-box{margin-top:0;padding:10px;border-radius:16px}
+.teacher-task-card .task-card-meta .badge{min-height:28px;padding:6px 9px;font-size:11px}
+.teacher-task-card .actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.teacher-task-card .actions button{width:100%;min-height:34px;font-size:11px;padding:7px 8px;border-radius:13px}
+.teacher-task-card .actions .danger-btn{grid-column:1 / -1}
+.teacher-task-card .task-track-box{margin-top:0;padding:9px;border-radius:14px;max-height:140px;overflow:auto}
 .data-entry-package-list{display:grid;gap:12px}
 .data-entry-package{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#fff,#fbfdff);padding:14px;box-shadow:var(--shadow-xs)}
 .data-entry-package.past{background:#f8fafc}
@@ -1174,7 +1176,7 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .data-entry-message-panel{margin-top:14px;border:1px solid #fed7aa;border-radius:22px;background:#fffaf6;padding:14px;box-shadow:var(--shadow-xs)}
 .data-entry-message-panel h4{margin:0 0 6px;color:var(--ink);font-size:17px;font-weight:900}
 .daily-info-list small{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.3;margin-top:2px}
-@media(max-width:620px){.teacher-task-grid{grid-template-columns:1fr}.data-record-row{grid-template-columns:1fr}.data-entry-package-head{display:grid;grid-template-columns:1fr}.data-entry-day h5{display:grid;grid-template-columns:1fr}}
+@media(max-width:620px){.teacher-task-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.teacher-task-card{max-width:none}.data-record-row{grid-template-columns:1fr}.data-entry-package-head{display:grid;grid-template-columns:1fr}.data-entry-day h5{display:grid;grid-template-columns:1fr}}
 
 </style>
 </head>
@@ -2086,12 +2088,14 @@ async function loadDailyFollowSummaries(day){
         return {lesson:t.lesson,target,done,missing:Math.max(0,target-done),completed:target>0 && done>=target};
       });
       const targetTotal=lessonRows.reduce((sum,x)=>sum+x.target,0);
-      const doneTotal=lessonRows.reduce((sum,x)=>sum+Math.min(x.done,x.target),0);
-      return {task:row.task,lessonRows,targetTotal,doneTotal};
+      const doneTotal=lessonRows.reduce((sum,x)=>sum+x.done,0);
+      const cappedDoneTotal=lessonRows.reduce((sum,x)=>sum+Math.min(x.done,x.target),0);
+      return {task:row.task,lessonRows,targetTotal,doneTotal,cappedDoneTotal};
     });
     const totalTarget=taskRows.reduce((sum,x)=>sum+x.targetTotal,0);
     const totalDone=taskRows.reduce((sum,x)=>sum+x.doneTotal,0);
-    const completionPct=totalTarget>0 ? Math.round((totalDone/totalTarget)*100) : null;
+    const cappedDone=taskRows.reduce((sum,x)=>sum+x.cappedDoneTotal,0);
+    const completionPct=totalTarget>0 ? Math.min(100,Math.round((cappedDone/totalTarget)*100)) : null;
     const completedLessons=taskRows.flatMap(x=>x.lessonRows.filter(r=>r.completed));
     const missingLessons=taskRows.flatMap(x=>x.lessonRows.filter(r=>!r.completed));
     const warning=totalTarget>0 && completionPct<50;
@@ -2254,7 +2258,7 @@ function bindAssignmentParentNotify(st,tasks){
 
 
 function stopAutoRefresh(){if(state.refreshTimer){clearInterval(state.refreshTimer);state.refreshTimer=null;}}
-function startAutoRefresh(){stopAutoRefresh();const sec=Math.max(20,Number(state.systemSettings?.autoRefreshSeconds||45));state.refreshTimer=setInterval(async()=>{if(!state.teacher)return;try{const before=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));await Promise.all([loadSettings(),loadTasks(),loadFollowSettings()]);state.statsCache={};const after=JSON.stringify(state.tasks.map(t=>[t.key,t.updatedAt,t.createdAt,t.status]));if(state.selectedStudent||before!==after) render({preserveScroll:true});}catch(e){console.warn('Otomatik Firebase denetimi başarısız:',e);}},sec*1000);}
+function startAutoRefresh(){stopAutoRefresh();/* Otomatik sayfa yenileme kapatıldı: veri değişse bile ekran kendiliğinden render edilmez. */}
 
 async function bootstrap(){
   state.range=weekRange();
@@ -2677,6 +2681,8 @@ function strongAreasHtml(stats){const list=strongAreas(stats).slice(0,6); if(!li
 
 function taskItemLesson(item){return String(item?.ders||item?.course||item?.lesson||'Genel').trim()||'Genel';}
 function taskItemTarget(item){return Number(item?.soruSayisi??item?.hedefSoru??item?.soru??item?.total??0)||0;}
+function taskItemTopicText(item){return [item?.anaKonu||item?.topic||item?.konu||'', item?.altKonu||item?.subtopic||item?.alt||''].map(x=>String(x||'').trim()).filter(Boolean).join(' / ');}
+function taskItemGoalText(item){const lesson=taskItemLesson(item); const topic=taskItemTopicText(item); const target=taskItemTarget(item); return `${lesson}${topic?' / '+topic:''}${target?` • hedef ${target} soru`:''}`;}
 function aggregateTaskItemsByLesson(items){
   const map={};
   (items||[]).forEach(item=>{
@@ -2821,8 +2827,9 @@ function packageDayLessonTargets(pkg,day){
     const lesson=taskItemLesson(item);
     const target=taskItemTarget(item);
     if(!target) return;
-    if(!map[lesson]) map[lesson]={lesson,target:0};
+    if(!map[lesson]) map[lesson]={lesson,target:0,items:[]};
     map[lesson].target+=target;
+    map[lesson].items.push({lesson,topic:taskItemTopicText(item),target,summary:taskItemGoalText(item)});
   }));
   return Object.values(map).filter(x=>x.target>0).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
 }
@@ -2881,29 +2888,54 @@ function dateFromAbsoluteValue(value){
   }
   return null;
 }
+function minutesFromTimeText(t){const m=String(t||'').match(/^(\d{2}):(\d{2})$/); return m?Number(m[1])*60+Number(m[2]):null;}
+function localTimeFromTextValue(value){
+  const s=String(value||'').trim();
+  if(!s) return '';
+  const m=s.match(/\b(\d{1,2}):(\d{2})\b/);
+  return m ? `${pad2(m[1])}:${m[2]}` : '';
+}
+function recordLocalDate(record){
+  const raw=record?.raw||record||{};
+  return record?.date || isoFromAny(raw.dateKey||raw.tarih||raw.date||raw.gun||raw.tarihSaat||'') || '';
+}
+function normalizeRecordDisplayTime(record,time){
+  time=String(time||'').trim();
+  if(!time) return '';
+  const date=recordLocalDate(record);
+  const today=todayISO();
+  if(date && date===today){
+    const nowMin=minutesFromTimeText(appTimeText(new Date()));
+    const recMin=minutesFromTimeText(time);
+    if(nowMin!==null && recMin!==null && recMin>nowMin+5){
+      const raw=record?.raw||record||{};
+      const fallback=[raw.saat,raw.girisSaati,raw.entryTime,raw.time,raw.tarihSaat,raw.tarih].map(localTimeFromTextValue).find(Boolean);
+      if(fallback && minutesFromTimeText(fallback)<=nowMin+5) return fallback;
+      return `${time} ⚠`;
+    }
+  }
+  return time;
+}
 function recordSortValue(record){
   const raw=record?.raw||record||{};
-  const candidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,raw.tarihSaat,record?.createdAt];
+  const localTime=[raw.saat,raw.girisSaati,raw.entryTime,raw.time,raw.tarihSaat,raw.tarih].map(localTimeFromTextValue).find(Boolean);
+  const date=recordLocalDate(record) || isoFromAny(raw.createdAt||raw.created_at||raw.serverTime||'') || '0000-00-00';
+  if(localTime) return Number(String(date).replace(/\D/g,'') + String(localTime).replace(/\D/g,'')) || 0;
+  const candidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,record?.createdAt];
   for(const val of candidates){
     const d=dateFromAbsoluteValue(val);
     if(d) return d.getTime();
   }
-  const time=recordTimeText(record);
-  const date=record?.date || isoFromAny(raw.dateKey||raw.tarih||raw.date||raw.tarihSaat||raw.createdAt||'') || '0000-00-00';
-  return Number(String(date).replace(/\D/g,'') + String(time||'00:00').replace(/\D/g,'')) || 0;
+  return Number(String(date).replace(/\D/g,'') + '0000') || 0;
 }
 function recordTimeText(record){
   const raw=record?.raw||record||{};
-  const absoluteCandidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,record?.createdAt,raw.tarihSaat];
+  const direct=[raw.saat,raw.girisSaati,raw.entryTime,raw.time,raw.tarihSaat,raw.tarih].map(localTimeFromTextValue).find(Boolean);
+  if(direct) return normalizeRecordDisplayTime(record,direct);
+  const absoluteCandidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,record?.createdAt];
   for(const val of absoluteCandidates){
     const d=dateFromAbsoluteValue(val);
-    if(d) return appTimeText(d);
-  }
-  const directCandidates=[raw.saat,raw.girisSaati,raw.entryTime,raw.time,raw.tarihSaat,raw.date,raw.tarih];
-  for(const val of directCandidates){
-    const s=String(val||'').trim();
-    const m=s.match(/\b(\d{1,2}):(\d{2})\b/);
-    if(m) return `${pad2(m[1])}:${m[2]}`;
+    if(d) return normalizeRecordDisplayTime(record,appTimeText(d));
   }
   return '';
 }
@@ -2917,19 +2949,24 @@ function dataPackageAnalysis(pkg,stats,visibleOnly=false){
     const dayRecords=records.filter(r=>r.date===day);
     if(visibleOnly && (day>today || !dayRecords.length)) continue;
     const targetTotal=targets.reduce((s,x)=>s+Number(x.target||0),0);
-    const doneTotal=targets.reduce((s,x)=>s+Math.min(Number(x.target||0), dayRecords.filter(r=>String(r.lesson||'').trim()===String(x.lesson||'').trim()).reduce((a,r)=>a+Number(r.total||0),0)),0);
     const lessonRows=targets.map(x=>{
       const recs=dayRecords.filter(r=>String(r.lesson||'').trim()===String(x.lesson||'').trim());
       const done=recs.reduce((a,r)=>a+Number(r.total||0),0);
-      return {lesson:x.lesson,target:Number(x.target)||0,done,missing:Math.max(0,(Number(x.target)||0)-done),records:recs};
+      const correct=recs.reduce((a,r)=>a+Number(r.correct||0),0);
+      const wrong=recs.reduce((a,r)=>a+Number(r.wrong||0),0);
+      const empty=recs.reduce((a,r)=>a+Number(r.empty||0),0);
+      return {lesson:x.lesson,target:Number(x.target)||0,done,correct,wrong,empty,items:x.items||[],missing:Math.max(0,(Number(x.target)||0)-done),records:recs};
     });
+    const doneTotal=lessonRows.reduce((s,x)=>s+Number(x.done||0),0);
+    const cappedDoneTotal=lessonRows.reduce((s,x)=>s+Math.min(Number(x.done||0),Number(x.target||0)),0);
     const extraRecords=dayRecords.filter(r=>!targets.some(x=>String(x.lesson||'').trim()===String(r.lesson||'').trim()));
-    const pct=targetTotal?Math.round((doneTotal/targetTotal)*100):0;
-    rows.push({day,targetTotal,doneTotal,pct,lessonRows,extraRecords,dayRecords});
+    const pct=targetTotal?Math.min(100,Math.round((cappedDoneTotal/targetTotal)*100)):0;
+    rows.push({day,targetTotal,doneTotal,cappedDoneTotal,pct,lessonRows,extraRecords,dayRecords});
   }
   const targetTotal=rows.reduce((s,d)=>s+d.targetTotal,0);
   const doneTotal=rows.reduce((s,d)=>s+d.doneTotal,0);
-  return {pkg,rows,targetTotal,doneTotal,pct:targetTotal?Math.round(doneTotal/targetTotal*100):0};
+  const cappedDoneTotal=rows.reduce((s,d)=>s+d.cappedDoneTotal,0);
+  return {pkg,rows,targetTotal,doneTotal,cappedDoneTotal,pct:targetTotal?Math.min(100,Math.round(cappedDoneTotal/targetTotal*100)):0};
 }
 function dataEntryPackageHtml(analysis){
   const life=packageLifeStatus(analysis.pkg);
@@ -2948,27 +2985,59 @@ function studentDataEntryHtml(st,stats,tasks){
   const analyses=packages.map(pkg=>dataPackageAnalysis(pkg,stats,true)).filter(x=>x.rows.length);
   const totalTarget=analyses.reduce((s,x)=>s+x.targetTotal,0);
   const totalDone=analyses.reduce((s,x)=>s+x.doneTotal,0);
-  const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
+  const cappedDone=analyses.reduce((s,x)=>s+Number(x.cappedDoneTotal||0),0);
+  const pct=totalTarget?Math.min(100,Math.round(cappedDone/totalTarget*100)):0;
   const listHtml=analyses.length?analyses.map(dataEntryPackageHtml).join(''):'<div class="empty">Bu öğrenci için günü gelmiş ve veri girişi yapılmış paket günü görünmüyor.</div>';
-  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Paket sistemine göre yalnızca veri girişi yapılmış, günü gelmiş kayıtlar gün gün gösterilir. Veri olmayan veya tarihi henüz gelmemiş günler listelenmez.</p>${statsHtml([['Paket',analyses.length,'Veri görünen'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Görünen günler']])}<div class="data-entry-package-list" style="margin-top:14px">${listHtml}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin bugün yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
+  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Paket sistemine göre yalnızca veri girişi yapılmış ve günü gelmiş kayıtlar gün gün gösterilir. Hedef aşımı varsa yapılan soru gerçek çözüm sayısı olarak görünür; tamamlama yüzdesi en fazla %100 kabul edilir.</p>${statsHtml([['Paket',analyses.length,'Veri görünen'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Görünen günler']])}<div class="data-entry-package-list" style="margin-top:14px">${listHtml}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin bugün yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
 }
 function buildDailyDataEntryParentMessage(st,stats,tasks,day=todayISO()){
   const activeTasks=(tasks||[]).filter(t=>taskIsActiveForStudentOnDay(t,st,day));
   const packages=buildStudentTaskPackages(activeTasks,{start:day,end:day});
   const records=(stats.records||[]).filter(r=>r.date===day);
-  const doneMap=recordDoneByLesson(records,day,day);
   const targetMap={};
-  packages.forEach(pkg=>packageDayLessonTargets(pkg,day).forEach(x=>{targetMap[x.lesson]=(targetMap[x.lesson]||0)+Number(x.target||0);}));
-  const lessons=[...new Set([...Object.keys(targetMap),...Object.keys(doneMap)])].sort((a,b)=>a.localeCompare(b,'tr'));
-  const doneRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)>=Number(targetMap[l]||0));
-  const missingRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)<Number(targetMap[l]||0));
-  const extraRows=lessons.filter(l=>!Number(targetMap[l]||0) && Number(doneMap[l]||0)>0);
-  const doneText=doneRows.length?doneRows.map(l=>`• ${l}: ${doneMap[l]}/${targetMap[l]} soru`).join('\n'):'• Tamamlanan görev görünmüyor.';
-  const missingText=missingRows.length?missingRows.map(l=>`• ${l}: ${doneMap[l]||0}/${targetMap[l]} soru`).join('\n'):'• Eksik görev görünmüyor.';
-  const extraText=extraRows.length?`\n\n➕ *Hedef dışı yapılan çalışmalar*\n${extraRows.map(l=>`• ${l}: ${doneMap[l]} soru`).join('\n')}`:'';
-  const totalTarget=Object.values(targetMap).reduce((s,n)=>s+Number(n||0),0);
-  const totalDone=Object.keys(targetMap).reduce((s,l)=>s+Math.min(Number(doneMap[l]||0),Number(targetMap[l]||0)),0);
-  const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
+  packages.forEach(pkg=>packageDayLessonTargets(pkg,day).forEach(x=>{
+    if(!targetMap[x.lesson]) targetMap[x.lesson]={lesson:x.lesson,target:0,items:[]};
+    targetMap[x.lesson].target+=Number(x.target||0);
+    targetMap[x.lesson].items.push(...(x.items||[]));
+  }));
+  const recordMap={};
+  records.forEach(r=>{
+    const lesson=String(r.lesson||'Genel').trim()||'Genel';
+    if(!recordMap[lesson]) recordMap[lesson]={lesson,total:0,correct:0,wrong:0,empty:0,topics:new Set()};
+    recordMap[lesson].total+=Number(r.total||0);
+    recordMap[lesson].correct+=Number(r.correct||0);
+    recordMap[lesson].wrong+=Number(r.wrong||0);
+    recordMap[lesson].empty+=Number(r.empty||0);
+    const topic=recordTopicText(r);
+    if(topic && topic!=='Konu bilgisi yok') recordMap[lesson].topics.add(topic);
+  });
+  const lessons=[...new Set([...Object.keys(targetMap),...Object.keys(recordMap)])].sort((a,b)=>a.localeCompare(b,'tr'));
+  const pctOf=r=>r?.total?Math.round(Number(r.correct||0)/Number(r.total||0)*100):0;
+  const goalLine=l=>{
+    const t=targetMap[l];
+    if(!t) return `${l} • hedef dışı çalışma`;
+    const details=(t.items||[]).map(x=>x.summary).filter(Boolean);
+    return details.length?details.join(' + '):`${l} • hedef ${t.target} soru`;
+  };
+  const detailLine=l=>{
+    const t=targetMap[l]||{target:0};
+    const r=recordMap[l]||{total:0,correct:0,wrong:0,empty:0,topics:new Set()};
+    const topics=[...(r.topics||[])].slice(0,2).join(' / ');
+    return `• ${goalLine(l)}
+  Çözdü: ${r.total} soru • Doğru: ${r.correct} • Yanlış: ${r.wrong} • Boş: ${r.empty} • Başarı: %${pctOf(r)}${topics?`
+  Veri konusu: ${topics}`:''}${t.target?`
+  Durum: ${r.total}/${t.target} soru`:''}`;
+  };
+  const doneRows=lessons.filter(l=>Number(targetMap[l]?.target||0)>0 && Number(recordMap[l]?.total||0)>=Number(targetMap[l]?.target||0));
+  const missingRows=lessons.filter(l=>Number(targetMap[l]?.target||0)>0 && Number(recordMap[l]?.total||0)<Number(targetMap[l]?.target||0));
+  const extraRows=lessons.filter(l=>!Number(targetMap[l]?.target||0) && Number(recordMap[l]?.total||0)>0);
+  const doneText=doneRows.length?doneRows.map(detailLine).join('\n'):'• Tamamlanan görev görünmüyor.';
+  const missingText=missingRows.length?missingRows.map(detailLine).join('\n'):'• Eksik görev görünmüyor.';
+  const extraText=extraRows.length?`\n\n➕ *Hedef dışı yapılan çalışmalar*\n${extraRows.map(detailLine).join('\n')}`:'';
+  const totalTarget=Object.values(targetMap).reduce((sum,x)=>sum+Number(x.target||0),0);
+  const totalDone=Object.values(recordMap).reduce((sum,x)=>sum+Number(x.total||0),0);
+  const cappedDone=lessons.reduce((sum,l)=>sum+Math.min(Number(recordMap[l]?.total||0),Number(targetMap[l]?.target||0)),0);
+  const pct=totalTarget?Math.min(100,Math.round(cappedDone/totalTarget*100)):0;
   const teacherLine=state.teacher?.name?`\n\n👩‍🏫 *Öğretmen:* ${state.teacher.name}`:'';
   return `Sayın Velimiz, merhaba. 👋\n\n*${st.name}* öğrencimizin ${fmtDate(day)} tarihli görev ve veri girişi özeti aşağıdadır.\n\n📌 *Günlük Paket Durumu*\nHedef: ${totalTarget} soru\nYapılan: ${totalDone} soru\nTamamlama: %${pct}\n\n✅ *Tamamlananlar*\n${doneText}\n\n⚠️ *Tamamlanmayan / Yapılmayanlar*\n${missingText}${extraText}${teacherLine}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
 }
@@ -3254,7 +3323,7 @@ function adminSystemHtml(){
     <div class="card system-setting-card"><h3>SMS</h3><span class="setting-status">Yönetilebilir</span><label class="row" style="margin-top:12px"><input id="sysSms" type="checkbox" ${sys.smsEnabled!==false?'checked':''}> SMS hazırlama aktif</label><div class="field" style="margin-top:10px"><label>SMS imzası</label><input id="sysSmsSignature" class="input" value="${esc(sys.smsSignature||'Fenomen')}"></div><div class="field" style="margin-top:10px"><label>SMS başlangıç metni</label><input id="sysSmsPrefix" class="input" value="${esc(sys.smsPrefix||'')}"></div></div>
     <div class="card system-setting-card system-full"><h3>Firebase Uygulama Bilgileri</h3><div class="system-subgrid"><div class="field"><label>Auth Domain</label><input id="sysAuthDomain" class="input secret-input" value="${esc(cfg.authDomain||'')}"></div><div class="field"><label>Project ID</label><input id="sysProjectId" class="input secret-input" value="${esc(cfg.projectId||'')}"></div><div class="field"><label>Storage Bucket</label><input id="sysStorageBucket" class="input secret-input" value="${esc(cfg.storageBucket||'')}"></div><div class="field"><label>Messaging Sender ID</label><input id="sysMessagingSenderId" class="input secret-input" value="${esc(cfg.messagingSenderId||'')}"></div><div class="field"><label>App ID</label><input id="sysAppId" class="input secret-input" value="${esc(cfg.appId||'')}"></div><div class="field"><label>Measurement ID</label><input id="sysMeasurementId" class="input secret-input" value="${esc(cfg.measurementId||'')}"></div></div></div>
   </div>
-  <div class="card" style="margin-top:14px"><h3>Otomatik Firebase Denetimi</h3><div class="compact-grid"><div class="field"><label>Denetim sıklığı / saniye</label><input id="sysRefresh" class="input" inputmode="numeric" value="${esc(sys.autoRefreshSeconds||45)}"></div><div class="field"><label>Son kayıt</label><input class="input" value="${esc(sys.lastUpdate||'Varsayılan ayarlar kullanılıyor')}" disabled></div></div><div class="row" style="margin-top:12px"><button id="saveSystemSettings" class="primary">Sistem Ayarlarını Firebase’e Kaydet</button><button id="resetSystemDefaults" class="ghost">Varsayılan Ayarları Doldur</button></div><p class="muted tiny" style="margin-top:10px">Database URL, Sheet ID, Firebase uygulama alanları ve SMS metni bu ekrandan öğretmen/admin tarafından değiştirilebilir.</p></div>
+  <div class="card" style="margin-top:14px"><h3>Manuel Firebase Denetimi</h3><div class="compact-grid"><div class="field"><label>Otomatik yenileme kapalı</label><input id="sysRefresh" class="input" inputmode="numeric" value="${esc(sys.autoRefreshSeconds||45)}"></div><div class="field"><label>Son kayıt</label><input class="input" value="${esc(sys.lastUpdate||'Varsayılan ayarlar kullanılıyor')}" disabled></div></div><div class="row" style="margin-top:12px"><button id="saveSystemSettings" class="primary">Sistem Ayarlarını Firebase’e Kaydet</button><button id="resetSystemDefaults" class="ghost">Varsayılan Ayarları Doldur</button></div><p class="muted tiny" style="margin-top:10px">Database URL, Sheet ID, Firebase uygulama alanları ve SMS metni bu ekrandan öğretmen/admin tarafından değiştirilebilir.</p></div>
   <div class="card system-setting-card system-full" style="margin-top:14px;border-color:#fecaca;background:linear-gradient(180deg,#fff,#fff7f7)"><h3 style="color:#991b1b">Tehlikeli İşlem</h3><p class="muted" style="margin:6px 0 12px;font-weight:700;line-height:1.55"></p><details class="muted tiny" style="margin-bottom:12px"><summary>Silinecek izinli klasörleri göster</summary><div style="margin-top:8px;line-height:1.65">${PROGRAM_FIREBASE_DELETE_PATHS.map(p=>`<code>${esc(p)}</code>`).join('<br>')}</div></details><div class="row"><button id="deleteProgramFirebasePaths" class="danger-btn">Sadece Program Firebase Klasörlerini Sil</button><span class="badge red">Kök silme engelli + metin doğrulama</span></div></div>`;
 }
 async function deleteProgramFirebasePaths(){
@@ -3326,7 +3395,7 @@ function bindAdmin(){
     const dbBase=(document.getElementById('sysDbBase').value.trim()||DB_BASE).replace(/\/+$/,'');
     const firebaseConfig={apiKey:document.getElementById('sysApiKey').value.trim(),authDomain:document.getElementById('sysAuthDomain').value.trim(),databaseURL:dbBase,projectId:document.getElementById('sysProjectId').value.trim(),storageBucket:document.getElementById('sysStorageBucket').value.trim(),messagingSenderId:document.getElementById('sysMessagingSenderId').value.trim(),appId:document.getElementById('sysAppId').value.trim(),measurementId:document.getElementById('sysMeasurementId').value.trim()};
     state.systemSettings={firebaseEnabled:document.getElementById('sysFirebase').checked,sheetsEnabled:document.getElementById('sysSheets').checked,smsEnabled:document.getElementById('sysSms').checked,smsSignature:document.getElementById('sysSmsSignature').value.trim()||'Fenomen',smsPrefix:document.getElementById('sysSmsPrefix').value.trim(),sheetId:document.getElementById('sysSheetId').value.trim()||SHEET_ID,dbBase,firebaseConfig,autoRefreshSeconds:Number(document.getElementById('sysRefresh').value)||45};
-    await saveSystemSettings();await loadSettings();startAutoRefresh();setToast('Sistem ayarları kaydedildi ve aktif edildi','ok');render();
+    await saveSystemSettings();await loadSettings();stopAutoRefresh();setToast('Sistem ayarları kaydedildi ve aktif edildi','ok');render();
   }catch(e){setToast(e.message,'error');}});
   document.getElementById('deleteProgramFirebasePaths')?.addEventListener('click',deleteProgramFirebasePaths);
   document.getElementById('resetStudyRecords')?.addEventListener('click',resetStudyRecords);
