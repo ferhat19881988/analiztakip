@@ -1090,6 +1090,52 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
   }
 }
 
+
+/* Günlük öğrenci takip kartları */
+.daily-follow-panel{overflow:visible}
+.daily-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.daily-panel-head h3{margin:0 0 6px;color:var(--ink);font-size:22px;font-weight:900;letter-spacing:-.04em}
+.daily-panel-head p{margin:0;color:var(--muted);font-size:13px;font-weight:700;line-height:1.5}
+.daily-overview-grid{margin:8px 0 16px}
+.daily-overview-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:15px;box-shadow:var(--shadow-xs)}
+.daily-overview-card small{display:block;color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.daily-overview-card strong{display:block;color:var(--ink);font-size:28px;font-weight:900;letter-spacing:-.06em;line-height:1}
+.daily-overview-card span{display:block;margin-top:6px;color:var(--muted);font-size:12px;font-weight:800}
+.daily-overview-card.warning{background:#fff7ed;border-color:#fed7aa}
+.daily-follow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;align-items:start}
+.daily-student-card{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,#fff,#fbfdff);padding:15px;box-shadow:var(--shadow-xs);display:grid;gap:12px;transition:.16s ease}
+.daily-student-card:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(15,23,42,.10);border-color:#fed7aa}
+.daily-student-card.warning{background:linear-gradient(180deg,#fff7ed,#fff);border-color:#fed7aa}
+.daily-student-card.good{background:linear-gradient(180deg,#f2fff7,#fff);border-color:#bbf7d0}
+.daily-student-card.no-entry:not(.warning){background:linear-gradient(180deg,#f8fafc,#fff)}
+.daily-student-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.daily-student-head h3{margin:0;color:var(--ink);font-size:15px;font-weight:900;line-height:1.2}
+.daily-student-head p{margin:4px 0 0;color:var(--muted);font-size:12px;font-weight:800;line-height:1.35}
+.daily-status-pill{display:inline-flex;align-items:center;justify-content:center;min-height:30px;border-radius:999px;padding:7px 10px;border:1px solid var(--line);font-size:11px;font-weight:900;white-space:nowrap}
+.daily-status-pill.warning{background:#fff1f2;color:#991b1b;border-color:#fecdd3}
+.daily-status-pill.good{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.daily-status-pill.progress{background:#eef4ff;color:#1d4ed8;border-color:#dbeafe}
+.daily-status-pill.neutral{background:#f8fafc;color:#475569;border-color:var(--line)}
+.daily-metric-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.daily-metric-row div{border:1px solid var(--line);border-radius:16px;background:#fff;padding:10px;min-width:0}
+.daily-metric-row small{display:block;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.daily-metric-row strong{display:block;color:var(--ink);font-size:13px;font-weight:900;line-height:1.25;overflow-wrap:anywhere}
+.daily-warning-note{padding:10px 12px;border-radius:16px;background:#fff1f2;border:1px solid #fecdd3;color:#991b1b;font-size:12px;font-weight:900;line-height:1.45}
+.daily-card-section{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px;display:grid;gap:8px}
+.daily-card-section>b{display:block;color:var(--ink);font-size:13px;font-weight:900}
+.daily-info-list{display:grid;gap:7px}
+.daily-info-list div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #f1f5f9}
+.daily-info-list div:first-child{border-top:0;padding-top:0}
+.daily-info-list b{color:#334155;font-size:12px;font-weight:900;min-width:0}
+.daily-info-list span{color:var(--muted);font-size:12px;font-weight:800;text-align:right;white-space:nowrap}
+.daily-task-pill-list{display:flex;flex-wrap:wrap;gap:7px}
+.daily-task-pill-list span,.daily-task-pill-list small{display:inline-flex;align-items:center;min-height:30px;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;border:1px solid var(--line);background:#f8fafc;color:#334155}
+.daily-task-pill-list.done span{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.daily-task-pill-list.missing span{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.daily-empty-line{border:1px dashed var(--line-strong);border-radius:14px;background:#f8fafc;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:800;line-height:1.4}
+@media(max-width:760px){.daily-follow-grid{grid-template-columns:1fr}.daily-panel-head{display:block}.daily-panel-head .badge{margin-top:10px}.daily-student-head{grid-template-columns:auto minmax(0,1fr)}.daily-status-pill{grid-column:1 / -1;justify-content:flex-start}.daily-metric-row{grid-template-columns:1fr 1fr}.daily-metric-row div:last-child{grid-column:1 / -1}.daily-info-list div{display:block}.daily-info-list span{display:block;text-align:left;margin-top:3px;white-space:normal}}
+@media(max-width:380px){.daily-student-card{padding:12px}.daily-metric-row{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1942,22 +1988,56 @@ async function loadStats(studentNo,start,end){
     return result;
   }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[],records:[]};}
 }
-async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.tarih||rec?.date||rec?.tarihSaat||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
-async function loadFollowAlerts(start,end,mode='hafta'){
-  if(!state.followClasses.length) return {configured:false,items:[]};
-  const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).slice(0,220);
+async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.dateKey||rec?.tarih||rec?.date||rec?.tarihSaat||rec?.createdAt||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
+function taskIsActiveForStudentOnDay(task,student,day){
+  if(!task || !student) return false;
+  const status=String(task.status||'aktif').toLocaleLowerCase('tr-TR');
+  if(status.includes('pasif') || status.includes('sil')) return false;
+  if(!dateInRange(day,task.start||day,task.end||day)) return false;
+  return studentsForTask(task).map(cleanId).includes(cleanId(student.no));
+}
+function dailyTaskTargetsForStudent(student,day){
+  const rows=[];
+  for(const task of state.tasks||[]){
+    if(!taskIsActiveForStudentOnDay(task,student,day)) continue;
+    const targets=aggregateTaskItemsByLesson(taskItemsForDay(task,day));
+    const total=targets.reduce((sum,x)=>sum+(Number(x.target)||0),0);
+    if(total>0) rows.push({task,targets,total});
+  }
+  return rows;
+}
+async function loadDailyFollowSummaries(day){
+  if(!state.followClasses.length) return {configured:false,items:[],summary:{tracked:0,entries:0,warnings:0,completed:0}};
+  const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).sort((a,b)=>(a.className||'').localeCompare(b.className||'','tr') || a.name.localeCompare(b.name,'tr'));
   const items=[];
   for(const st of tracked){
-    const s=await loadStats(st.no,start,end);
-    if(s.entryCount===0) items.push({student:st,reason:mode==='gün'?'Bugün çalışma girişi yok':'Bu hafta veri girişi yok',level:'high'});
-    else if(mode==='hafta' && s.total<50) items.push({student:st,reason:`Haftalık toplam düşük: ${s.total} soru`,level:'mid'});
-    else if(mode==='gün' && s.total<20) items.push({student:st,reason:`Bugünkü çalışma düşük: ${s.total} soru`,level:'mid'});
+    const stats=await loadStats(st.no,day,day);
+    const doneMap=recordDoneByLesson(stats.records,day,day);
+    const taskRows=dailyTaskTargetsForStudent(st,day).map(row=>{
+      const lessonRows=row.targets.map(t=>{
+        const done=Number(doneMap[t.lesson]||0);
+        const target=Number(t.target)||0;
+        return {lesson:t.lesson,target,done,missing:Math.max(0,target-done),completed:target>0 && done>=target};
+      });
+      const targetTotal=lessonRows.reduce((sum,x)=>sum+x.target,0);
+      const doneTotal=lessonRows.reduce((sum,x)=>sum+Math.min(x.done,x.target),0);
+      return {task:row.task,lessonRows,targetTotal,doneTotal};
+    });
+    const totalTarget=taskRows.reduce((sum,x)=>sum+x.targetTotal,0);
+    const totalDone=taskRows.reduce((sum,x)=>sum+x.doneTotal,0);
+    const completionPct=totalTarget>0 ? Math.round((totalDone/totalTarget)*100) : null;
+    const completedLessons=taskRows.flatMap(x=>x.lessonRows.filter(r=>r.completed));
+    const missingLessons=taskRows.flatMap(x=>x.lessonRows.filter(r=>!r.completed));
+    const warning=totalTarget>0 && completionPct<50;
+    items.push({student:st,stats,doneMap,taskRows,totalTarget,totalDone,completionPct,completedLessons,missingLessons,warning});
   }
-  return {configured:true,items};
-}
-async function loadAlerts(){
-  const r=weekRange();
-  return loadFollowAlerts(r.start,r.end,'hafta');
+  const summary={
+    tracked:items.length,
+    entries:items.filter(x=>x.stats.entryCount>0).length,
+    warnings:items.filter(x=>x.warning).length,
+    completed:items.filter(x=>x.totalTarget>0 && x.completionPct>=100).length
+  };
+  return {configured:true,items,summary};
 }
 async function logParentNotification(student,channel,message){
   await postJson(`verianalizi001/veliBildirimGecmisi/${student.no}`,{kanal:channel,mesajMetni:message,tarihSaat:nowText(),ogretmenID:state.teacher.id,ogretmenAdi:state.teacher.name,durum:'gonderildi'});
@@ -2303,16 +2383,62 @@ function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.oncli
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
+function dailyFollowOverviewHtml(daily){
+  if(!daily.configured) return '<div class="empty">Takip edilecek sınıf seçilmedi. Önce takip edeceğin sınıfı seçip kaydet.</div>';
+  const sm=daily.summary||{};
+  return `<div class="grid four daily-overview-grid"><div class="daily-overview-card"><small>Takipteki Öğrenci</small><strong>${esc(sm.tracked||0)}</strong><span>Seçili sınıflar</span></div><div class="daily-overview-card"><small>Bugün Giriş Yapan</small><strong>${esc(sm.entries||0)}</strong><span>Çalışma kaydı var</span></div><div class="daily-overview-card"><small>Görevini Tamamlayan</small><strong>${esc(sm.completed||0)}</strong><span>Günlük hedef %100</span></div><div class="daily-overview-card warning"><small>%50 Altı Görev</small><strong>${esc(sm.warnings||0)}</strong><span>Hatırlatma gerekli</span></div></div>`;
+}
+function dailyEntrySummaryHtml(stats){
+  const rows=(stats.subjects||[]).slice(0,5);
+  if(!rows.length) return '<div class="daily-empty-line">Bugün çalışma girişi yok.</div>';
+  return `<div class="daily-info-list">${rows.map(x=>`<div><b>${esc(x.lesson)}</b><span>${esc(x.total)} soru • %${esc(itemAccuracy(x))}</span></div>`).join('')}</div>`;
+}
+function dailyTaskListHtml(rows,emptyText,type){
+  const cls=type==='done'?'done':'missing';
+  if(!rows.length) return `<div class="daily-empty-line">${esc(emptyText)}</div>`;
+  return `<div class="daily-task-pill-list ${cls}">${rows.slice(0,5).map(x=>`<span>${esc(x.lesson)}: ${esc(x.done)}/${esc(x.target)}</span>`).join('')}${rows.length>5?`<small>+${rows.length-5} görev</small>`:''}</div>`;
+}
+function dailyStudentCardHtml(item){
+  const st=item.student;
+  const hasTask=item.totalTarget>0;
+  const pct=hasTask ? item.completionPct : null;
+  const status=item.warning?'warning':(!hasTask?'neutral':(pct>=100?'good':'progress'));
+  const statusText=item.warning?'Görev %50 altında':(!hasTask?'Bugün görev yok':(pct>=100?'Günlük görev tamam':'Günlük takip sürüyor'));
+  const entryText=item.stats.entryCount>0?`${item.stats.entryCount} giriş • ${item.stats.total} soru`:'Giriş yok';
+  const targetText=hasTask?`${item.totalDone}/${item.totalTarget} soru`:'Atanmış hedef yok';
+  const pctText=hasTask?`%${pct}`:'—';
+  const warningHtml=item.warning?'<div class="daily-warning-note">Günlük görev tamamlama oranı %50’nin altında. Öğrenci için kısa bir hatırlatma yapılabilir.</div>':'';
+  const noEntryClass=item.stats.entryCount===0?' no-entry':'';
+  return `<article class="daily-student-card ${status}${noEntryClass}">
+    <div class="daily-student-head">
+      <div class="avatar">${esc((st.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div>
+      <div>
+        <h3>${esc(st.name)}</h3>
+        <p>No ${esc(st.no)} • ${esc(st.className)}</p>
+      </div>
+      <span class="daily-status-pill ${status}">${esc(statusText)}</span>
+    </div>
+    <div class="daily-metric-row">
+      <div><small>Bugünkü Giriş</small><strong>${esc(entryText)}</strong></div>
+      <div><small>Görev Durumu</small><strong>${esc(targetText)}</strong></div>
+      <div><small>Tamamlama</small><strong>${esc(pctText)}</strong></div>
+    </div>
+    ${warningHtml}
+    <div class="daily-card-section"><b>Bugünkü çalışma özeti</b>${dailyEntrySummaryHtml(item.stats)}</div>
+    <div class="daily-card-section"><b>Yerine getirilen görevler</b>${hasTask?dailyTaskListHtml(item.completedLessons,'Henüz tamamlanan görev yok.','done'):'<div class="daily-empty-line">Bugün atanmış günlük görev yok.</div>'}</div>
+    <div class="daily-card-section"><b>Eksik kalan görevler</b>${hasTask?dailyTaskListHtml(item.missingLessons,'Eksik görev görünmüyor.','missing'):'<div class="daily-empty-line">Bugün atanmış günlük görev yok.</div>'}</div>
+    <button class="secondary w-100" data-open-student="${esc(st.no)}">Detay</button>
+  </article>`;
+}
 async function renderDashboard(main){
   const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
-  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}<div class="grid"><div class="card"><span class="loader"></span> Veriler hesaplanıyor...</div></div>`;
-  const todayIso=todayISO(); const week=weekRange();
-  const [todayEntries,dailyAlert,weeklyAlert]=await Promise.all([countEntries(todayIso,todayIso),loadFollowAlerts(todayIso,todayIso,'gün'),loadFollowAlerts(week.start,week.end,'hafta')]);
-  const listHtml=(data,emptyText)=>!data.configured?'<div class="empty">Bu öğretmen için takip edilecek sınıf seçilmediği için liste gösterilmiyor.</div>':data.items.length?data.items.slice(0,14).map(a=>`<div class="thin-item"><div class="row"><span class="badge ${a.level==='high'?'red':'orange'}">${a.level==='high'?'Acil':'Uyarı'}</span><b>${esc(a.student.name)}</b><span class="muted">${esc(a.student.className)}</span><span class="spacer"></span><button class="secondary" data-open-student="${esc(a.student.no)}">Detay</button></div><div class="muted">${esc(a.reason)}</div></div>`).join(''):`<div class="empty">${emptyText}</div>`;
-  main.innerHTML=`${section('Kontrol Paneli','Günlük takip, haftalık takip ve risk durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Günlük Uyarı',dailyAlert.configured?dailyAlert.items.length:'Kapalı','Bugünkü takip'],['7 Günlük Uyarı',weeklyAlert.configured?weeklyAlert.items.length:'Kapalı','Bugünden başlayan takip']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><div class="grid two" style="margin-top:14px"><div class="card"><h3>Günlük Takip</h3><p class="muted">Tarih: <b>${fmtDate(todayIso)}</b></p><div class="thin-list">${listHtml(dailyAlert,'Bugün için kritik uyarı yok.')}</div></div><div class="card"><h3>7 Günlük Takip</h3><p class="muted">Aralık: <b>${fmtDate(week.start)} - ${fmtDate(week.end)}</b></p><div class="thin-list">${listHtml(weeklyAlert,'Bu hafta için kritik uyarı yok.')}</div></div></div>`;
+  const todayIso=todayISO();
+  main.innerHTML=`${section('Kontrol Paneli','Günlük öğrenci takip özetleri')}<div class="grid"><div class="card"><span class="loader"></span> Günlük öğrenci kartları hazırlanıyor...</div></div>`;
+  const [todayEntries,dailyFollow]=await Promise.all([countEntries(todayIso,todayIso),loadDailyFollowSummaries(todayIso)]);
+  main.innerHTML=`${section('Kontrol Paneli','Takip sınıfındaki öğrencilerin bugünkü giriş, görev ve eksik durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Takip Sınıfı',state.followClasses.length,'Benim sınıflarım'],['Günlük Kart',dailyFollow.configured?dailyFollow.items.length:'Kapalı','Öğrenci özeti']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><section class="daily-follow-panel card" style="margin-top:14px"><div class="daily-panel-head"><div><h3>Günlük Öğrenci Takibi</h3><p>Tarih: <b>${fmtDate(todayIso)}</b>. Kartlar tüm takip sınıfı öğrencilerini gösterir; ayrıntı için Detay butonuna basılır.</p></div><span class="badge orange">Günlük özet</span></div>${dailyFollowOverviewHtml(dailyFollow)}${dailyFollow.configured?`<div class="daily-follow-grid">${dailyFollow.items.map(dailyStudentCardHtml).join('')}</div>`:''}</section>`;
   document.querySelectorAll('.teacher-follow-class').forEach(ch=>ch.onchange=()=>{const set=new Set(state.followClasses); if(ch.checked) set.add(ch.value); else set.delete(ch.value); state.followClasses=[...set]; ch.closest('.chip').classList.toggle('active',ch.checked);});
   document.getElementById('saveTeacherFollow')?.addEventListener('click',async()=>{try{await saveFollowSettings(); setToast('Takip sınıfların kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}});
-  document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); queueUiScroll('studentTop','smooth'); render();});
+  document.querySelectorAll('[data-open-student]').forEach(b=>b.onclick=()=>{state.selectedStudent=state.students.find(s=>s.no===b.dataset.openStudent); state.studentDetailTab='summary'; queueUiScroll('studentTop','smooth'); render();});
 }
 function renderStudents(main){
   const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr')) )];
