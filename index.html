@@ -1142,6 +1142,40 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 @media(max-width:760px){.daily-follow-grid{grid-template-columns:1fr}.daily-panel-head{display:block}.daily-panel-head .badge{margin-top:10px}.daily-filter-tools{grid-template-columns:1fr}.daily-filter-tabs{display:grid;grid-template-columns:1fr 1fr}.daily-filter-tabs button{width:100%}.daily-student-head{grid-template-columns:auto minmax(0,1fr)}.daily-status-pill{grid-column:1 / -1;justify-content:flex-start}.daily-metric-row{grid-template-columns:1fr 1fr}.daily-metric-row div:last-child{grid-column:1 / -1}.daily-info-list div{display:block}.daily-info-list span{display:block;text-align:left;margin-top:3px;white-space:normal}}
 @media(max-width:380px){.daily-student-card{padding:12px}.daily-filter-tabs{grid-template-columns:1fr}.daily-metric-row{grid-template-columns:1fr}}
 
+
+
+/* GÜNCEL: görev kartları ve veri girişi analiz paneli */
+.teacher-task-section{display:grid;gap:12px;margin-top:12px}
+.teacher-task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;align-items:start}
+.teacher-task-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:13px;box-shadow:var(--shadow-xs);display:grid;gap:9px;min-width:0}
+.teacher-task-card.past{background:#f8fafc;opacity:.88}
+.teacher-task-card h4{margin:0;color:var(--ink);font-size:14px;font-weight:900;line-height:1.25;overflow-wrap:anywhere}
+.teacher-task-card .task-card-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.teacher-task-card .actions{display:grid;grid-template-columns:1fr;gap:7px}
+.teacher-task-card .actions button{width:100%;min-height:36px;font-size:12px;padding:8px 9px}
+.teacher-task-card .task-track-box{margin-top:0;padding:10px;border-radius:16px}
+.data-entry-package-list{display:grid;gap:12px}
+.data-entry-package{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#fff,#fbfdff);padding:14px;box-shadow:var(--shadow-xs)}
+.data-entry-package.past{background:#f8fafc}
+.data-entry-package-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.data-entry-package-head h4{margin:0 0 5px;color:var(--ink);font-size:17px;font-weight:900;letter-spacing:-.03em}
+.data-entry-day-grid{display:grid;gap:9px}
+.data-entry-day{border:1px solid var(--line);border-radius:18px;background:#fff;padding:12px}
+.data-entry-day h5{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px;color:var(--ink);font-size:14px;font-weight:900}
+.data-entry-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:8px}
+.data-entry-mini{border:1px solid var(--line);border-radius:15px;background:#f8fafc;padding:9px}
+.data-entry-mini small{display:block;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.data-entry-mini b{display:block;color:var(--ink);font-size:15px;font-weight:900}
+.data-record-list{display:grid;gap:7px;margin-top:8px}
+.data-record-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;border-top:1px solid #f1f5f9;padding-top:8px;font-size:12px;font-weight:800;color:#334155}
+.data-record-row:first-child{border-top:0;padding-top:0}
+.data-record-row b{display:block;color:var(--ink);font-size:12px;font-weight:900;overflow-wrap:anywhere}
+.data-record-row small{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.35;margin-top:2px}
+.data-entry-message-panel{margin-top:14px;border:1px solid #fed7aa;border-radius:22px;background:#fffaf6;padding:14px;box-shadow:var(--shadow-xs)}
+.data-entry-message-panel h4{margin:0 0 6px;color:var(--ink);font-size:17px;font-weight:900}
+.daily-info-list small{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.3;margin-top:2px}
+@media(max-width:620px){.teacher-task-grid{grid-template-columns:1fr}.data-record-row{grid-template-columns:1fr}.data-entry-package-head{display:grid;grid-template-columns:1fr}.data-entry-day h5{display:grid;grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1183,6 +1217,7 @@ const PROGRAM_FIREBASE_DELETE_PATHS = Object.freeze([
   'verianalizi002/ogretmenler'
 ]);
 const ADMIN_ID = '101';
+const TEACHER_SESSION_KEY = 'fenomen_teacher_session_id';
 const DEFAULT_KURUM = 'Fenomen Eğitim Kurumları';
 const DEFAULT_LOGO = 'https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg';
 const STUDENT_ASSIGNMENT_URL = 'https://tinyurl.com/hadikampa';
@@ -1224,6 +1259,9 @@ const state = {
 function esc(v){return String(v ?? '').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
 function enc(v){return encodeURIComponent(String(v ?? ''));}
 function cleanId(v){return String(v ?? '').trim().replace(/\.0$/,'').replace(/\D+/g,'');}
+function getRememberedTeacherId(){try{return cleanId(localStorage.getItem(TEACHER_SESSION_KEY)||'');}catch(e){return '';}}
+function rememberTeacherId(id){try{const clean=cleanId(id); if(clean) localStorage.setItem(TEACHER_SESSION_KEY,clean);}catch(e){}}
+function forgetTeacherId(){try{localStorage.removeItem(TEACHER_SESSION_KEY);}catch(e){}}
 function normalizeHeader(s){return String(s ?? '').trim().toLocaleUpperCase('tr-TR').replace(/[\s_]+/g,'').replaceAll('İ','I').replaceAll('Ş','S').replaceAll('Ğ','G').replaceAll('Ü','U').replaceAll('Ö','O').replaceAll('Ç','C');}
 function valueOf(row, header, keys){for(const k of keys){const idx=header.indexOf(normalizeHeader(k)); if(idx>=0 && idx<row.length) return cleanSheetValue(row[idx]);} return '';}
 function cleanSheetValue(v){return String(v ?? '').trim().replace(/\.0$/,'');}
@@ -2041,9 +2079,11 @@ async function loadDailyFollowSummaries(day){
   const summary={
     tracked:items.length,
     entries:items.filter(x=>x.stats.entryCount>0).length,
-    warnings:items.filter(x=>x.warning).length,
-    completed:items.filter(x=>x.totalTarget>0 && x.completionPct>=100).length
+    completed:items.filter(x=>x.totalTarget>0 && x.completionPct>=100).length,
+    incomplete:items.filter(x=>x.totalTarget>0 && x.totalDone>0 && x.completionPct<100).length,
+    zero:items.filter(x=>x.totalTarget>0 && x.totalDone<=0).length
   };
+  summary.warnings=summary.incomplete+summary.zero;
   return {configured:true,items,summary};
 }
 async function logParentNotification(student,channel,message){
@@ -2065,71 +2105,18 @@ async function sendStudentPanelMessage(student,title,message){
 async function loadStudentMessages(no){try{const root=await getJson(`verianalizi001/ogrenciMesajlari/${no}`)||{}; return Object.entries(root).map(([key,o])=>({key,...o})).sort((a,b)=>String(b.tarihSaat||'').localeCompare(String(a.tarihSaat||'')));}catch(e){return [];}}
 
 function buildWhatsAppMessage(st,stats,range,note){
-  const ders=stats.subjects.length?stats.subjects.map(s=>`• *${s.lesson}:* ${s.total} soru, başarı %${itemAccuracy(s)} (${analysisLevel(itemAccuracy(s),s.total).label})`).join('\n'):'• Bu tarih aralığında çalışma girişi görünmüyor.';
-  const weak=weakAreas(stats).slice(0,3).map(x=>`• ${x.label}: %${x.pct} - ${x.levelLabel}`).join('\n') || '• Belirgin eksik alan yok; %75 üzeri alanlar eksik sayılmadı.';
-  const strong=strongAreas(stats).slice(0,3).map(x=>`• ${x.label}: %${x.pct} - ${x.levelLabel}`).join('\n') || '• Güçlü alan için yeterli veri yok.';
-  const auto=stats.entryCount===0?'⚠️ Bu aralıkta çalışma girişi görünmüyor. Günlük kısa tekrar ve veri girişi önemli.':accuracyPct(stats)<60?'📌 Öncelik eksik konulara verilmeli; kısa tekrar + hedefli soru çözümü önerilir.':accuracyPct(stats)<75?'📌 Orta düzey ilerleme var; yanlış yapılan konular üzerinden düzenli tekrar önerilir.':'✅ Genel takip olumlu. Güçlü alanlar korunurken takip edilmesi gereken konular kısa tekrarlarla desteklenmeli.';
-  return `Sayın Velimiz, merhaba. 👋
-
-*Öğrenci:* ${st.name}
-*Sınıf:* ${st.className}
-*Tarih:* ${fmtDate(range.start)} - ${fmtDate(range.end)}
-
-📊 *Çalışma Özeti*
-*Toplam:* ${stats.total} soru
-*Genel Başarı:* %${accuracyPct(stats)}
-*Doğru:* ${stats.correct}  *Yanlış:* ${stats.wrong}  *Boş:* ${stats.empty}
-*Aktif gün:* ${stats.activeDays}
-
-📚 *Ders Özeti*
-${ders}
-
-🔎 *Takip / Gelişim Alanları*
-${weak}
-
-🟢 *İyi-Güçlü Alanlar*
-${strong}
-
-${note.trim()||auto}
-
-${state.settings.kurumAdi}`;
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• *${s.lesson}:* ${s.total} soru, başarı %${itemAccuracy(s)}`).join('\n'):'• Bu tarih aralığında çalışma girişi görünmüyor.';
+  const weak=weakAreas(stats).slice(0,4).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || '• Ders/konu bazında belirgin gelişim alanı görünmüyor.';
+  const strong=strongAreas(stats).slice(0,4).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || '• Ders/konu bazında güçlü alan için yeterli veri yok.';
+  const auto=stats.entryCount===0?'Bu aralıkta çalışma girişi görünmüyor. Günlük veri girişi takibi önemlidir.':accuracyPct(stats)<60?'Öncelik takip/gelişim alanlarındaki ders ve konulara verilmelidir.':accuracyPct(stats)<75?'Düzenli tekrar ile gelişim alanları desteklenmelidir.':'Genel takip olumlu; güçlü alanlar korunurken gelişim alanları kısa tekrarlarla desteklenmelidir.';
+  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf:* ${st.className}\n*Tarih:* ${fmtDate(range.start)} - ${fmtDate(range.end)}\n\n📊 *Çalışma Özeti*\nToplam ${stats.total} soru • Genel başarı %${accuracyPct(stats)}\nDoğru: ${stats.correct} • Yanlış: ${stats.wrong} • Boş: ${stats.empty}\n\n📚 *Ders Özeti*\n${ders}\n\n🔎 *Takip / Gelişim Alanları*\n${weak}\n\n🟢 *İyi - Güçlü Alanlar*\n${strong}\n\n${note.trim()||auto}\n\n${state.settings.kurumAdi}`;
 }
 function buildEmailMessage(st,stats,range,note){
-  const ders=stats.subjects.length?stats.subjects.map(s=>`• ${s.lesson}: ${s.total} soru | başarı %${itemAccuracy(s)} | ${analysisLevel(itemAccuracy(s),s.total).label}`).join('\n'):'Kayıtlı çalışma bulunmamaktadır.';
-  const weak=weakAreas(stats).slice(0,5).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru (${x.levelLabel})`).join('\n') || 'Belirgin eksik alan yok. %75 ve üzeri alanlar eksik olarak sınıflandırılmadı.';
-  const strong=strongAreas(stats).slice(0,5).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru (${x.levelLabel})`).join('\n') || 'Yeterli güçlü alan verisi bulunmamaktadır.';
-  const auto=stats.entryCount===0?'Bu tarih aralığında sistemde çalışma kaydı bulunmamaktadır. Düzenli takip için öğrencimizin günlük çalışma girişlerini yapması önemlidir.':accuracyPct(stats)<60?'Başarı yüzdesi beklenen seviyenin altındadır. Öncelik eksik konular üzerinden hedefli tekrar ve soru çözümüdür.':accuracyPct(stats)<75?'Orta düzey ilerleme vardır. Yanlış yapılan konular kısa tekrarlarla desteklenmelidir.':'Öğrencimizin çalışma takibi genel olarak olumlu ilerlemektedir.';
-  return `Sayın Velimiz,
-
-${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.
-
-Öğrenci Bilgisi
-Ad Soyad: ${st.name}
-Sınıf: ${st.className}
-Öğrenci No: ${st.no}
-
-Çalışma Özeti
-Toplam Soru: ${stats.total}
-Genel Başarı: %${accuracyPct(stats)}
-Doğru: ${stats.correct}
-Yanlış: ${stats.wrong}
-Boş: ${stats.empty}
-Aktif Çalışma Günü: ${stats.activeDays}
-
-Ders Bazlı Özet
-${ders}
-
-Takip / Gelişim Alanları
-${weak}
-
-İyi-Güçlü Alanlar
-${strong}
-
-Öğretmen Değerlendirmesi
-${note.trim()||auto}
-
-Bilginize sunar, iyi günler dileriz.
-${state.settings.kurumAdi}`;
+  const ders=stats.subjects.length?stats.subjects.map(s=>`• ${s.lesson}: ${s.total} soru | başarı %${itemAccuracy(s)}`).join('\n'):'Bu tarih aralığında çalışma girişi görünmüyor.';
+  const weak=weakAreas(stats).slice(0,6).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || 'Ders/konu bazında belirgin gelişim alanı görünmüyor.';
+  const strong=strongAreas(stats).slice(0,6).map(x=>`• ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n') || 'Ders/konu bazında güçlü alan için yeterli veri bulunmamaktadır.';
+  const auto=stats.entryCount===0?'Bu aralıkta sistemde çalışma kaydı bulunmamaktadır. Düzenli takip için öğrencimizin günlük çalışma girişlerini yapması önemlidir.':accuracyPct(stats)<60?'Öncelik takip/gelişim alanlarındaki ders ve konular üzerinden hedefli tekrar ve soru çözümüdür.':accuracyPct(stats)<75?'Orta düzey ilerleme vardır. Takip/gelişim alanları kısa tekrarlarla desteklenmelidir.':'Öğrencimizin çalışma takibi genel olarak olumlu ilerlemektedir.';
+  return `Sayın Velimiz,\n\n${state.settings.kurumAdi} öğrenci çalışma takip sistemi üzerinden ${st.name} öğrencimize ait ${fmtDate(range.start)} - ${fmtDate(range.end)} tarihleri arasındaki çalışma özeti aşağıda bilgilerinize sunulmuştur.\n\nÖğrenci Bilgisi\nAd Soyad: ${st.name}\nSınıf: ${st.className}\nÖğrenci No: ${st.no}\n\nÇalışma Özeti\nToplam Soru: ${stats.total}\nGenel Başarı: %${accuracyPct(stats)}\nDoğru: ${stats.correct}\nYanlış: ${stats.wrong}\nBoş: ${stats.empty}\n\nDers Özeti\n${ders}\n\nTakip / Gelişim Alanları\n${weak}\n\nİyi - Güçlü Alanlar\n${strong}\n\nÖğretmen Değerlendirmesi\n${note.trim()||auto}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
 }
 function buildSmsMessage(st,stats,range){
   const total=Number(stats.total||0), pct=accuracyPct(stats); const weak=weakAreas(stats)[0];
@@ -2254,6 +2241,15 @@ async function bootstrap(){
   try{
     await loadSettings();
     await Promise.all([loadTeachers(), loadStudents(), loadLessons(), loadFollowSettings(), loadTasks()]);
+    if(!state.teacher){
+      const remembered=getRememberedTeacherId();
+      const savedTeacher=remembered ? state.teachers.find(x=>cleanId(x.id)===remembered) : null;
+      if(savedTeacher){
+        state.teacher=savedTeacher;
+        await loadFollowSettings();
+        startAutoRefresh();
+      }
+    }
     if(state.teacher) render(); else renderLogin();
   }catch(e){
     console.warn('Başlangıç verileri yüklenemedi:', e);
@@ -2345,6 +2341,7 @@ async function loginTeacherById(id){
     const t=state.teachers.find(x=>cleanId(x.id)===clean);
     if(!t){state.loading=false; state.teacher=null; renderLogin(); setToast('Öğretmen bulunamadı. E-tablo veya Firebase öğretmen kayıtlarını kontrol edin.','error'); return;}
     state.teacher=t;
+    rememberTeacherId(clean);
     await loadFollowSettings();
     state.selectedStudent=null;
     state.activeTab='dashboard';
@@ -2364,6 +2361,7 @@ async function loginTeacherById(id){
 }
 
 function renderLogin(){
+  const rememberedId=getRememberedTeacherId();
   app.innerHTML=`<div class="login-wrap"><div class="login-card">
     <aside class="login-hero">
       <div>
@@ -2376,9 +2374,9 @@ function renderLogin(){
     <section class="login-form-panel">
       <h2>Öğretmen Girişi</h2>
       <p class="login-copy">Devam etmek için öğretmen ID bilginizi girin. Girişten sonra tüm yönetim araçları otomatik hazırlanır.</p>
-      <div class="field"><label>Öğretmen ID</label><input id="loginId" class="input" inputmode="numeric" placeholder="Öğretmen ID" autocomplete="off"></div>
+      <div class="field"><label>Öğretmen ID</label><input id="loginId" class="input" inputmode="numeric" placeholder="Öğretmen ID" autocomplete="off" value="${esc(rememberedId)}"></div>
       <button id="loginBtn" class="primary" style="width:100%;margin-top:16px;min-height:52px">Panele Giriş Yap</button>
-      <p class="tiny" style="margin-top:18px">Program Tasarımı: Ferhat Karagöz</p>
+      <p class="tiny" style="margin-top:18px">Giriş yaptıktan sonra öğretmen ID bu cihazda hatırlanır. Çıkış yaparsanız kayıt temizlenir.</p><p class="tiny" style="margin-top:8px">Program Tasarımı: Ferhat Karagöz</p>
     </section>
   </div></div>`;
   document.getElementById('loginBtn').onclick=()=>loginTeacherById(document.getElementById('loginId').value);
@@ -2386,27 +2384,29 @@ function renderLogin(){
 }
 function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
 function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
-function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
+function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); forgetTeacherId(); state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
 function dailyFollowOverviewHtml(daily){
   if(!daily.configured) return '<div class="empty">Takip edilecek sınıf seçilmedi. Önce takip edeceğin sınıfı seçip kaydet.</div>';
   const sm=daily.summary||{};
-  return `<div class="grid four daily-overview-grid"><div class="daily-overview-card"><small>Takipteki Öğrenci</small><strong>${esc(sm.tracked||0)}</strong><span>Seçili sınıflar</span></div><div class="daily-overview-card"><small>Bugün Giriş Yapan</small><strong>${esc(sm.entries||0)}</strong><span>Çalışma kaydı var</span></div><div class="daily-overview-card"><small>Görevini Tamamlayan</small><strong>${esc(sm.completed||0)}</strong><span>Günlük hedef %100</span></div><div class="daily-overview-card warning"><small>%50 Altı Görev</small><strong>${esc(sm.warnings||0)}</strong><span>Hatırlatma gerekli</span></div></div>`;
+  return `<div class="grid four daily-overview-grid"><div class="daily-overview-card"><small>Takipteki Öğrenci</small><strong>${esc(sm.tracked||0)}</strong><span>Seçili sınıflar</span></div><div class="daily-overview-card"><small>Bugün Giriş Yapan</small><strong>${esc(sm.entries||0)}</strong><span>Çalışma kaydı var</span></div><div class="daily-overview-card"><small>Görevi Tamamlayan</small><strong>${esc(sm.completed||0)}</strong><span>Günlük hedef %100</span></div><div class="daily-overview-card warning"><small>Hiç Yapmayan</small><strong>${esc(sm.zero||0)}</strong><span>Günlük hedef %0</span></div></div>`;
 }
 function dailyFilterStatus(item){
   if(!item || Number(item.totalTarget||0)<=0) return 'noTask';
-  if(Number(item.totalDone||0)<=0) return 'zero';
-  return Number(item.completionPct||0)<50 ? 'below50' : 'above50';
+  const pct=Number(item.completionPct||0);
+  if(Number(item.totalDone||0)<=0 || pct<=0) return 'zero';
+  if(pct>=100) return 'completed';
+  return 'incomplete';
 }
 function dailyFollowFilterCounts(items){
-  const counts={all:items.length,below50:0,above50:0,zero:0};
+  const counts={all:items.length,completed:0,incomplete:0,zero:0};
   for(const item of items){
     const status=dailyFilterStatus(item);
+    if(status==='completed') counts.completed++;
+    if(status==='incomplete') counts.incomplete++;
     if(status==='zero') counts.zero++;
-    if(status==='zero' || status==='below50') counts.below50++;
-    if(status==='above50') counts.above50++;
   }
   return counts;
 }
@@ -2417,8 +2417,8 @@ function dailyFilteredItems(daily){
     if(!studentOk) return false;
     const status=dailyFilterStatus(item);
     if(!ui.status || ui.status==='all') return true;
-    if(ui.status==='below50') return status==='zero' || status==='below50';
-    if(ui.status==='above50') return status==='above50';
+    if(ui.status==='completed') return status==='completed';
+    if(ui.status==='incomplete') return status==='incomplete';
     if(ui.status==='zero') return status==='zero';
     return true;
   });
@@ -2428,13 +2428,13 @@ function dailyFollowFilterHtml(daily){
   const items=daily.items||[];
   const counts=dailyFollowFilterCounts(items);
   const ui=state.dailyFollowUi||{studentNo:'all',status:'all'};
-  const tabs=[['all','Tümü',counts.all],['below50','%50 altı',counts.below50],['above50','%50 ve üzeri',counts.above50],['zero','%0 / hiç yapmayan',counts.zero]];
-  return `<div class="daily-filter-card"><div class="daily-filter-tools"><div class="field"><label>Öğrenci adına göre filtrele</label><select id="dailyStudentFilter"><option value="all">Tüm öğrenciler</option>${items.map(item=>`<option value="${esc(item.student.no)}" ${cleanId(ui.studentNo)===cleanId(item.student.no)?'selected':''}>${esc(item.student.name)} • ${esc(item.student.className)}</option>`).join('')}</select></div><div><label>Görev tamamlama durumuna göre filtrele</label><div class="daily-filter-tabs">${tabs.map(([key,label,count])=>`<button type="button" data-daily-status-filter="${esc(key)}" class="${(ui.status||'all')===key?'active':''}">${esc(label)} <b>${esc(count)}</b></button>`).join('')}</div></div></div><div id="dailyFilterCount" class="daily-filter-count"></div></div>`;
+  const tabs=[['all','Tümü',counts.all],['completed','Görevi tamamlayanlar',counts.completed],['incomplete','Görevi tamamlamayanlar',counts.incomplete],['zero','Görevi hiç yapmayanlar',counts.zero]];
+  return `<div class="daily-filter-card"><div class="daily-filter-tools"><div class="field"><label>Öğrenci adına göre filtrele</label><select id="dailyStudentFilter"><option value="all">Tüm öğrenciler</option>${items.map(item=>`<option value="${esc(item.student.no)}" ${cleanId(ui.studentNo)===cleanId(item.student.no)?'selected':''}>${esc(item.student.name)} • ${esc(item.student.className)}</option>`).join('')}</select></div><div><label>Görev durumuna göre filtrele</label><div class="daily-filter-tabs">${tabs.map(([key,label,count])=>`<button type="button" data-daily-status-filter="${esc(key)}" class="${(ui.status||'all')===key?'active':''}">${esc(label)} <b>${esc(count)}</b></button>`).join('')}</div></div></div><div id="dailyFilterCount" class="daily-filter-count"></div></div>`;
 }
 function dailyEntrySummaryHtml(stats){
-  const rows=(stats.subjects||[]).slice(0,5);
+  const rows=(stats.records||[]).slice().sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||''))).slice(0,6);
   if(!rows.length) return '<div class="daily-empty-line">Bugün çalışma girişi yok.</div>';
-  return `<div class="daily-info-list">${rows.map(x=>`<div><b>${esc(x.lesson)}</b><span>${esc(x.total)} soru • %${esc(itemAccuracy(x))}</span></div>`).join('')}</div>`;
+  return `<div class="daily-info-list">${rows.map(x=>{const topic=[x.topic,x.subtopic].filter(Boolean).join(' / '); const time=recordTimeText(x)||'Saat yok'; return `<div><b>${esc(x.lesson)}<small>${esc(topic||'Konu bilgisi yok')}</small></b><span>${esc(x.total)} soru • %${esc(itemAccuracy(x))}<small>Giriş saati: ${esc(time)}</small></span></div>`;}).join('')}</div>`;
 }
 function dailyTaskListHtml(rows,emptyText,type){
   const cls=type==='done'?'done':'missing';
@@ -2445,12 +2445,13 @@ function dailyStudentCardHtml(item){
   const st=item.student;
   const hasTask=item.totalTarget>0;
   const pct=hasTask ? item.completionPct : null;
-  const status=item.warning?'warning':(!hasTask?'neutral':(pct>=100?'good':'progress'));
-  const statusText=item.warning?'Görev %50 altında':(!hasTask?'Bugün görev yok':(pct>=100?'Günlük görev tamam':'Günlük takip sürüyor'));
+  const filterStatus=dailyFilterStatus(item);
+  const status=!hasTask?'neutral':(filterStatus==='completed'?'good':(filterStatus==='zero'?'warning':'progress'));
+  const statusText=!hasTask?'Bugün görev yok':(filterStatus==='completed'?'Görev tamamlandı':(filterStatus==='zero'?'Hiç yapmadı':'Görev tamamlanmadı'));
   const entryText=item.stats.entryCount>0?`${item.stats.entryCount} giriş • ${item.stats.total} soru`:'Giriş yok';
   const targetText=hasTask?`${item.totalDone}/${item.totalTarget} soru`:'Atanmış hedef yok';
   const pctText=hasTask?`%${pct}`:'—';
-  const warningHtml=item.warning?'<div class="daily-warning-note">Günlük görev tamamlama oranı %50’nin altında. Öğrenci için kısa bir hatırlatma yapılabilir.</div>':'';
+  const warningHtml=filterStatus==='zero'?'<div class="daily-warning-note">Bugünkü görevlendirme için hiç çalışma girişi görünmüyor.</div>':(filterStatus==='incomplete'?'<div class="daily-warning-note">Görev başladı ancak %100 tamamlanmadı. Eksik kalan dersler takip edilmeli.</div>':'');
   const noEntryClass=item.stats.entryCount===0?' no-entry':'';
   return `<article class="daily-student-card ${status}${noEntryClass}">
     <div class="daily-student-head">
@@ -2478,6 +2479,7 @@ async function renderDashboard(main){
   const todayIso=todayISO();
   main.innerHTML=`${section('Kontrol Paneli','Günlük öğrenci takip özetleri')}<div class="grid"><div class="card"><span class="loader"></span> Günlük öğrenci kartları hazırlanıyor...</div></div>`;
   const [todayEntries,dailyFollow]=await Promise.all([countEntries(todayIso,todayIso),loadDailyFollowSummaries(todayIso)]);
+  if(['below50','above50'].includes(state.dailyFollowUi?.status)) state.dailyFollowUi={...(state.dailyFollowUi||{}),status:'all'};
   const initialDailyItems=dailyFilteredItems(dailyFollow);
   main.innerHTML=`${section('Kontrol Paneli','Takip sınıfındaki öğrencilerin bugünkü giriş, görev ve eksik durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],['Bugün',todayEntries,'Çalışma girişi'],['Takip Sınıfı',state.followClasses.length,'Benim sınıflarım'],['Günlük Kart',dailyFollow.configured?dailyFollow.items.length:'Kapalı','Öğrenci özeti']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><section class="daily-follow-panel card" style="margin-top:14px"><div class="daily-panel-head"><div><h3>Günlük Öğrenci Takibi</h3><p>Tarih: <b>${fmtDate(todayIso)}</b>. Kartlar tüm takip sınıfı öğrencilerini gösterir; ayrıntı için Detay butonuna basılır.</p></div><span class="badge orange">Günlük özet</span></div>${dailyFollowOverviewHtml(dailyFollow)}${dailyFollowFilterHtml(dailyFollow)}${dailyFollow.configured?`<div id="dailyFollowGrid" class="daily-follow-grid">${initialDailyItems.map(dailyStudentCardHtml).join('')||'<div class="empty">Seçilen filtreye uygun öğrenci bulunamadı.</div>'}</div>`:''}</section>`;
   const updateDailyCards=()=>{
@@ -2541,25 +2543,25 @@ async function renderStudentDetail(main,st){
   const [stats,messages]=await Promise.all([loadStats(st.no,range.start,range.end),loadStudentMessages(st.no)]);
   let contentStats=stats;
   let tasks=rangeTasks;
-  if(tab==='tasks'){
+  if(tab==='tasks' || tab==='data'){
     tasks=allStudentTasks;
     const taskRange=taskCollectionRange(tasks);
     if(taskRange) contentStats=await loadStats(st.no,taskRange.start,taskRange.end);
   }
   const success=accuracyPct(stats);
   const level=success>=85?'Çok iyi':success>=75?'İyi':success>=60?'Takip edilmeli':success>0?'Eksik':'Veri yok';
-  const rangeCard=tab==='tasks'?'':`<div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>`;
+  const rangeCard=(tab==='tasks'||tab==='data')?'':`<div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>`;
   main.innerHTML=`<div class="student-detail-shell">
     <div class="student-head-card">
       <div class="row"><button class="ghost btn-back-smart" id="backStudents">← Geri</button><span class="badge">${esc(st.className||'-')}</span><span class="badge">No ${esc(st.no)}</span></div>
       <h2>${esc(st.name)}</h2>
-      <p>Veli bilgilendirme, başarı analizi, konu zayıflıkları ve görev takibi</p>
+      <p>Veli bilgilendirme, veri girişi analizi, konu takibi ve görev takibi</p>
       <div class="metric-strip">
         <div class="mini-metric"><small>Toplam</small><strong>${stats.total}</strong></div>
         <div class="mini-metric"><small>Başarı</small><strong>${success}%</strong></div>
         <div class="mini-metric"><small>Seviye</small><strong>${level}</strong></div>
         <div class="mini-metric"><small>Aktif Gün</small><strong>${stats.activeDays}</strong></div>
-        <div class="mini-metric"><small>Görev</small><strong>${tab==='tasks'?tasks.length:rangeTasks.length}</strong></div>
+        <div class="mini-metric"><small>Görev</small><strong>${(tab==='tasks'||tab==='data')?tasks.length:rangeTasks.length}</strong></div>
       </div>
     </div>
     ${rangeCard}
@@ -2567,9 +2569,9 @@ async function renderStudentDetail(main,st){
     <div id="studentDetailContent">${studentDetailTabContent(tab,st,contentStats,tasks,messages,tab==='tasks'?null:range)}</div>
   </div>`;
   document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; state.activeTab='students'; state.returnToStudentList=true; render();};
-  if(tab!=='tasks') bindRangeSelector();
+  if(tab!=='tasks' && tab!=='data') bindRangeSelector();
   bindStudentDetailTabs();
-  if(tab==='analysis') bindAnalysisControls(st,stats,range);
+  if(tab==='data') bindDataEntryAnalysis(st,contentStats,tasks);
   if(tab==='tasks'){
     document.querySelectorAll('[data-task-package]').forEach(b=>b.onclick=()=>{
       const key=b.dataset.taskPackage;
@@ -2600,16 +2602,16 @@ async function renderStudentDetail(main,st){
   runPendingStudentTaskScroll();
 }
 function studentDetailTabsHtml(active){
-  const tabs=[['summary','Özet'],['analysis','Başarı Analizi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['messages','Panel Mesajı']];
+  const tabs=[['summary','Özet'],['data','Veri Girişi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['messages','Panel Mesajı']];
   return `<div class="detail-tabs">${tabs.map(([id,label])=>`<button type="button" class="detail-tab ${active===id?'active':''}" data-student-tab="${id}">${label}</button>`).join('')}</div>`;
 }
 function bindStudentDetailTabs(){
   document.querySelectorAll('[data-student-tab]').forEach(b=>b.onclick=()=>{state.studentDetailTab=b.dataset.studentTab; queueUiScroll('studentContent','smooth'); render();});
 }
 function studentDetailTabContent(tab,st,stats,tasks,messages,range){
-  if(tab==='analysis') return studentAnalysisHtml(st,stats,range);
+  if(tab==='data') return studentDataEntryHtml(st,stats,tasks);
   if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
-  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki başarı analizine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
+  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki çalışma verilerine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
 }
@@ -2625,6 +2627,8 @@ function studentSummaryHtml(st,stats,tasks,range){
     <div class="card"><h3>Ders Dağılımı</h3>${subjectBarsHtml(stats)}</div>
     <div class="card"><h3>En Zayıf Alanlar</h3>${weakAreasHtml(stats)}</div>
     <div class="card"><h3>En Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div>
+    <div class="card"><h3>En Zayıf Dersler</h3>${lessonStrengthsHtml(stats,'weak')}</div>
+    <div class="card"><h3>En Güçlü Dersler</h3>${lessonStrengthsHtml(stats,'strong')}</div>
   </div>`;
 }
 function rangeSelectorHtml(){const r=state.range||weekRange(); return `<div class="chipbar" style="margin-bottom:10px"><button class="chip" data-range="today">Bugün</button><button class="chip" data-range="week">Bugünden 7 gün</button><button class="chip" data-range="month">Bu ay</button><button class="chip" data-range="last30">Son 30</button></div><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="rangeStart" type="date" class="input" value="${r.start}"></div><div class="field"><label>Bitiş</label><input id="rangeEnd" type="date" class="input" value="${r.end}"></div></div><button id="applyRange" class="secondary" style="margin-top:10px">Uygula</button><p class="muted tiny">Görünen tarih: ${fmtDate(r.start)} - ${fmtDate(r.end)}</p>`;}
@@ -2634,59 +2638,20 @@ function subjectBarsHtml(stats){if(!stats.subjects.length) return '<div class="e
 function accuracyPct(obj){const total=Number(obj?.total||0); return total?Math.round((Number(obj.correct||0)/total)*100):0;}
 function itemAccuracy(x){return x.total?Math.round((x.correct/x.total)*100):0;}
 function analysisLevel(pct,total=0){if(!total)return{key:'none',label:'Veri yok',text:'Analiz için yeterli çalışma girişi yok.'}; if(total<10)return{key:'data',label:'Veri düşük',text:'Bu alanda net karar için daha fazla soru gerekir.'}; if(pct>=85)return{key:'strong',label:'Güçlü',text:'Bu alan güçlü; kısa tekrarlarla korunmalı.'}; if(pct>=75)return{key:'good',label:'İyi',text:'Bu alan eksik değil; hız ve kalıcılık için takip edilmeli.'}; if(pct>=60)return{key:'watch',label:'Takip edilmeli',text:'Orta düzey; yanlışlar analiz edilerek güçlendirilmeli.'}; return{key:'weak',label:'Eksik',text:'Öncelikli tekrar ve konu çalışması gerekiyor.'};}
-function weakAreas(stats){const arr=[...(stats.topics||[]),...(stats.subjects||[])].filter(x=>Number(x.total||0)>0).map(x=>{const pct=itemAccuracy(x);const level=analysisLevel(pct,Number(x.total||0));return{...x,label:x.topic?`${x.lesson} / ${x.topic}`:x.lesson,pct,level:level.key,levelLabel:level.label,levelText:level.text};});return arr.filter(x=>x.level==='weak'||x.level==='watch'||x.level==='data').sort((a,b)=>({weak:0,watch:1,data:2}[a.level]-{weak:0,watch:1,data:2}[b.level])||(a.pct-b.pct)||((a.total||0)-(b.total||0)));}
-function strongAreas(stats){return [...(stats.topics||[]),...(stats.subjects||[])].filter(x=>Number(x.total||0)>=10).map(x=>{const pct=itemAccuracy(x);const level=analysisLevel(pct,Number(x.total||0));return{...x,label:x.topic?`${x.lesson} / ${x.topic}`:x.lesson,pct,level:level.key,levelLabel:level.label,levelText:level.text};}).filter(x=>x.pct>=75).sort((a,b)=>(b.pct-a.pct)||((b.total||0)-(a.total||0)));}
-function weakAreasHtml(stats){const list=weakAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Bu aralıkta belirgin eksik alan görünmüyor. %75 ve üzeri alanlar eksik sayılmaz.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card ${x.level==='weak'?'low':x.level==='watch'?'warn':''}"><b>${esc(x.label)} • %${x.pct} • ${esc(x.levelLabel)}</b><p>${x.total} soru üzerinden hesaplandı. ${esc(x.levelText)}</p></div>`).join('')}</div>`;}
-function strongAreasHtml(stats){const list=strongAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Güçlü alan göstermek için en az %75 başarı ve yeterli veri gerekir.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card good"><b>${esc(x.label)} • %${x.pct} • ${esc(x.levelLabel)}</b><p>${x.total} soru içinde ${x.correct} doğru. ${esc(x.levelText)}</p></div>`).join('')}</div>`;}
-
-function selectedAnalysisData(stats){
-  const lesson=state.analysisLesson||'Tümü';
-  const topic=state.analysisTopic||'Tümü';
-  let rows=[];
-  if(lesson==='Tümü') rows=stats.subjects||[];
-  else if(topic==='Tümü') rows=(stats.topics||[]).filter(x=>x.lesson===lesson);
-  else rows=(stats.subtopics||[]).filter(x=>x.lesson===lesson && x.topic===topic);
-  const total=rows.reduce((a,x)=>a+Number(x.total||0),0);
-  const correct=rows.reduce((a,x)=>a+Number(x.correct||0),0);
-  const wrong=rows.reduce((a,x)=>a+Number(x.wrong||0),0);
-  const empty=rows.reduce((a,x)=>a+Number(x.empty||0),0);
-  return {rows,total,correct,wrong,empty,pct:total?Math.round(correct/total*100):0};
+function weakAreas(stats){const arr=(stats.topics||[]).filter(x=>Number(x.total||0)>0).map(x=>{const pct=itemAccuracy(x);const level=analysisLevel(pct,Number(x.total||0));return{...x,label:`${x.lesson} / ${x.topic||'Genel'}`,pct,level:level.key,levelLabel:level.label,levelText:level.text};});return arr.filter(x=>x.level==='weak'||x.level==='watch'||x.level==='data').sort((a,b)=>({weak:0,watch:1,data:2}[a.level]-{weak:0,watch:1,data:2}[b.level])||(a.pct-b.pct)||((a.total||0)-(b.total||0)));}
+function strongAreas(stats){return (stats.topics||[]).filter(x=>Number(x.total||0)>=10).map(x=>{const pct=itemAccuracy(x);const level=analysisLevel(pct,Number(x.total||0));return{...x,label:`${x.lesson} / ${x.topic||'Genel'}`,pct,level:level.key,levelLabel:level.label,levelText:level.text};}).filter(x=>x.pct>=75).sort((a,b)=>(b.pct-a.pct)||((b.total||0)-(a.total||0)));}
+function lessonStrengths(stats,type='strong'){
+  const rows=(stats.subjects||[]).filter(x=>Number(x.total||0)>0).map(x=>({...x,pct:itemAccuracy(x),levelInfo:analysisLevel(itemAccuracy(x),Number(x.total||0))}));
+  if(type==='weak') return rows.sort((a,b)=>(a.pct-b.pct)||((a.total||0)-(b.total||0)));
+  return rows.sort((a,b)=>(b.pct-a.pct)||((b.total||0)-(a.total||0)));
 }
-function pieGradient(data){
-  if(!Number(data.total||0)) return `conic-gradient(#e2e8f0 0 100%)`;
-  const total=Math.max(1,Number(data.total||0));
-  const c=Math.round((Number(data.correct||0)/total)*1000)/10;
-  const w=Math.round((Number(data.wrong||0)/total)*1000)/10;
-  const e=Math.max(0,Math.round((100-c-w)*10)/10);
-  return `conic-gradient(#16a34a 0 ${c}%, #dc2626 ${c}% ${c+w}%, #d97706 ${c+w}% ${c+w+e}%, #e2e8f0 ${c+w+e}% 100%)`;
+function lessonStrengthsHtml(stats,type='strong'){
+  const list=lessonStrengths(stats,type).slice(0,6);
+  if(!list.length) return '<div class="empty">Bu aralıkta ders bazlı veri yok.</div>';
+  return `<div class="risk-list">${list.map(x=>`<div class="risk-card ${type==='strong'?'good':(x.pct<60?'low':'warn')}"><b>${esc(x.lesson)} • %${x.pct}</b><p>${x.total} soru • Doğru ${x.correct} • Yanlış ${x.wrong} • Boş ${x.empty}</p></div>`).join('')}</div>`;
 }
-function studentAnalysisHtml(st,stats,range){
-  const lessons=['Tümü',...new Set((stats.subjects||[]).map(x=>x.lesson).filter(Boolean))]; if(!lessons.includes(state.analysisLesson)) state.analysisLesson='Tümü';
-  const topics=['Tümü',...new Set((stats.topics||[]).filter(x=>state.analysisLesson==='Tümü'||x.lesson===state.analysisLesson).map(x=>x.topic).filter(Boolean))]; if(!topics.includes(state.analysisTopic)) state.analysisTopic='Tümü';
-  const selected=selectedAnalysisData(stats); const weak=weakAreas(stats).slice(0,4); const strong=strongAreas(stats).slice(0,4); const level=analysisLevel(selected.pct,selected.total);
-  return `<div class="grid"><div class="card analysis-filter-card"><div class="compact-grid"><div class="field"><label>Ders seç</label><select id="analysisLesson">${lessons.map(l=>`<option ${l===state.analysisLesson?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div class="field"><label>Konu seç</label><select id="analysisTopic">${topics.map(t=>`<option ${t===state.analysisTopic?'selected':''}>${esc(t)}</option>`).join('')}</select></div></div><p class="muted tiny">Ders veya konu seçtiğinizde grafik, başarı yüzdesi ve veli raporu otomatik yenilenir.</p></div><div class="analysis-grid"><div class="card pie-card"><h3>Başarı Dağılımı</h3><div class="pie-chart pro-chart" style="--chart:${pieGradient(selected)}"><div class="pie-center"><strong>%${selected.pct}</strong><small>${esc(level.label)}</small></div></div><div class="analysis-summary-line"><span><b>${selected.correct}</b>Doğru</span><span><b>${selected.wrong}</b>Yanlış</span><span><b>${selected.empty}</b>Boş</span></div><div class="legend"><span><i class="lg-good"></i>Doğru</span><span><i class="lg-bad"></i>Yanlış</span><span><i class="lg-empty"></i>Boş</span></div></div><div class="card"><h3>Seçili Alan Detayı</h3><div class="risk-card ${level.key==='strong'||level.key==='good'?'good':level.key==='weak'?'low':'warn'}"><b>${esc(level.label)} • %${selected.pct}</b><p>${esc(level.text)} Toplam ${selected.total} soru üzerinden hesaplandı.</p></div><div style="height:10px"></div>${analysisRowsHtml(selected.rows)}</div></div><div class="report-cards"><div class="parent-report-card" id="weakReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Geliştirilmesi Gereken Alanlar</h3><div class="big-label">${weak.length?`%${weak[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${weak.length?weak.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Belirgin eksik alan yok. %75 üzeri alanlar eksik kabul edilmedi.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="weakReportCard">PNG İndir</button><button class="ghost" data-copy-report="weak">Metni Kopyala</button></div></div><div class="parent-report-card" id="strongReportCard"><span class="report-card-tag">Veliye gönderilebilir kesit</span><h3>Güçlü / İyi Alanlar</h3><div class="big-label">${strong.length?`%${strong[0].pct}`:'Veri yok'}</div><div class="report-meta">${esc(st.name)} • ${fmtDate(range.start)} - ${fmtDate(range.end)}</div><ul>${strong.length?strong.map(x=>`<li>${esc(x.label)}: %${x.pct} başarı, ${x.total} soru • ${esc(x.levelLabel)}</li>`).join(''):'<li>Güçlü alan göstermek için yeterli veri yok.</li>'}</ul><div class="capture-actions" data-html2canvas-ignore="true"><button class="secondary" data-capture="strongReportCard">PNG İndir</button><button class="ghost" data-copy-report="strong">Metni Kopyala</button></div></div></div><div class="grid two"><div class="card"><h3>Öncelikli Takip Alanları</h3>${weakAreasHtml(stats)}</div><div class="card"><h3>İyi ve Güçlü Alanlar</h3>${strongAreasHtml(stats)}</div></div></div>`;
-}
-function analysisRowsHtml(rows){if(!rows.length) return '<div class="empty">Bu seçim için veri yok.</div>'; return rows.map(x=>{const pct=itemAccuracy(x); const label=x.subtopic?`${x.topic} / ${x.subtopic}`:(x.topic||x.lesson); return `<div class="success-row"><div><b>${esc(label)}</b><div class="bar"><span style="width:${Math.min(100,pct)}%"></span></div><p class="muted tiny">${x.total} soru • Doğru ${x.correct} • Yanlış ${x.wrong} • Boş ${x.empty}</p></div><div class="success-pct">%${pct}</div></div>`;}).join('');}
-function bindAnalysisControls(st,stats,range){
-  document.getElementById('analysisLesson')?.addEventListener('change',e=>{state.analysisLesson=e.target.value; state.analysisTopic='Tümü'; queueUiScroll('studentContent','smooth'); render();});
-  document.getElementById('analysisTopic')?.addEventListener('change',e=>{state.analysisTopic=e.target.value; queueUiScroll('studentContent','smooth'); render();});
-  document.querySelectorAll('[data-capture]').forEach(b=>b.onclick=()=>captureElementAsPng(b.dataset.capture,`${st.name.replace(/\s+/g,'_')}_${b.dataset.capture}.png`));
-  document.querySelectorAll('[data-copy-report]').forEach(b=>b.onclick=async()=>{const text=parentReportText(b.dataset.copyReport,st,stats,range); await copyText(text); setToast('Rapor metni kopyalandı','ok');});
-}
-function parentReportText(type,st,stats,range){
-  const list=(type==='strong'?strongAreas(stats):weakAreas(stats)).slice(0,5);
-  const title=type==='strong'?'Güçlü olduğu alanlar':'Geliştirmesi gereken alanlar';
-  return `${st.name} (${st.className}) ${fmtDate(range.start)}-${fmtDate(range.end)} ${title}:\n`+(list.length?list.map(x=>`- ${x.label}: %${x.pct} başarı, ${x.total} soru`).join('\n'):'- Yeterli veri yok.')+`\nToplam: ${stats.total} soru, genel başarı: %${accuracyPct(stats)}.\nFenomen`;
-}
-async function captureElementAsPng(id,filename){
-  const el=document.getElementById(id); if(!el){setToast('Kart bulunamadı','error');return;}
-  try{
-    if(window.html2canvas){const canvas=await html2canvas(el,{backgroundColor:'#ffffff',scale:2}); downloadCanvas(canvas,filename); setToast('PNG indirildi','ok'); return;}
-    fallbackTextCanvas(el,filename); setToast('PNG indirildi','ok');
-  }catch(e){setToast('PNG oluşturulamadı: '+e.message,'error');}
-}
-function downloadCanvas(canvas,filename){const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=filename; document.body.appendChild(a); a.click(); a.remove();}
-function fallbackTextCanvas(el,filename){const canvas=document.createElement('canvas'); canvas.width=1100; canvas.height=700; const ctx=canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0f172a'; ctx.font='bold 34px Inter, Arial'; const lines=el.innerText.split('\n').filter(Boolean); let y=60; lines.forEach((line,i)=>{ctx.font=i===0?'bold 34px Arial':'24px Arial'; ctx.fillText(line.slice(0,70),60,y); y+=i===0?48:34;}); downloadCanvas(canvas,filename);}
+function weakAreasHtml(stats){const list=weakAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Bu aralıkta ders/konu bazında belirgin eksik alan görünmüyor.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card ${x.level==='weak'?'low':x.level==='watch'?'warn':''}"><b>${esc(x.label)} • %${x.pct} • ${esc(x.levelLabel)}</b><p>${x.total} soru üzerinden hesaplandı. ${esc(x.levelText)}</p></div>`).join('')}</div>`;}
+function strongAreasHtml(stats){const list=strongAreas(stats).slice(0,6); if(!list.length) return '<div class="empty">Ders/konu bazında güçlü alan göstermek için yeterli veri yok.</div>'; return `<div class="risk-list">${list.map(x=>`<div class="risk-card good"><b>${esc(x.label)} • %${x.pct} • ${esc(x.levelLabel)}</b><p>${x.total} soru içinde ${x.correct} doğru. ${esc(x.levelText)}</p></div>`).join('')}</div>`;}
 
 function taskItemLesson(item){return String(item?.ders||item?.course||item?.lesson||'Genel').trim()||'Genel';}
 function taskItemTarget(item){return Number(item?.soruSayisi??item?.hedefSoru??item?.soru??item?.total??0)||0;}
@@ -2873,6 +2838,115 @@ function studentTasksHtml(tasks,st,stats,range){
   }
   return `<div class="assignment-package-note">Görevlendirme sekmesinde tarih filtresi kullanılmaz. Paketler en yeni kayıt en üstte olacak şekilde sıralanır; geçmiş süresi bitenler pasif görünür.</div>${packageCards}${detail}`;
 }
+function recordTimeText(record){
+  const raw=record?.raw||record||{};
+  const direct=String(raw.saat||raw.time||raw.girisSaati||'').trim();
+  if(/^\d{1,2}:\d{2}/.test(direct)) return direct.match(/\d{1,2}:\d{2}/)[0];
+  const candidates=[raw.tarihSaat,raw.createdAt,raw.timestamp,raw.date,raw.tarih,record?.createdAt].map(x=>String(x||'').trim()).filter(Boolean);
+  for(const val of candidates){
+    let m=val.match(/(?:T|\s)(\d{1,2}:\d{2})/);
+    if(m) return m[1];
+    m=val.match(/\b(\d{1,2}:\d{2})\b/);
+    if(m) return m[1];
+  }
+  return '';
+}
+function recordTopicText(record){return [record?.topic,record?.subtopic].map(x=>String(x||'').trim()).filter(Boolean).join(' / ') || 'Konu bilgisi yok';}
+function dataPackageAnalysis(pkg,stats){
+  const records=stats?.records||[];
+  const rows=[];
+  for(const day of pkg.days||[]){
+    const targets=packageDayLessonTargets(pkg,day);
+    const dayRecords=records.filter(r=>r.date===day);
+    const targetTotal=targets.reduce((s,x)=>s+Number(x.target||0),0);
+    const doneTotal=targets.reduce((s,x)=>s+Math.min(Number(x.target||0), dayRecords.filter(r=>String(r.lesson||'').trim()===String(x.lesson||'').trim()).reduce((a,r)=>a+Number(r.total||0),0)),0);
+    const lessonRows=targets.map(x=>{
+      const recs=dayRecords.filter(r=>String(r.lesson||'').trim()===String(x.lesson||'').trim());
+      const done=recs.reduce((a,r)=>a+Number(r.total||0),0);
+      return {lesson:x.lesson,target:Number(x.target)||0,done,missing:Math.max(0,(Number(x.target)||0)-done),records:recs};
+    });
+    const extraRecords=dayRecords.filter(r=>!targets.some(x=>String(x.lesson||'').trim()===String(r.lesson||'').trim()));
+    const pct=targetTotal?Math.round((doneTotal/targetTotal)*100):0;
+    rows.push({day,targetTotal,doneTotal,pct,lessonRows,extraRecords,dayRecords});
+  }
+  const targetTotal=rows.reduce((s,d)=>s+d.targetTotal,0);
+  const doneTotal=rows.reduce((s,d)=>s+d.doneTotal,0);
+  return {pkg,rows,targetTotal,doneTotal,pct:targetTotal?Math.round(doneTotal/targetTotal*100):0};
+}
+function dataEntryPackageHtml(analysis){
+  const life=packageLifeStatus(analysis.pkg);
+  const dayHtml=analysis.rows.map(day=>{
+    const doneRows=day.lessonRows.filter(x=>x.done>=x.target && x.target>0);
+    const missingRows=day.lessonRows.filter(x=>x.target>0 && x.done<x.target);
+    const records=[...day.lessonRows.flatMap(x=>x.records||[]),...(day.extraRecords||[])].sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||'')));
+    const recordHtml=records.length?`<div class="data-record-list">${records.map(r=>`<div class="data-record-row"><div><b>${esc(r.lesson)} • ${esc(recordTopicText(r))}</b><small>${fmtDate(r.date)}${recordTimeText(r)?' • '+esc(recordTimeText(r)):''}</small></div><span class="badge">${esc(r.total)} soru • %${esc(itemAccuracy(r))}</span></div>`).join('')}</div>`:'<div class="daily-empty-line">Bu gün veri girişi yok.</div>';
+    return `<div class="data-entry-day"><h5><span>${fmtDate(day.day)} ${dayName(day.day)?'• '+dayName(day.day):''}</span><span class="task-status-pill ${day.targetTotal && day.doneTotal>=day.targetTotal?'done':(day.doneTotal<=0?'missing':'pending')}">%${day.pct}</span></h5><div class="data-entry-mini-grid"><div class="data-entry-mini"><small>Hedef</small><b>${day.targetTotal} soru</b></div><div class="data-entry-mini"><small>Yapılan</small><b>${day.doneTotal} soru</b></div><div class="data-entry-mini"><small>Tamamlanan</small><b>${doneRows.length} ders</b></div><div class="data-entry-mini"><small>Eksik</small><b>${missingRows.length} ders</b></div></div>${day.lessonRows.length?`<div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${day.lessonRows.map(r=>assignmentLessonRowHtml(r.lesson,r.target,r.done)).join('')}</div>`:'<div class="empty">Bu gün için hedef ders yok.</div>'}${recordHtml}</div>`;
+  }).join('');
+  return `<div class="data-entry-package ${life.key==='passive'?'past':''}"><div class="data-entry-package-head"><div><span class="package-index">${esc(life.label)}</span><h4>${esc(packageTargetLabel(analysis.pkg))}</h4><p class="muted tiny">${fmtDate(analysis.pkg.start)} - ${fmtDate(analysis.pkg.end)} • Paket toplamı %${analysis.pct}</p></div><span class="badge">${analysis.doneTotal}/${analysis.targetTotal} soru</span></div><div class="data-entry-day-grid">${dayHtml}</div></div>`;
+}
+function studentDataEntryHtml(st,stats,tasks){
+  const packages=buildStudentTaskPackages(tasks,null);
+  if(!packages.length) return '<div class="card"><h3>Veri Girişi Analizi</h3><div class="empty">Bu öğrenciye ait görev paketi bulunamadı.</div></div>';
+  const analyses=packages.map(pkg=>dataPackageAnalysis(pkg,stats));
+  const totalTarget=analyses.reduce((s,x)=>s+x.targetTotal,0);
+  const totalDone=analyses.reduce((s,x)=>s+x.doneTotal,0);
+  const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
+  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Paket sistemine göre öğrencinin hangi tarihte, hangi saatte veri girdiği ve görevin ne kadarını yaptığı gösterilir.</p>${statsHtml([['Paket',packages.length,'Toplam'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Paket toplamı']])}<div class="data-entry-package-list" style="margin-top:14px">${analyses.map(dataEntryPackageHtml).join('')}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin bugün yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
+}
+function buildDailyDataEntryParentMessage(st,stats,tasks,day=todayISO()){
+  const activeTasks=(tasks||[]).filter(t=>taskIsActiveForStudentOnDay(t,st,day));
+  const packages=buildStudentTaskPackages(activeTasks,{start:day,end:day});
+  const records=(stats.records||[]).filter(r=>r.date===day);
+  const doneMap=recordDoneByLesson(records,day,day);
+  const targetMap={};
+  packages.forEach(pkg=>packageDayLessonTargets(pkg,day).forEach(x=>{targetMap[x.lesson]=(targetMap[x.lesson]||0)+Number(x.target||0);}));
+  const lessons=[...new Set([...Object.keys(targetMap),...Object.keys(doneMap)])].sort((a,b)=>a.localeCompare(b,'tr'));
+  const doneRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)>=Number(targetMap[l]||0));
+  const missingRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)<Number(targetMap[l]||0));
+  const extraRows=lessons.filter(l=>!Number(targetMap[l]||0) && Number(doneMap[l]||0)>0);
+  const recordLines=records.length?records.sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||''))).map(r=>`• ${recordTimeText(r)||'Saat yok'} - ${r.lesson} / ${recordTopicText(r)}: ${r.total} soru`).join('\n'):'• Bugün veri girişi görünmüyor.';
+  const doneText=doneRows.length?doneRows.map(l=>`• ${l}: ${doneMap[l]}/${targetMap[l]} soru`).join('\n'):'• Tamamlanan görev görünmüyor.';
+  const missingText=missingRows.length?missingRows.map(l=>`• ${l}: ${doneMap[l]||0}/${targetMap[l]} soru`).join('\n'):'• Eksik görev görünmüyor.';
+  const extraText=extraRows.length?`\n\n➕ *Hedef dışı yapılan çalışmalar*\n${extraRows.map(l=>`• ${l}: ${doneMap[l]} soru`).join('\n')}`:'';
+  const totalTarget=Object.values(targetMap).reduce((s,n)=>s+Number(n||0),0);
+  const totalDone=Object.keys(targetMap).reduce((s,l)=>s+Math.min(Number(doneMap[l]||0),Number(targetMap[l]||0)),0);
+  const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
+  return `Sayın Velimiz, merhaba. 👋\n\n*${st.name}* öğrencimizin ${fmtDate(day)} tarihli görev ve veri girişi özeti aşağıdadır.\n\n📌 *Günlük Paket Durumu*\nHedef: ${totalTarget} soru\nYapılan: ${totalDone} soru\nTamamlama: %${pct}\n\n✅ *Tamamlananlar*\n${doneText}\n\n⚠️ *Tamamlanmayan / Yapılmayanlar*\n${missingText}${extraText}\n\n🕒 *Veri Girişleri*\n${recordLines}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
+}
+function bindDataEntryAnalysis(st,stats,tasks){
+  const panel=document.querySelector('.data-entry-message-panel');
+  if(!panel) return;
+  let generated='';
+  const draw=()=>{
+    generated=buildDailyDataEntryParentMessage(st,stats,tasks,todayISO());
+    const box=document.getElementById('dataEntryMessageBox');
+    if(box) box.innerHTML=`<div class="message-preview">${esc(generated)}</div>`;
+    panel.querySelectorAll('[data-data-message="copy"],[data-data-message="whatsapp"]').forEach(b=>b.classList.remove('hidden'));
+  };
+  panel.addEventListener('click',async e=>{
+    const btn=e.target.closest('[data-data-message]');
+    if(!btn) return;
+    try{
+      const action=btn.dataset.dataMessage;
+      if(action==='generate'){draw(); return;}
+      const message=generated || buildDailyDataEntryParentMessage(st,stats,tasks,todayISO());
+      if(action==='copy'){
+        await copyText(message); setToast('Veri girişi veli mesajı kopyalandı','ok'); return;
+      }
+      if(action==='whatsapp'){
+        const phone=normalizePhoneTR(st.parentPhone);
+        if(!phone) throw new Error('Veli telefonu yok. Metni kopyalayarak manuel gönderebilirsiniz.');
+        window.open(`https://wa.me/${phone}?text=${enc(message)}`,'_blank');
+        state.draftConfirm={student:st,channel:'WhatsApp Veri Girişi',message};
+        const old=document.getElementById('confirmBox');
+        const box=document.getElementById('dataEntryConfirmBox');
+        if(box){box.id='confirmBox'; renderConfirmBox(); box.id='dataEntryConfirmBox';}
+        if(old) renderConfirmBox();
+      }
+    }catch(err){setToast(err.message,'error');}
+  });
+}
+
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
 function bindStudentMessage(st,stats,range){document.querySelectorAll('[data-msg-level]').forEach(b=>b.onclick=()=>{const level=b.dataset.msgLevel; document.getElementById('studentMsgTitle').value=level==='excellent'?'Harika İlerleme':level==='positive'?'Güzel İlerleme':level==='high'?'Önemli Uyarı':'Çalışma Hatırlatması'; document.getElementById('studentMsgText').value=buildStudentMsg(level,st,stats,range);}); document.getElementById('sendStudentMsg').onclick=async()=>{try{await sendStudentPanelMessage(st,document.getElementById('studentMsgTitle').value,document.getElementById('studentMsgText').value); setToast('Öğrenci panel mesajı kaydedildi','ok'); render();}catch(e){setToast(e.message,'error');}};}
 function bindPreview(st,stats,range){
@@ -2996,10 +3070,16 @@ function planHtml(w){
   }
   return out;
 }
+function teacherTaskCardHtml(t,isPast=false){
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-load-task-track="${esc(t.key)}">Ders Ders Takip</button><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div><div class="task-track-box" id="taskTrack_${esc(t.key)}"><div class="muted tiny">Ders bazında hedef/çözüm farkını görmek için “Ders Ders Takip”e basın.</div></div></div>`;
+}
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
   if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>';
-  return own.slice(0,40).map(t=>`<div class="thin-item"><div class="row"><b>${esc(targetLabel(t))}</b><span class="badge">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="spacer"></span><span class="muted tiny">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div><div class="actions"><button class="secondary" data-load-task-track="${esc(t.key)}">Ders Ders Takip</button><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div><div class="task-track-box" id="taskTrack_${esc(t.key)}"><div class="muted tiny">Ders bazında hedef/çözüm farkını görmek için “Ders Ders Takip”e basın.</div></div></div>`).join('');
+  const today=todayISO();
+  const current=own.filter(t=>!t.end || t.end>=today).slice(0,60);
+  const past=own.filter(t=>t.end && t.end<today).slice(0,80);
+  return `<div class="teacher-task-section"><div><h4 style="margin:0 0 8px;color:var(--ink)">Güncel Verdiğim Görevler</h4>${current.length?`<div class="teacher-task-grid">${current.map(t=>teacherTaskCardHtml(t,false)).join('')}</div>`:'<div class="empty">Güncel görev yok.</div>'}</div><div><h4 style="margin:10px 0 8px;color:var(--ink)">Geçmiş Görevler</h4>${past.length?`<div class="teacher-task-grid">${past.map(t=>teacherTaskCardHtml(t,true)).join('')}</div>`:'<div class="empty">Geçmiş görev yok.</div>'}</div></div>`;
 }
 function syncTaskWizardFromDom(){
   if(!state.taskWizard) return;
