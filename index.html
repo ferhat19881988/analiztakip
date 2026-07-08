@@ -2454,6 +2454,29 @@ function dailyFollowFilterCounts(items){
   }
   return counts;
 }
+function openStudentDetail(studentNo){
+  const clean=cleanId(studentNo);
+  const st=state.students.find(s=>cleanId(s.no)===clean);
+  if(!st){setToast('Öğrenci bulunamadı. Listeyi yenileyip tekrar deneyin.','error'); return;}
+  const searchEl=document.getElementById('studentSearch');
+  const classEl=document.getElementById('classFilter');
+  if(searchEl || classEl){
+    state.studentListUi={
+      ...(state.studentListUi||{}),
+      search:searchEl?.value || state.studentListUi?.search || '',
+      classFilter:classEl?.value || state.studentListUi?.classFilter || 'Tümü',
+      scrollY:window.scrollY,
+      lastStudentNo:st.no
+    };
+  }else{
+    state.studentListUi={...(state.studentListUi||{}),lastStudentNo:st.no};
+  }
+  state.selectedStudent=st;
+  state.studentDetailTab='summary';
+  state.studentDataEntryDate=todayISO();
+  queueUiScroll('studentTop','smooth');
+  render();
+}
 function dailyFilteredItems(daily){
   const ui=state.dailyFollowUi||{studentNo:'all',status:'all'};
   return (daily.items||[]).filter(item=>{
@@ -2470,10 +2493,15 @@ function dailyFilteredItems(daily){
 function dailyFollowFilterHtml(daily){
   if(!daily.configured) return '';
   const items=daily.items||[];
+  const studentOptions=items.slice().sort((a,b)=>
+    String(a.student?.name||'').localeCompare(String(b.student?.name||''),'tr',{sensitivity:'base'}) ||
+    String(a.student?.className||'').localeCompare(String(b.student?.className||''),'tr',{sensitivity:'base'}) ||
+    String(a.student?.no||'').localeCompare(String(b.student?.no||''),'tr',{numeric:true})
+  );
   const counts=dailyFollowFilterCounts(items);
   const ui=state.dailyFollowUi||{studentNo:'all',status:'all'};
   const tabs=[['all','Tümü',counts.all],['completed','Görevi tamamlayanlar',counts.completed],['incomplete','Görevi tamamlamayanlar',counts.incomplete],['zero','Görevi hiç yapmayanlar',counts.zero]];
-  return `<div class="daily-filter-card"><div class="daily-filter-tools"><div class="field"><label>Öğrenci adına göre filtrele</label><select id="dailyStudentFilter"><option value="all">Tüm öğrenciler</option>${items.map(item=>`<option value="${esc(item.student.no)}" ${cleanId(ui.studentNo)===cleanId(item.student.no)?'selected':''}>${esc(item.student.name)} • ${esc(item.student.className)}</option>`).join('')}</select></div><div><label>Görev durumuna göre filtrele</label><div class="daily-filter-tabs">${tabs.map(([key,label,count])=>`<button type="button" data-daily-status-filter="${esc(key)}" class="${(ui.status||'all')===key?'active':''}">${esc(label)} <b>${esc(count)}</b></button>`).join('')}</div></div></div><div id="dailyFilterCount" class="daily-filter-count"></div></div>`;
+  return `<div class="daily-filter-card"><div class="daily-filter-tools"><div class="field"><label>Öğrenci adına göre filtrele</label><select id="dailyStudentFilter"><option value="all">Tüm öğrenciler</option>${studentOptions.map(item=>`<option value="${esc(item.student.no)}" ${cleanId(ui.studentNo)===cleanId(item.student.no)?'selected':''}>${esc(item.student.name)} • ${esc(item.student.className)}</option>`).join('')}</select></div><div><label>Görev durumuna göre filtrele</label><div class="daily-filter-tabs">${tabs.map(([key,label,count])=>`<button type="button" data-daily-status-filter="${esc(key)}" class="${(ui.status||'all')===key?'active':''}">${esc(label)} <b>${esc(count)}</b></button>`).join('')}</div></div></div><div id="dailyFilterCount" class="daily-filter-count"></div></div>`;
 }
 function dailyEntrySummaryHtml(stats){
   const rows=(stats.records||[]).slice().sort((a,b)=>recordSortValue(a)-recordSortValue(b)).slice(0,6);
@@ -2570,14 +2598,7 @@ function renderStudents(main){
     const list=state.students.filter(s=>(c==='Tümü'||s.className===c)&&`${s.no} ${s.name} ${s.className}`.toLocaleLowerCase('tr-TR').includes(q));
     document.getElementById('studentCount').textContent=`${list.length} öğrenci listeleniyor`;
     document.getElementById('studentList').innerHTML=list.map(s=>`<div class="student-row ${state.studentListUi.lastStudentNo===s.no?'return-focus':''}" data-student="${esc(s.no)}"><div class="avatar">${esc(s.name.charAt(0).toLocaleUpperCase('tr-TR'))}</div><div class="spacer"><h3>${esc(s.name)}</h3><p>No ${esc(s.no)} • ${esc(s.className)}</p></div><span class="badge">Detay</span></div>`).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
-    document.querySelectorAll('[data-student]').forEach(x=>x.onclick=()=>{
-      state.studentListUi={search:document.getElementById('studentSearch').value,classFilter:document.getElementById('classFilter').value,scrollY:window.scrollY,lastStudentNo:x.dataset.student};
-      state.selectedStudent=state.students.find(s=>s.no===x.dataset.student);
-      state.studentDetailTab='summary';
-      state.studentDataEntryDate=todayISO();
-      queueUiScroll('studentTop','smooth');
-      render();
-    });
+    document.querySelectorAll('[data-student]').forEach(x=>x.onclick=()=>openStudentDetail(x.dataset.student));
   };
   document.getElementById('studentSearch').oninput=draw;
   document.getElementById('classFilter').onchange=draw;
