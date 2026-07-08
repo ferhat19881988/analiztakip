@@ -1240,6 +1240,17 @@ const DEFAULT_LESSONS = [
 ];
 
 const Days = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+const APP_TIME_ZONE = 'Europe/Istanbul';
+function pad2(n){return String(n).padStart(2,'0');}
+function appDateParts(date=new Date()){
+  try{
+    const parts=new Intl.DateTimeFormat('en-CA',{timeZone:APP_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date);
+    const get=t=>parts.find(p=>p.type===t)?.value || '';
+    return {year:get('year'),month:get('month'),day:get('day'),hour:get('hour'),minute:get('minute')};
+  }catch(e){return {year:String(date.getFullYear()),month:pad2(date.getMonth()+1),day:pad2(date.getDate()),hour:pad2(date.getHours()),minute:pad2(date.getMinutes())};}
+}
+function appDateISO(date=new Date()){const p=appDateParts(date); return `${p.year}-${p.month}-${p.day}`;}
+function appTimeText(date=new Date()){const p=appDateParts(date); return `${p.hour}:${p.minute}`;}
 const app = document.getElementById('app');
 const toastEl = document.getElementById('toast');
 
@@ -1265,8 +1276,8 @@ function forgetTeacherId(){try{localStorage.removeItem(TEACHER_SESSION_KEY);}cat
 function normalizeHeader(s){return String(s ?? '').trim().toLocaleUpperCase('tr-TR').replace(/[\s_]+/g,'').replaceAll('İ','I').replaceAll('Ş','S').replaceAll('Ğ','G').replaceAll('Ü','U').replaceAll('Ö','O').replaceAll('Ç','C');}
 function valueOf(row, header, keys){for(const k of keys){const idx=header.indexOf(normalizeHeader(k)); if(idx>=0 && idx<row.length) return cleanSheetValue(row[idx]);} return '';}
 function cleanSheetValue(v){return String(v ?? '').trim().replace(/\.0$/,'');}
-function todayISO(){const d=new Date(); return toISO(d);}
-function toISO(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;}
+function todayISO(){return appDateISO(new Date());}
+function toISO(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
 function parseAnyDate(v){
   const s=String(v ?? '').trim(); if(!s) return null;
   let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1],+m[2]-1,+m[3]);
@@ -1277,7 +1288,7 @@ function isoFromAny(v){const d=parseAnyDate(v); return d ? toISO(d) : '';}
 function fmtDate(v){const d=parseAnyDate(v); if(!d) return ''; const z=n=>String(n).padStart(2,'0'); return `${z(d.getDate())}.${z(d.getMonth()+1)}.${d.getFullYear()}`;}
 function dayName(v){const d=parseAnyDate(v); return d ? Days[(d.getDay()+6)%7] : '';}
 function fmtDateWithDay(v){const name=dayName(v); return `${name ? name+' • ' : ''}${fmtDate(v)}`;}
-function nowText(){const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${z(d.getDate())}.${z(d.getMonth()+1)}.${d.getFullYear()} ${z(d.getHours())}:${z(d.getMinutes())}`;}
+function nowText(){const p=appDateParts(new Date()); return `${p.day}.${p.month}.${p.year} ${p.hour}:${p.minute}`;}
 function addDaysISO(iso, days){const d=parseAnyDate(iso) || new Date(); d.setDate(d.getDate()+days); return toISO(d);}
 function dateInRange(date,start,end){const iso=isoFromAny(date); return iso && iso>=start && iso<=end;}
 function rangesOverlap(aStart,aEnd,bStart,bEnd){return aStart<=bEnd && bStart<=aEnd;}
@@ -2051,6 +2062,16 @@ function dailyTaskTargetsForStudent(student,day){
   }
   return rows;
 }
+function dailyFollowSortScore(item){
+  if(!item || Number(item.totalTarget||0)<=0) return -1;
+  return Number(item.completionPct||0);
+}
+function compareDailyFollowItems(a,b){
+  return dailyFollowSortScore(b)-dailyFollowSortScore(a)
+    || Number(b.totalDone||0)-Number(a.totalDone||0)
+    || Number(b.stats?.entryCount||0)-Number(a.stats?.entryCount||0)
+    || String(a.student?.name||'').localeCompare(String(b.student?.name||''),'tr');
+}
 async function loadDailyFollowSummaries(day){
   if(!state.followClasses.length) return {configured:false,items:[],summary:{tracked:0,entries:0,warnings:0,completed:0}};
   const tracked=state.students.filter(s=>state.followClasses.includes(s.className)).sort((a,b)=>(a.className||'').localeCompare(b.className||'','tr') || a.name.localeCompare(b.name,'tr'));
@@ -2084,6 +2105,7 @@ async function loadDailyFollowSummaries(day){
     zero:items.filter(x=>x.totalTarget>0 && x.totalDone<=0).length
   };
   summary.warnings=summary.incomplete+summary.zero;
+  items.sort(compareDailyFollowItems);
   return {configured:true,items,summary};
 }
 async function logParentNotification(student,channel,message){
@@ -2432,7 +2454,7 @@ function dailyFollowFilterHtml(daily){
   return `<div class="daily-filter-card"><div class="daily-filter-tools"><div class="field"><label>Öğrenci adına göre filtrele</label><select id="dailyStudentFilter"><option value="all">Tüm öğrenciler</option>${items.map(item=>`<option value="${esc(item.student.no)}" ${cleanId(ui.studentNo)===cleanId(item.student.no)?'selected':''}>${esc(item.student.name)} • ${esc(item.student.className)}</option>`).join('')}</select></div><div><label>Görev durumuna göre filtrele</label><div class="daily-filter-tabs">${tabs.map(([key,label,count])=>`<button type="button" data-daily-status-filter="${esc(key)}" class="${(ui.status||'all')===key?'active':''}">${esc(label)} <b>${esc(count)}</b></button>`).join('')}</div></div></div><div id="dailyFilterCount" class="daily-filter-count"></div></div>`;
 }
 function dailyEntrySummaryHtml(stats){
-  const rows=(stats.records||[]).slice().sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||''))).slice(0,6);
+  const rows=(stats.records||[]).slice().sort((a,b)=>recordSortValue(a)-recordSortValue(b)).slice(0,6);
   if(!rows.length) return '<div class="daily-empty-line">Bugün çalışma girişi yok.</div>';
   return `<div class="daily-info-list">${rows.map(x=>{const topic=[x.topic,x.subtopic].filter(Boolean).join(' / '); const time=recordTimeText(x)||'Saat yok'; return `<div><b>${esc(x.lesson)}<small>${esc(topic||'Konu bilgisi yok')}</small></b><span>${esc(x.total)} soru • %${esc(itemAccuracy(x))}<small>Giriş saati: ${esc(time)}</small></span></div>`;}).join('')}</div>`;
 }
@@ -2838,26 +2860,62 @@ function studentTasksHtml(tasks,st,stats,range){
   }
   return `<div class="assignment-package-note">Görevlendirme sekmesinde tarih filtresi kullanılmaz. Paketler en yeni kayıt en üstte olacak şekilde sıralanır; geçmiş süresi bitenler pasif görünür.</div>${packageCards}${detail}`;
 }
+function dateFromAbsoluteValue(value){
+  if(value===null || value===undefined || value==='') return null;
+  if(value instanceof Date) return isNaN(value) ? null : value;
+  if(typeof value==='number' && isFinite(value)){
+    const ms=value>9999999999 ? value : value*1000;
+    const d=new Date(ms);
+    return isNaN(d) ? null : d;
+  }
+  const s=String(value||'').trim();
+  if(!s) return null;
+  if(/^\d{10,13}$/.test(s)){
+    const n=Number(s);
+    const d=new Date(s.length===10?n*1000:n);
+    return isNaN(d) ? null : d;
+  }
+  if(/^\d{4}-\d{2}-\d{2}T/.test(s) && /(Z|[+-]\d{2}:?\d{2})$/i.test(s)){
+    const d=new Date(s.replace(/([+-]\d{2})(\d{2})$/,'$1:$2'));
+    return isNaN(d) ? null : d;
+  }
+  return null;
+}
+function recordSortValue(record){
+  const raw=record?.raw||record||{};
+  const candidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,raw.tarihSaat,record?.createdAt];
+  for(const val of candidates){
+    const d=dateFromAbsoluteValue(val);
+    if(d) return d.getTime();
+  }
+  const time=recordTimeText(record);
+  const date=record?.date || isoFromAny(raw.dateKey||raw.tarih||raw.date||raw.tarihSaat||raw.createdAt||'') || '0000-00-00';
+  return Number(String(date).replace(/\D/g,'') + String(time||'00:00').replace(/\D/g,'')) || 0;
+}
 function recordTimeText(record){
   const raw=record?.raw||record||{};
-  const direct=String(raw.saat||raw.time||raw.girisSaati||'').trim();
-  if(/^\d{1,2}:\d{2}/.test(direct)) return direct.match(/\d{1,2}:\d{2}/)[0];
-  const candidates=[raw.tarihSaat,raw.createdAt,raw.timestamp,raw.date,raw.tarih,record?.createdAt].map(x=>String(x||'').trim()).filter(Boolean);
-  for(const val of candidates){
-    let m=val.match(/(?:T|\s)(\d{1,2}:\d{2})/);
-    if(m) return m[1];
-    m=val.match(/\b(\d{1,2}:\d{2})\b/);
-    if(m) return m[1];
+  const absoluteCandidates=[raw.timestamp,raw.createdAt,raw.created_at,raw.serverTime,record?.createdAt,raw.tarihSaat];
+  for(const val of absoluteCandidates){
+    const d=dateFromAbsoluteValue(val);
+    if(d) return appTimeText(d);
+  }
+  const directCandidates=[raw.saat,raw.girisSaati,raw.entryTime,raw.time,raw.tarihSaat,raw.date,raw.tarih];
+  for(const val of directCandidates){
+    const s=String(val||'').trim();
+    const m=s.match(/\b(\d{1,2}):(\d{2})\b/);
+    if(m) return `${pad2(m[1])}:${m[2]}`;
   }
   return '';
 }
 function recordTopicText(record){return [record?.topic,record?.subtopic].map(x=>String(x||'').trim()).filter(Boolean).join(' / ') || 'Konu bilgisi yok';}
-function dataPackageAnalysis(pkg,stats){
+function dataPackageAnalysis(pkg,stats,visibleOnly=false){
   const records=stats?.records||[];
+  const today=todayISO();
   const rows=[];
   for(const day of pkg.days||[]){
     const targets=packageDayLessonTargets(pkg,day);
     const dayRecords=records.filter(r=>r.date===day);
+    if(visibleOnly && (day>today || !dayRecords.length)) continue;
     const targetTotal=targets.reduce((s,x)=>s+Number(x.target||0),0);
     const doneTotal=targets.reduce((s,x)=>s+Math.min(Number(x.target||0), dayRecords.filter(r=>String(r.lesson||'').trim()===String(x.lesson||'').trim()).reduce((a,r)=>a+Number(r.total||0),0)),0);
     const lessonRows=targets.map(x=>{
@@ -2878,7 +2936,7 @@ function dataEntryPackageHtml(analysis){
   const dayHtml=analysis.rows.map(day=>{
     const doneRows=day.lessonRows.filter(x=>x.done>=x.target && x.target>0);
     const missingRows=day.lessonRows.filter(x=>x.target>0 && x.done<x.target);
-    const records=[...day.lessonRows.flatMap(x=>x.records||[]),...(day.extraRecords||[])].sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||'')));
+    const records=[...day.lessonRows.flatMap(x=>x.records||[]),...(day.extraRecords||[])].sort((a,b)=>recordSortValue(a)-recordSortValue(b));
     const recordHtml=records.length?`<div class="data-record-list">${records.map(r=>`<div class="data-record-row"><div><b>${esc(r.lesson)} • ${esc(recordTopicText(r))}</b><small>${fmtDate(r.date)}${recordTimeText(r)?' • '+esc(recordTimeText(r)):''}</small></div><span class="badge">${esc(r.total)} soru • %${esc(itemAccuracy(r))}</span></div>`).join('')}</div>`:'<div class="daily-empty-line">Bu gün veri girişi yok.</div>';
     return `<div class="data-entry-day"><h5><span>${fmtDate(day.day)} ${dayName(day.day)?'• '+dayName(day.day):''}</span><span class="task-status-pill ${day.targetTotal && day.doneTotal>=day.targetTotal?'done':(day.doneTotal<=0?'missing':'pending')}">%${day.pct}</span></h5><div class="data-entry-mini-grid"><div class="data-entry-mini"><small>Hedef</small><b>${day.targetTotal} soru</b></div><div class="data-entry-mini"><small>Yapılan</small><b>${day.doneTotal} soru</b></div><div class="data-entry-mini"><small>Tamamlanan</small><b>${doneRows.length} ders</b></div><div class="data-entry-mini"><small>Eksik</small><b>${missingRows.length} ders</b></div></div>${day.lessonRows.length?`<div class="assignment-lesson-list">${assignmentLessonHeaderHtml()}${day.lessonRows.map(r=>assignmentLessonRowHtml(r.lesson,r.target,r.done)).join('')}</div>`:'<div class="empty">Bu gün için hedef ders yok.</div>'}${recordHtml}</div>`;
   }).join('');
@@ -2887,11 +2945,12 @@ function dataEntryPackageHtml(analysis){
 function studentDataEntryHtml(st,stats,tasks){
   const packages=buildStudentTaskPackages(tasks,null);
   if(!packages.length) return '<div class="card"><h3>Veri Girişi Analizi</h3><div class="empty">Bu öğrenciye ait görev paketi bulunamadı.</div></div>';
-  const analyses=packages.map(pkg=>dataPackageAnalysis(pkg,stats));
+  const analyses=packages.map(pkg=>dataPackageAnalysis(pkg,stats,true)).filter(x=>x.rows.length);
   const totalTarget=analyses.reduce((s,x)=>s+x.targetTotal,0);
   const totalDone=analyses.reduce((s,x)=>s+x.doneTotal,0);
   const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
-  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Paket sistemine göre öğrencinin hangi tarihte, hangi saatte veri girdiği ve görevin ne kadarını yaptığı gösterilir.</p>${statsHtml([['Paket',packages.length,'Toplam'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Paket toplamı']])}<div class="data-entry-package-list" style="margin-top:14px">${analyses.map(dataEntryPackageHtml).join('')}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin bugün yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
+  const listHtml=analyses.length?analyses.map(dataEntryPackageHtml).join(''):'<div class="empty">Bu öğrenci için günü gelmiş ve veri girişi yapılmış paket günü görünmüyor.</div>';
+  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Paket sistemine göre yalnızca veri girişi yapılmış, günü gelmiş kayıtlar gün gün gösterilir. Veri olmayan veya tarihi henüz gelmemiş günler listelenmez.</p>${statsHtml([['Paket',analyses.length,'Veri görünen'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Görünen günler']])}<div class="data-entry-package-list" style="margin-top:14px">${listHtml}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin bugün yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
 }
 function buildDailyDataEntryParentMessage(st,stats,tasks,day=todayISO()){
   const activeTasks=(tasks||[]).filter(t=>taskIsActiveForStudentOnDay(t,st,day));
@@ -2904,14 +2963,14 @@ function buildDailyDataEntryParentMessage(st,stats,tasks,day=todayISO()){
   const doneRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)>=Number(targetMap[l]||0));
   const missingRows=lessons.filter(l=>Number(targetMap[l]||0)>0 && Number(doneMap[l]||0)<Number(targetMap[l]||0));
   const extraRows=lessons.filter(l=>!Number(targetMap[l]||0) && Number(doneMap[l]||0)>0);
-  const recordLines=records.length?records.sort((a,b)=>String(recordTimeText(a)||'').localeCompare(String(recordTimeText(b)||''))).map(r=>`• ${recordTimeText(r)||'Saat yok'} - ${r.lesson} / ${recordTopicText(r)}: ${r.total} soru`).join('\n'):'• Bugün veri girişi görünmüyor.';
   const doneText=doneRows.length?doneRows.map(l=>`• ${l}: ${doneMap[l]}/${targetMap[l]} soru`).join('\n'):'• Tamamlanan görev görünmüyor.';
   const missingText=missingRows.length?missingRows.map(l=>`• ${l}: ${doneMap[l]||0}/${targetMap[l]} soru`).join('\n'):'• Eksik görev görünmüyor.';
   const extraText=extraRows.length?`\n\n➕ *Hedef dışı yapılan çalışmalar*\n${extraRows.map(l=>`• ${l}: ${doneMap[l]} soru`).join('\n')}`:'';
   const totalTarget=Object.values(targetMap).reduce((s,n)=>s+Number(n||0),0);
   const totalDone=Object.keys(targetMap).reduce((s,l)=>s+Math.min(Number(doneMap[l]||0),Number(targetMap[l]||0)),0);
   const pct=totalTarget?Math.round(totalDone/totalTarget*100):0;
-  return `Sayın Velimiz, merhaba. 👋\n\n*${st.name}* öğrencimizin ${fmtDate(day)} tarihli görev ve veri girişi özeti aşağıdadır.\n\n📌 *Günlük Paket Durumu*\nHedef: ${totalTarget} soru\nYapılan: ${totalDone} soru\nTamamlama: %${pct}\n\n✅ *Tamamlananlar*\n${doneText}\n\n⚠️ *Tamamlanmayan / Yapılmayanlar*\n${missingText}${extraText}\n\n🕒 *Veri Girişleri*\n${recordLines}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
+  const teacherLine=state.teacher?.name?`\n\n👩‍🏫 *Öğretmen:* ${state.teacher.name}`:'';
+  return `Sayın Velimiz, merhaba. 👋\n\n*${st.name}* öğrencimizin ${fmtDate(day)} tarihli görev ve veri girişi özeti aşağıdadır.\n\n📌 *Günlük Paket Durumu*\nHedef: ${totalTarget} soru\nYapılan: ${totalDone} soru\nTamamlama: %${pct}\n\n✅ *Tamamlananlar*\n${doneText}\n\n⚠️ *Tamamlanmayan / Yapılmayanlar*\n${missingText}${extraText}${teacherLine}\n\nBilginize sunar, iyi günler dileriz.\n${state.settings.kurumAdi}`;
 }
 function bindDataEntryAnalysis(st,stats,tasks){
   const panel=document.querySelector('.data-entry-message-panel');
