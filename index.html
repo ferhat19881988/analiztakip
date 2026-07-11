@@ -3321,8 +3321,9 @@ function reportMomentInfo(date=new Date()){
 }
 function taskReportEffectiveEnd(task,momentDate){
   const clickDay=appDateISO(momentDate);
-  const taskEnd=isoFromAny(task?.end)||clickDay;
-  return taskEnd<clickDay?taskEnd:clickDay;
+  const plannedDays=taskDayKeys(task);
+  const plannedEnd=isoFromAny(task?.end)||plannedDays[plannedDays.length-1]||clickDay;
+  return plannedEnd<clickDay?plannedEnd:clickDay;
 }
 function taskReportDayContext(task,start,end){
   return taskDayKeys(task).filter(day=>day>=start && day<=end).map(day=>{
@@ -3415,9 +3416,9 @@ function buildTaskReportStudentAnalysis(task,student,stats,dayContext){
   if(!Number(stats?.total||0)) attention.push('Bu tarih aralığında herhangi bir çalışma görünmüyor.');
   if(missingDays) attention.push(`${missingDays} görev gününde çalışma görünmüyor.`);
   if(partialDays) attention.push(`${partialDays} görev günü eksik kaldı.`);
-  if(completionPct<60 && targetTotal>0) attention.push(`Görevin %${completionPct}'i tamamlandı; daha düzenli takip faydalı olacaktır.`);
-  if(weakestTopic && weakestTopic.pct<60) attention.push(`${weakestTopic.lesson} / ${weakestTopic.topic} konusunda tekrar yapılması faydalı olacaktır.`);
-  else if(weakestLesson && weakestLesson.pct<60) attention.push(`${weakestLesson.lesson} dersinde ek çalışma faydalı olacaktır.`);
+  if(completionPct<60 && targetTotal>0) attention.push(`Görev tamamlama oranı %${completionPct}.`);
+  if(weakestTopic && weakestTopic.pct<60) attention.push(`${weakestTopic.lesson} / ${weakestTopic.topic} başarı oranı %${weakestTopic.pct}.`);
+  else if(weakestLesson && weakestLesson.pct<60) attention.push(`${weakestLesson.lesson} başarı oranı %${weakestLesson.pct}.`);
   if(maxMissingStreak>=2) attention.push(`${maxMissingStreak} görev günü üst üste çalışma görünmüyor.`);
   if(trend.label && trend.delta<=-10) attention.push(trend.label);
   return {task,student,stats,days,targetTotal,doneOnTaskDays,credited,completionPct,completedDays,partialDays,missingDays,activeTaskDays,offTargetRecords,offTargetTotal,extraQuestions,accuracy,strongestLesson,weakestLesson,strongestTopic,weakestTopic,trend,positives,attention,maxMissingStreak};
@@ -3431,59 +3432,50 @@ function generalPdfMetricCell(title,value,detail,fill='#FFFFFF',valueColor='#172
     {text:detail,fontSize:6.3,color:'#64748B'}
   ]};
 }
-function generalPdfSectionTitle(text,detail=''){
-  return {margin:[0,8,0,4],columns:[
-    {text,bold:true,fontSize:9.2,color:'#9A3412',characterSpacing:.2},
-    detail?{text:detail,fontSize:6.6,color:'#64748B',alignment:'right'}:{text:''}
-  ]};
+function generalPdfSectionTitle(text){
+  return {text,bold:true,fontSize:9.4,color:'#9A3412',margin:[0,8,0,4],characterSpacing:.15};
 }
 function generalPdfStatus(a,totalDays){
   const total=Number(a.stats?.total||0);
-  if(!total) return {label:'Çalışma yok',fill:'#FFF1F2',text:'#991B1B'};
-  if(totalDays>0 && a.completedDays===totalDays && a.completionPct>=95) return {label:'Tüm görevler tamam',fill:'#ECFDF3',text:'#166534'};
+  if(!total) return {label:'Çalışma kaydı yok',fill:'#FFF1F2',text:'#991B1B'};
+  if(totalDays>0 && a.completedDays===totalDays && a.completionPct>=95) return {label:'Tüm görevler tamamlandı',fill:'#ECFDF3',text:'#166534'};
   if(a.completionPct>=85 && a.accuracy>=70) return {label:'Düzenli ve başarılı',fill:'#ECFDF3',text:'#166534'};
-  if(a.completionPct>=70) return {label:'Düzenli ilerliyor',fill:'#EFF6FF',text:'#1D4ED8'};
-  if(a.completionPct>=40) return {label:'Eksikler tamamlanmalı',fill:'#FFF7ED',text:'#9A3412'};
-  return {label:'Yakın takip gerekli',fill:'#FFF1F2',text:'#991B1B'};
+  if(a.completionPct>=70) return {label:'Düzenli ilerleme',fill:'#EFF6FF',text:'#1D4ED8'};
+  if(a.completionPct>=40) return {label:'Kısmi tamamlama',fill:'#FFF7ED',text:'#9A3412'};
+  return {label:'Düşük tamamlama',fill:'#FFF1F2',text:'#991B1B'};
 }
-function generalPdfStudentAssignmentCounts(a){
-  const rows=(a.days||[]).flatMap(d=>d.lessonRows||[]);
-  return {
-    given:rows.length,
-    done:rows.filter(x=>x.status==='done').length,
-    partial:rows.filter(x=>x.status==='partial').length,
-    missing:rows.filter(x=>x.status==='missing').length
-  };
-}
+
 function generalPdfStudentStatusText(a,totalDays){
-  const info=generalPdfStatus(a,totalDays);
-  if(!Number(a.stats?.total||0)) return info.label;
-  const details=[];
-  if(Number(a.missingDays||0)>0) details.push(`${a.missingDays} gün yapılmadı`);
-  if(Number(a.partialDays||0)>0) details.push(`${a.partialDays} gün eksik`);
-  const unresolved=Number(a.stats?.wrong||0)+Number(a.stats?.empty||0);
-  if(unresolved>0) details.push(`${unresolved} soru tekrar edilmeli`);
-  return details.length?`${info.label} - ${details.slice(0,2).join(', ')}`:info.label;
+  const total=Number(a.stats?.total||0);
+  const parts=[`Görevlerin %${Number(a.completionPct||0)}'i tamamlandı`];
+  parts.push(`${totalDays} günün ${Number(a.completedDays||0)} günü tam`);
+  if(Number(a.partialDays||0)>0) parts.push(`${Number(a.partialDays||0)} gün eksik`);
+  if(Number(a.missingDays||0)>0) parts.push(`${Number(a.missingDays||0)} gün çalışma yok`);
+  if(total>0){
+    parts.push(`${total} soru: ${Number(a.stats?.correct||0)} doğru, ${Number(a.stats?.wrong||0)} yanlış, ${Number(a.stats?.empty||0)} boş`);
+    parts.push(`başarı %${Number(a.accuracy||0)}`);
+  }else{
+    parts.push('soru çözümü kaydı yok');
+  }
+  return parts.join('. ')+'.';
 }
 function generalPdfLessonRows(analyses){
   const map=new Map();
   analyses.forEach(a=>a.days.forEach(d=>d.lessonRows.forEach(row=>{
-    if(!map.has(row.lesson)) map.set(row.lesson,{lesson:row.lesson,given:0,doneAssignments:0,partialAssignments:0,missingAssignments:0,target:0,credit:0,solved:0,correct:0,wrong:0,empty:0});
+    if(!map.has(row.lesson)) map.set(row.lesson,{lesson:row.lesson,target:0,credit:0,solved:0,correct:0,wrong:0,empty:0});
     const x=map.get(row.lesson);
-    x.given++;
-    x.doneAssignments+=row.status==='done'?1:0;
-    x.partialAssignments+=row.status==='partial'?1:0;
-    x.missingAssignments+=row.status==='missing'?1:0;
     x.target+=Number(row.target||0);
     x.credit+=Number(row.credit||0);
     x.solved+=Number(row.done||0);
   })));
   analyses.forEach(a=>(a.stats?.subjects||[]).forEach(s=>{
-    if(!map.has(s.lesson)) map.set(s.lesson,{lesson:s.lesson,given:0,doneAssignments:0,partialAssignments:0,missingAssignments:0,target:0,credit:0,solved:0,correct:0,wrong:0,empty:0});
     const x=map.get(s.lesson);
-    x.correct+=Number(s.correct||0); x.wrong+=Number(s.wrong||0); x.empty+=Number(s.empty||0);
+    if(!x) return;
+    x.correct+=Number(s.correct||0);
+    x.wrong+=Number(s.wrong||0);
+    x.empty+=Number(s.empty||0);
   }));
-  return [...map.values()].sort((a,b)=>b.given-a.given||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+  return [...map.values()].sort((a,b)=>Number(b.target||0)-Number(a.target||0)||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
 }
 function generalPdfDayRows(analyses,ctx){
   return (ctx.dayContext||[]).map(dc=>{
@@ -3508,6 +3500,16 @@ function generalPdfDayRows(analyses,ctx){
     };
   });
 }
+
+function generalPdfAchievementInfo(correct,total){
+  const count=Number(total||0);
+  if(!count) return {label:'Veri yok',fill:'#F1F5F9',text:'#64748B'};
+  const pct=reportPct(correct,count);
+  if(pct>=85) return {label:'Çok iyi',fill:'#ECFDF3',text:'#166534'};
+  if(pct>=70) return {label:'İyi',fill:'#EFF6FF',text:'#1D4ED8'};
+  if(pct>=50) return {label:'Orta',fill:'#FFF7ED',text:'#9A3412'};
+  return {label:'Düşük',fill:'#FFF1F2',text:'#991B1B'};
+}
 function buildTaskGeneralPdfDocument(task,analyses,ctx){
   const studentCount=analyses.length;
   const totalDays=(ctx.dayContext||[]).length;
@@ -3531,8 +3533,6 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     .sort((a,b)=>b.completionPct-a.completionPct||b.completedDays-a.completedDays||Number(b.stats?.total||0)-Number(a.stats?.total||0)).slice(0,6);
   const lessonRows=generalPdfLessonRows(analyses);
   const dayRows=generalPdfDayRows(analyses,ctx);
-  const visibleDayRows=dayRows.slice(0,10);
-  const visibleLessonRows=lessonRows.slice(0,9);
   const headerFill='#EEF2F7';
   const line='#DDE3EC';
   const alternating=i=>i%2?'#FFFFFF':'#F8FAFC';
@@ -3544,113 +3544,105 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     {text:'Yapılmadı',style:'generalPdfHead',alignment:'center'},
     {text:'Görev %',style:'generalPdfHead',alignment:'center'},
     {text:'Çözülen',style:'generalPdfHead',alignment:'center'},
-    {text:'Doğru / Yanlış / Boş',style:'generalPdfHead',alignment:'center'},
+    {text:'Doğru',style:'generalPdfHead',alignment:'center'},
+    {text:'Yanlış',style:'generalPdfHead',alignment:'center'},
+    {text:'Boş',style:'generalPdfHead',alignment:'center'},
     {text:'Başarı %',style:'generalPdfHead',alignment:'center'}
   ]];
-  visibleDayRows.forEach((x,i)=>dayBody.push([
-    {text:fmtDateWithDay(x.day),fontSize:7,bold:true,fillColor:alternating(i)},
-    {text:String(x.doneStudents),fontSize:7.2,bold:true,alignment:'center',color:'#166534',fillColor:alternating(i)},
-    {text:String(x.partialStudents),fontSize:7.2,bold:true,alignment:'center',color:'#9A3412',fillColor:alternating(i)},
-    {text:String(x.missingStudents),fontSize:7.2,bold:true,alignment:'center',color:'#991B1B',fillColor:alternating(i)},
-    {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
-    {text:String(x.solved),fontSize:7,alignment:'center',fillColor:alternating(i)},
-    {text:`${x.correct} / ${x.wrong} / ${x.empty}`,fontSize:7,alignment:'center',fillColor:alternating(i)},
-    {text:x.solved?`%${reportPct(x.correct,x.solved)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.correct,x.solved)>=70?'#166534':'#991B1B',fillColor:alternating(i)}
+  dayRows.forEach((x,i)=>dayBody.push([
+    {text:`${dayName(x.day)} - ${fmtDate(x.day)}`,fontSize:6.9,bold:true,fillColor:alternating(i)},
+    {text:String(x.doneStudents),fontSize:7.1,bold:true,alignment:'center',color:'#166534',fillColor:alternating(i)},
+    {text:String(x.partialStudents),fontSize:7.1,bold:true,alignment:'center',color:'#9A3412',fillColor:alternating(i)},
+    {text:String(x.missingStudents),fontSize:7.1,bold:true,alignment:'center',color:'#991B1B',fillColor:alternating(i)},
+    {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.1,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
+    {text:String(x.solved),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.correct),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.wrong),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.empty),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
+    {text:x.solved?`%${reportPct(x.correct,x.solved)}`:'-',fontSize:7.1,bold:true,alignment:'center',color:reportPct(x.correct,x.solved)>=70?'#166534':'#991B1B',fillColor:alternating(i)}
   ]));
-  const dayTable=visibleDayRows.length?{stack:[
-    {table:{headerRows:1,dontBreakRows:true,widths:[92,55,55,65,62,60,'*',60],body:dayBody},layout:{hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3}},
-    dayRows.length>visibleDayRows.length?{text:`İlk ${visibleDayRows.length} görev günü gösterildi. Kalan ${dayRows.length-visibleDayRows.length} gün genel toplamlara dahildir.`,fontSize:6.4,color:'#64748B',margin:[0,3,0,0]}:{text:''}
-  ]}:{text:'Henüz gerçekleşen görev günü bulunmuyor.',fontSize:7,color:'#64748B',italics:true};
+  const dayTable=dayRows.length?{table:{headerRows:1,dontBreakRows:true,widths:[92,47,47,58,52,50,44,44,38,52],body:dayBody},layout:{
+    hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>3,paddingRight:()=>3,paddingTop:()=>2.7,paddingBottom:()=>2.7
+  }}:{text:'Görev günü verisi bulunmuyor.',fontSize:7,color:'#64748B',italics:true};
 
   const lessonBody=[[
     {text:'Ders',style:'generalPdfHead'},
-    {text:'Verilen',style:'generalPdfHead',alignment:'center'},
-    {text:'+ Tam',style:'generalPdfHead',alignment:'center'},
-    {text:'! Eksik',style:'generalPdfHead',alignment:'center'},
-    {text:'- Yapılmadı',style:'generalPdfHead',alignment:'center'},
     {text:'Görev %',style:'generalPdfHead',alignment:'center'},
-    {text:'Çözülen',style:'generalPdfHead',alignment:'center'},
-    {text:'Doğru / Yanlış / Boş',style:'generalPdfHead',alignment:'center'},
-    {text:'Başarı %',style:'generalPdfHead',alignment:'center'}
+    {text:'Doğru',style:'generalPdfHead',alignment:'center'},
+    {text:'Yanlış',style:'generalPdfHead',alignment:'center'},
+    {text:'Boş',style:'generalPdfHead',alignment:'center'},
+    {text:'Başarı %',style:'generalPdfHead',alignment:'center'},
+    {text:'Başarı durumu',style:'generalPdfHead',alignment:'center'}
   ]];
-  visibleLessonRows.forEach((x,i)=>lessonBody.push([
-    {text:x.lesson||'Ders',fontSize:7,bold:true,fillColor:alternating(i)},
-    {text:String(x.given),fontSize:7,alignment:'center',fillColor:alternating(i)},
-    {text:String(x.doneAssignments),fontSize:7.2,bold:true,alignment:'center',color:'#166534',fillColor:alternating(i)},
-    {text:String(x.partialAssignments),fontSize:7.2,bold:true,alignment:'center',color:'#9A3412',fillColor:alternating(i)},
-    {text:String(x.missingAssignments),fontSize:7.2,bold:true,alignment:'center',color:'#991B1B',fillColor:alternating(i)},
-    {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
-    {text:String(x.solved),fontSize:7,alignment:'center',fillColor:alternating(i)},
-    {text:`${x.correct} / ${x.wrong} / ${x.empty}`,fontSize:7,alignment:'center',fillColor:alternating(i)},
-    {text:(x.correct+x.wrong+x.empty)?`%${reportPct(x.correct,x.correct+x.wrong+x.empty)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.correct,x.correct+x.wrong+x.empty)>=70?'#166534':'#991B1B',fillColor:alternating(i)}
-  ]));
-  const lessonTable=visibleLessonRows.length?{stack:[
-    {table:{headerRows:1,dontBreakRows:true,widths:[135,50,50,50,64,58,55,'*',58],body:lessonBody},layout:{hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3}},
-    lessonRows.length>visibleLessonRows.length?{text:`İlk ${visibleLessonRows.length} ders gösterildi. Kalan ${lessonRows.length-visibleLessonRows.length} ders genel toplamlara dahildir.`,fontSize:6.4,color:'#64748B',margin:[0,3,0,0]}:{text:''}
-  ]}:{text:'Ders görevi bulunmuyor.',fontSize:7,color:'#64748B',italics:true};
+  lessonRows.forEach((x,i)=>{
+    const questionTotal=Number(x.correct||0)+Number(x.wrong||0)+Number(x.empty||0);
+    const achievement=generalPdfAchievementInfo(x.correct,questionTotal);
+    lessonBody.push([
+      {text:x.lesson||'Ders',fontSize:7,bold:true,fillColor:alternating(i)},
+      {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
+      {text:String(x.correct),fontSize:7,alignment:'center',fillColor:alternating(i)},
+      {text:String(x.wrong),fontSize:7,alignment:'center',fillColor:alternating(i)},
+      {text:String(x.empty),fontSize:7,alignment:'center',fillColor:alternating(i)},
+      {text:questionTotal?`%${reportPct(x.correct,questionTotal)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:achievement.text,fillColor:alternating(i)},
+      {text:achievement.label,fontSize:6.8,bold:true,alignment:'center',color:achievement.text,fillColor:achievement.fill,margin:[2,2,2,2]}
+    ]);
+  });
+  const lessonTable=lessonRows.length?{table:{headerRows:1,dontBreakRows:true,widths:['*',65,55,55,48,62,90],body:lessonBody},layout:{
+    hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3
+  }}:{text:'Ders görevi verisi bulunmuyor.',fontSize:7,color:'#64748B',italics:true};
 
   const highlightBody=[[
     {text:'Düzenli ilerleyen öğrenciler',style:'generalPdfHead'},
     {text:'Öncelikli takip gereken öğrenciler',style:'generalPdfHead'}
   ],[
-    {text:topCompletion.length?topCompletion.map((a,i)=>`${i+1}. ${a.student.name} - görev %${a.completionPct}, ${a.completedDays}/${totalDays} gün tamam`).join('\n'):'Henüz yeterli veri yok.',fontSize:6.8,lineHeight:1.22,fillColor:'#F0FDF4',color:'#166534',margin:[7,6,7,6]},
-    {text:supportNeeded.length?supportNeeded.slice(0,6).map((a,i)=>`${i+1}. ${a.student.name} - görev %${a.completionPct}, ${a.missingDays} gün yapılmadı`).join('\n'):'Belirgin bir takip ihtiyacı görünmüyor.',fontSize:6.8,lineHeight:1.22,fillColor:'#FFF7ED',color:'#9A3412',margin:[7,6,7,6]}
+    {text:topCompletion.length?topCompletion.map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı.`).join('\n'):'Yeterli çalışma verisi bulunmuyor.',fontSize:6.9,lineHeight:1.24,fillColor:'#F0FDF4',color:'#166534',margin:[7,6,7,6]},
+    {text:supportNeeded.length?supportNeeded.slice(0,6).map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı; ${a.missingDays} gün çalışma yok; başarı %${a.accuracy}.`).join('\n'):'Öncelikli takip grubunda öğrenci bulunmuyor.',fontSize:6.9,lineHeight:1.24,fillColor:'#FFF7ED',color:'#9A3412',margin:[7,6,7,6]}
   ]];
 
   const studentBody=[[
     {text:'#',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Öğrenci',style:'generalPdfStudentHead'},
     {text:'Sınıf / No',style:'generalPdfStudentHead',alignment:'center'},
-    {text:'Görev günleri\nTam / Eksik / Yok',style:'generalPdfStudentHead',alignment:'center'},
-    {text:'Ders görevleri\n+ / ! / -',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Görev %',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Çözülen',style:'generalPdfStudentHead',alignment:'center'},
-    {text:'Doğru / Yanlış / Boş',style:'generalPdfStudentHead',alignment:'center'},
+    {text:'Doğru',style:'generalPdfStudentHead',alignment:'center'},
+    {text:'Yanlış',style:'generalPdfStudentHead',alignment:'center'},
+    {text:'Boş',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Başarı %',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Genel değerlendirme',style:'generalPdfStudentHead'}
   ]];
   const denseStudents=studentCount>28;
-  const studentFont=denseStudents?5.6:6.3;
-  const studentPadding=denseStudents?1.5:2.4;
+  const studentFont=denseStudents?5.7:6.4;
+  const studentPadding=denseStudents?1.5:2.5;
   analyses.forEach((a,i)=>{
     const info=generalPdfStatus(a,totalDays);
-    const assignments=generalPdfStudentAssignmentCounts(a);
     const fill=alternating(i);
     studentBody.push([
       {text:String(i+1),fontSize:studentFont,alignment:'center',fillColor:fill},
       {text:a.student?.name||'Öğrenci',fontSize:studentFont+0.3,bold:true,fillColor:fill},
       {text:`${a.student?.className||'-'} / ${a.student?.no||'-'}`,fontSize:studentFont,alignment:'center',fillColor:fill},
-      {text:[
-        {text:String(a.completedDays||0),color:'#166534',bold:true},
-        {text:' / ',color:'#64748B'},
-        {text:String(a.partialDays||0),color:'#9A3412',bold:true},
-        {text:' / ',color:'#64748B'},
-        {text:String(a.missingDays||0),color:'#991B1B',bold:true}
-      ],fontSize:studentFont+0.2,alignment:'center',fillColor:fill},
-      {text:[
-        {text:`+${assignments.done}`,color:'#166534',bold:true},
-        {text:' / ',color:'#64748B'},
-        {text:`!${assignments.partial}`,color:'#9A3412',bold:true},
-        {text:' / ',color:'#64748B'},
-        {text:`-${assignments.missing}`,color:'#991B1B',bold:true}
-      ],fontSize:studentFont+0.2,alignment:'center',fillColor:fill},
       {text:`%${a.completionPct}`,fontSize:studentFont+0.4,bold:true,alignment:'center',color:a.completionPct>=70?'#166534':'#991B1B',fillColor:fill},
       {text:String(a.stats?.total||0),fontSize:studentFont,alignment:'center',fillColor:fill},
-      {text:`${a.stats?.correct||0} / ${a.stats?.wrong||0} / ${a.stats?.empty||0}`,fontSize:studentFont,alignment:'center',fillColor:fill},
+      {text:String(a.stats?.correct||0),fontSize:studentFont,alignment:'center',fillColor:fill},
+      {text:String(a.stats?.wrong||0),fontSize:studentFont,alignment:'center',fillColor:fill},
+      {text:String(a.stats?.empty||0),fontSize:studentFont,alignment:'center',fillColor:fill},
       {text:Number(a.stats?.total||0)?`%${a.accuracy}`:'-',fontSize:studentFont+0.4,bold:true,alignment:'center',color:a.accuracy>=70?'#166534':'#991B1B',fillColor:fill},
-      {text:generalPdfStudentStatusText(a,totalDays),fontSize:studentFont,bold:true,color:info.text,fillColor:info.fill,margin:[3,2,3,2]}
+      {stack:[
+        {text:info.label,fontSize:studentFont+0.15,bold:true,color:info.text,margin:[0,0,0,1]},
+        {text:generalPdfStudentStatusText(a,totalDays),fontSize:studentFont,color:'#334155',lineHeight:1.12}
+      ],fillColor:info.fill,margin:[3,2,3,2]}
     ]);
   });
-  const studentTable={table:{headerRows:1,dontBreakRows:true,widths:[18,115,58,78,78,52,45,76,48,'*'],body:studentBody},layout:{
+  const studentTable={table:{headerRows:1,dontBreakRows:true,widths:[18,110,58,52,48,42,42,38,50,'*'],body:studentBody},layout:{
     hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,
     paddingLeft:()=>3,paddingRight:()=>3,paddingTop:()=>studentPadding,paddingBottom:()=>studentPadding
   }};
 
   const managementSummary=[
-    overallCompletion>=80?`Görevlerin %${overallCompletion}'i tamamlandı; genel görev disiplini güçlü görünüyor.`:`Görev tamamlama oranı %${overallCompletion}; eksik ve yapılmayan görevler için takip gerekiyor.`,
-    overallAccuracy>=70?`Genel soru başarısı %${overallAccuracy}.`:`Genel soru başarısı %${overallAccuracy}; yanlış ve boş sorular yeniden ele alınmalı.`,
-    `${full.length} öğrenci tüm görev günlerini tamamladı, ${noWork.length} öğrencide çalışma kaydı bulunmuyor.`,
-    `${totalWrong} yanlış ve ${totalEmpty} boş soru öğretmenlerle değerlendirilmelidir.`
+    `Görev tamamlama: %${overallCompletion} (${totalCredited}/${totalTarget} soru).`,
+    `Soru sonuçları: ${totalCorrect} doğru, ${totalWrong} yanlış, ${totalEmpty} boş; genel başarı %${overallAccuracy}.`,
+    `${full.length} öğrenci tüm görev günlerini tamamladı; ${noWork.length} öğrencide çalışma kaydı bulunmuyor.`,
+    `Öğrenci-gün dağılımı: ${completedStudentDays} tam, ${partialStudentDays} eksik, ${missingStudentDays} yapılmadı.`
   ];
 
   return {
@@ -3663,34 +3655,34 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
       {type:'rect',x:0,y:0,w:pageSize.width,h:6,color:'#E66012'}
     ]}),
     footer:(currentPage,pageCount)=>({margin:[20,0,20,6],columns:[
-      {text:`Rapor: ${ctx.moment.text} - ${getTeacherName(task.teacherId)}`,fontSize:6.1,color:'#64748B'},
-      {text:`Sayfa ${currentPage} / ${pageCount}`,fontSize:6.1,color:'#64748B',alignment:'right'}
+      {text:`Rapor tarihi: ${ctx.moment.text}`,font:'Roboto',fontSize:6.1,color:'#64748B'},
+      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:6.1,color:'#64748B',alignment:'right'}
     ]}),
-    defaultStyle:{font:'Roboto',fontSize:7,color:'#263244',lineHeight:1.06},
+    defaultStyle:{font:'Roboto',fontSize:7.2,color:'#263244',lineHeight:1.08},
     styles:{
-      generalPdfHead:{fontSize:6.4,bold:true,color:'#475569',fillColor:headerFill},
-      generalPdfStudentHead:{fontSize:6,bold:true,color:'#334155',fillColor:'#E9EEF5',lineHeight:1.05}
+      generalPdfHead:{font:'Roboto',fontSize:6.5,bold:true,color:'#475569',fillColor:headerFill},
+      generalPdfStudentHead:{font:'Roboto',fontSize:6.1,bold:true,color:'#334155',fillColor:'#E9EEF5',lineHeight:1.05}
     },
     content:[
       {table:{widths:['*','auto'],body:[[
-        {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'GENEL GÖREV ANALİZ RAPORU',fontSize:7.2,bold:true,color:'#FFEDD5',characterSpacing:1.1,margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[12,8,12,8]},
+        {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'GENEL GÖREV ANALİZ RAPORU',fontSize:7.2,bold:true,color:'#FFEDD5',margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[12,8,12,8]},
         {stack:[{text:targetLabel(task),fontSize:8.5,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}`,fontSize:6.8,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[12,8,12,8]}
       ]]},layout:'noBorders'},
       {table:{widths:['*','*','*','*','*','*'],body:[[
-        generalPdfMetricCell('ÖĞRENCİ',studentCount,`${activeStudents.length} öğrenci çalışma yaptı`,'#FFFFFF','#172033'),
-        generalPdfMetricCell('GÖREV GÜNÜ',`${totalDays}/${ctx.totalPlannedDays}`,`${completedStudentDays} tam, ${partialStudentDays} eksik`,'#F8FAFC','#172033'),
+        generalPdfMetricCell('ÖĞRENCİ',studentCount,`${activeStudents.length} öğrencide çalışma kaydı var`,'#FFFFFF','#172033'),
+        generalPdfMetricCell('GÖREV GÜNÜ',`${totalDays}/${ctx.totalPlannedDays}`,`${completedStudentDays} tam, ${partialStudentDays} eksik, ${missingStudentDays} yapılmadı`,'#F8FAFC','#172033'),
         generalPdfMetricCell('GÖREV TAMAMLAMA',`%${overallCompletion}`,`${totalCredited}/${totalTarget} soru`,'#FFF7ED',overallCompletion>=70?'#166534':'#991B1B'),
         generalPdfMetricCell('TOPLAM ÇÖZÜM',totalSolved,'Sisteme işlenen soru','#FFFFFF','#172033'),
-        generalPdfMetricCell('GENEL BAŞARI',`%${overallAccuracy}`,`${totalCorrect} doğru`,'#F8FAFC',overallAccuracy>=70?'#166534':'#991B1B'),
-        generalPdfMetricCell('TAKİP GEREKEN',supportNeeded.length,`${noWork.length} öğrencide çalışma yok`,'#FFF1F2','#991B1B')
+        generalPdfMetricCell('GENEL BAŞARI',`%${overallAccuracy}`,`${totalCorrect} doğru, ${totalWrong} yanlış, ${totalEmpty} boş`,'#F8FAFC',overallAccuracy>=70?'#166534':'#991B1B'),
+        generalPdfMetricCell('ÖNCELİKLİ TAKİP',supportNeeded.length,`${noWork.length} öğrencide çalışma kaydı yok`,'#FFF1F2','#991B1B')
       ]]},layout:{hLineWidth:()=>.6,vLineWidth:()=>.6,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0},margin:[0,6,0,0]},
-      generalPdfSectionTitle('GÜNLERE GÖRE GÖREV DURUMU','Tamamlanan, eksik kalan ve yapılmayan öğrenci görevlerini gösterir.'),
+      generalPdfSectionTitle('GÜNLERE GÖRE GÖREV DURUMU'),
       dayTable,
-      generalPdfSectionTitle('DERSLERE GÖRE GÖREV VE BAŞARI ANALİZİ','+ tamamlandı, ! eksik kaldı, - yapılmadı'),
+      generalPdfSectionTitle('DERSLERE GÖRE GÖREV VE BAŞARI ANALİZİ'),
       lessonTable,
       generalPdfSectionTitle('YÖNETİCİ ÖZETİ VE ÖNCELİKLİ TAKİP'),
       {table:{widths:['*','*','*'],body:[[
-        {stack:[{text:'GENEL DEĞERLENDİRME',style:'generalPdfHead',margin:[0,0,0,4]},...managementSummary.map(x=>({text:`- ${x}`,fontSize:6.7,color:'#334155',margin:[0,1,0,1]}))],fillColor:'#FFFFFF',margin:[7,6,7,6]},
+        {stack:[{text:'GENEL DEĞERLENDİRME',style:'generalPdfHead',margin:[0,0,0,4]},...managementSummary.map(x=>({text:x,fontSize:6.8,color:'#334155',margin:[0,1,0,1]}))],fillColor:'#FFFFFF',margin:[7,6,7,6]},
         {table:{widths:['*'],body:highlightBody.map(row=>[row[0]])},layout:{hLineWidth:()=>.4,vLineWidth:()=>.4,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
         {table:{widths:['*'],body:highlightBody.map(row=>[row[1]])},layout:{hLineWidth:()=>.4,vLineWidth:()=>.4,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}}
       ]]},layout:{hLineWidth:()=>.5,vLineWidth:()=>.5,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
@@ -3699,9 +3691,7 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
           {text:'ÖĞRENCİ BAZLI GENEL DURUM',fontSize:13,bold:true,color:'#FFFFFF',fillColor:'#9A3412',margin:[10,8,10,8]},
           {text:`${studentCount} öğrenci - ${fmtDate(ctx.start)} / ${fmtDate(ctx.end)}`,fontSize:7,bold:true,color:'#FFFFFF',alignment:'right',fillColor:'#E66012',margin:[10,10,10,8]}
         ]]},layout:'noBorders'},
-        {text:'Görev günleri sütunu Tam / Eksik / Yok; ders görevleri sütunu + Tam / ! Eksik / - Yapılmadı sırasındadır.',fontSize:6.5,color:'#64748B',margin:[0,5,0,4]},
-        studentTable,
-        {text:'Not: Yanlış ve boş sorular öğrenciler tarafından yeniden çözülmeli ve anlaşılmayan sorular öğretmenlere mutlaka sorulmalıdır.',fontSize:6.5,bold:true,color:'#7C2D12',fillColor:'#FFF7ED',margin:[7,5,7,5]}
+        studentTable
       ],pageBreak:'before'}
     ]
   };
@@ -3733,7 +3723,8 @@ async function prepareTaskReportData(taskKey,momentDate=new Date()){
   const task=state.tasks.find(x=>x.key===taskKey);
   if(!task) throw new Error('Görev bulunamadı.');
   const moment=reportMomentInfo(momentDate);
-  const start=isoFromAny(task.start);
+  const plannedDays=taskDayKeys(task);
+  const start=isoFromAny(task.start)||plannedDays[0]||'';
   const end=taskReportEffectiveEnd(task,momentDate);
   if(!start) throw new Error('Görevin başlangıç tarihi geçersiz.');
   if(start>end) throw new Error(`Bu görev henüz başlamadı. Başlangıç: ${fmtDate(start)}`);
@@ -3741,12 +3732,12 @@ async function prepareTaskReportData(taskKey,momentDate=new Date()){
   const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:task.className||''});
   if(!students.length) throw new Error('Bu görev için raporlanacak öğrenci bulunamadı.');
   const dayContext=taskReportDayContext(task,start,end);
-  const plannedEnd=isoFromAny(task.end)||end;
+  const plannedEnd=isoFromAny(task.end)||plannedDays[plannedDays.length-1]||end;
   const totalPlannedDays=taskDayKeys(task).filter(day=>day>=start && day<=plannedEnd).length;
-  const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true,endDate:end,endTime:moment.time})));
+  const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true})));
   const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
     .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
-  const ctx={start,end,moment,dayContext,totalPlannedDays};
+  const ctx={start,end,moment,dayContext,totalPlannedDays,isPast:plannedEnd<appDateISO(momentDate)};
   const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
   return {task,analyses,ctx,period};
 }
@@ -3795,18 +3786,15 @@ function studentPdfTopicRows(a){
 function studentPdfWeakSubjects(a){return studentPdfSubjectRows(a).filter(x=>x.pct<70);}
 function studentPdfWeakTopics(a){return studentPdfTopicRows(a).filter(x=>x.pct<70);}
 function studentPdfDayLabel(d){
-  const name=String(dayName(d.day)||'').slice(0,3);
-  return `${studentPdfShortDate(d.day)} ${name}`.trim();
+  const shortDays={Pazartesi:'Pzt',Salı:'Sal',Çarşamba:'Çar',Perşembe:'Per',Cuma:'Cum',Cumartesi:'Cmt',Pazar:'Paz'};
+  const full=String(dayName(d.day)||'');
+  return `${studentPdfShortDate(d.day)} ${shortDays[full]||full}`.trim();
 }
-function studentPdfStatusInfo(key){
-  if(key==='done') return {label:'Tamamlandı',fill:'#ECFDF3',text:'#166534',border:'#A7F3D0'};
-  if(key==='partial') return {label:'Eksik kaldı',fill:'#FFF7ED',text:'#9A3412',border:'#FED7AA'};
-  return {label:'Yapılmadı',fill:'#FFF1F2',text:'#991B1B',border:'#FECDD3'};
-}
+
 function studentPdfResultInfo(pct){
   if(pct>=85) return {label:'Çok iyi',fill:'#DCFCE7',text:'#166534'};
   if(pct>=70) return {label:'İyi',fill:'#EAF2FF',text:'#1D4ED8'};
-  return {label:'Çalışılmalı',fill:'#FFF1F2',text:'#991B1B'};
+  return {label:'Düşük',fill:'#FFF1F2',text:'#991B1B'};
 }
 function studentPdfCompactNames(items,labelFn,limit=4){
   const names=(items||[]).map(labelFn).filter(Boolean);
@@ -3821,21 +3809,18 @@ function studentPdfGeneralStatusRows(a){
   const wrong=Number(a.stats?.wrong||0);
   const empty=Number(a.stats?.empty||0);
   const dayText=rows=>rows.length?studentPdfCompactNames(rows,x=>studentPdfDayLabel(x),10):'Yok';
-  const questionText=wrong>0 || empty>0
-    ? `${wrong} yanlış ve ${empty} boş soru bulunuyor. Yanlış yaptığın ve boş bıraktığın bu soruları öğretmenlerine mutlaka sormalısın.`
-    : 'Yanlış veya boş bırakılan soru bulunmuyor.';
   return [
     {label:'Tamamlanan günler',value:`${completed.length} gün`,detail:dayText(completed),fill:'#ECFDF3',text:'#166534'},
     {label:'Eksik yapılan günler',value:`${partial.length} gün`,detail:dayText(partial),fill:'#FFF7ED',text:'#9A3412'},
     {label:'Yapılmayan günler',value:`${missing.length} gün`,detail:dayText(missing),fill:'#FFF1F2',text:'#991B1B'},
-    {label:'Yanlış ve boş sorular',value:`${wrong} yanlış / ${empty} boş`,detail:questionText,fill:'#EFF6FF',text:'#1D4ED8'}
+    {label:'Yanlış ve boş sorular',value:`${wrong} yanlış / ${empty} boş`,detail:`Toplam ${wrong+empty} soru`,fill:'#EFF6FF',text:'#1D4ED8'}
   ];
 }
 function studentPdfSummaryText(a){
   const totalDays=(a.days||[]).length;
   const correct=Number(a.stats?.correct||0),wrong=Number(a.stats?.wrong||0),empty=Number(a.stats?.empty||0);
-  if(!Number(a.stats?.total||0)) return `${totalDays} görev gününün hiçbirinde soru çözümü görünmüyor.`;
-  return `${totalDays} görev gününün ${a.completedDays} gününü tamamladın; ${a.partialDays} gün eksik kaldı, ${a.missingDays} günde çalışma yapılmadı. Toplam ${a.stats.total} soru çözdün: ${correct} doğru, ${wrong} yanlış, ${empty} boş.`;
+  if(!Number(a.stats?.total||0)) return `${totalDays} görev gününde soru çözümü kaydı bulunmuyor.`;
+  return `${totalDays} görev gününün ${a.completedDays} günü tamamlandı; ${a.partialDays} gün eksik kaldı, ${a.missingDays} günde çalışma yapılmadı. Toplam ${a.stats.total} soru çözüldü: ${correct} doğru, ${wrong} yanlış, ${empty} boş.`;
 }
 function studentPdfMetricCell(title,value,detail,fill='#FFFFFF',valueColor='#172033'){
   return {fillColor:fill,margin:[8,7,8,7],stack:[
@@ -3849,8 +3834,7 @@ function studentPdfSectionTitle(text){
 }
 function studentPdfSubjectTable(a){
   const rows=studentPdfSubjectRows(a);
-  if(!rows.length) return {text:'Derslere göre sonuç oluşmadı.',fontSize:8,color:'#64748B',italics:true,margin:[0,3,0,3]};
-  const visible=rows.slice(0,7);
+  if(!rows.length) return {text:'Ders sonucu bulunmuyor.',fontSize:8,color:'#64748B',italics:true,margin:[0,3,0,3]};
   const body=[[
     {text:'Ders',style:'pdfTableHead'},
     {text:'Soru',style:'pdfTableHead',alignment:'center'},
@@ -3858,7 +3842,7 @@ function studentPdfSubjectTable(a){
     {text:'Başarı',style:'pdfTableHead',alignment:'center'},
     {text:'Durum',style:'pdfTableHead',alignment:'center'}
   ]];
-  visible.forEach(x=>{
+  rows.forEach(x=>{
     const result=studentPdfResultInfo(x.pct);
     body.push([
       {text:x.lesson||'Ders',fontSize:7.5,bold:true,color:'#263244'},
@@ -3868,14 +3852,10 @@ function studentPdfSubjectTable(a){
       {text:result.label,fontSize:6.8,bold:true,alignment:'center',color:result.text,fillColor:result.fill,margin:[2,2,2,2]}
     ]);
   });
-  const table={table:{headerRows:1,widths:['*',35,88,42,58],body},layout:{
+  return {table:{headerRows:1,widths:['*',35,88,42,58],body},layout:{
     hLineWidth:()=>.55,vLineWidth:()=>.55,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',
     paddingLeft:()=>5,paddingRight:()=>5,paddingTop:()=>4,paddingBottom:()=>4
   }};
-  if(rows.length>visible.length){
-    return {stack:[table,{text:`En fazla soru çözülen 7 ders gösterildi. Diğer ${rows.length-visible.length} ders genel toplama dahildir.`,fontSize:6.5,color:'#64748B',margin:[0,3,0,0]}]};
-  }
-  return table;
 }
 function studentPdfWeakAreaRows(a){
   const weakTopics=studentPdfWeakTopics(a);
@@ -3889,7 +3869,7 @@ function studentPdfWeakAreaRows(a){
 }
 function studentPdfWeakAreaBox(a){
   if(!Number(a.stats?.total||0)){
-    return {table:{widths:['*'],body:[[{text:'Henüz ders veya konu sonucu oluşmadı.',fontSize:8,color:'#64748B',margin:[7,6,7,6],fillColor:'#F8FAFC'}]]},layout:'noBorders'};
+    return {table:{widths:['*'],body:[[{text:'Ders veya konu sonucu bulunmuyor.',fontSize:8,color:'#64748B',margin:[7,6,7,6],fillColor:'#F8FAFC'}]]},layout:'noBorders'};
   }
   const rows=studentPdfWeakAreaRows(a);
   if(!rows.length){
@@ -3906,15 +3886,10 @@ function studentPdfWeakAreaBox(a){
     {text:x.topic,fontSize:7.5,color:'#475569',fillColor:i%2?'#FFFFFF':'#FFF8F8'},
     {text:`%${x.pct}`,fontSize:8,bold:true,alignment:'center',color:'#991B1B',fillColor:'#FFF1F2'}
   ]));
-  const table={table:{headerRows:1,widths:[105,'*',62],body},layout:{
+  return {table:{headerRows:1,widths:[105,'*',62],body},layout:{
     hLineWidth:()=>.55,vLineWidth:()=>.55,hLineColor:()=> '#FECDD3',vLineColor:()=> '#FECDD3',
     paddingLeft:()=>5,paddingRight:()=>5,paddingTop:()=>4,paddingBottom:()=>4
   }};
-  const note={text:'Bu alanlardaki yanlış ve boş sorular yeniden çözülmeli; anlaşılmayan sorular öğretmene sorulmalıdır.',fontSize:7.3,bold:true,color:'#991B1B',fillColor:'#FFF1F2',margin:[7,5,7,5]};
-  if(rows.length>visible.length){
-    return {stack:[table,note,{text:`Diğer ${rows.length-visible.length} çalışma alanı genel değerlendirmeye dahildir.`,fontSize:6.5,color:'#64748B',margin:[0,3,0,0]}]};
-  }
-  return {stack:[table,note]};
 }
 function studentPdfGeneralStatusTable(a){
   const rows=studentPdfGeneralStatusRows(a);
@@ -3929,47 +3904,41 @@ function studentPdfGeneralStatusTable(a){
 }
 function studentPdfDayAssignmentCell(d){
   const rows=d.lessonRows||[];
-  if(!rows.length) return {text:'Bu gün ders görevi verilmemiş.',fontSize:6.8,color:'#64748B',italics:true};
+  if(!rows.length) return {text:'Ders görevi verilmedi.',fontSize:6.8,color:'#64748B',italics:true};
   const parts=[];
   rows.forEach((x,index)=>{
     const status=x.status==='done'?'done':x.status==='partial'?'partial':'missing';
     const symbol=status==='done'?'+':status==='partial'?'!':'-';
     const color=status==='done'?'#166534':status==='partial'?'#9A3412':'#991B1B';
-    if(index>0) parts.push({text:'    ',color:'#94A3B8'});
-    parts.push({text:`${symbol} ${x.lesson}`,bold:true,color});
-    parts.push({text:` ${Number(x.done||0)}/${Number(x.target||0)}`,color,fontSize:6.4});
+    if(index>0) parts.push({text:'  |  ',color:'#94A3B8',bold:true});
+    parts.push({text:`${symbol} ${x.lesson} ${Number(x.done||0)}/${Number(x.target||0)}`,bold:true,color});
   });
-  return {text:parts,fontSize:6.8,lineHeight:1.15};
+  return {text:parts,fontSize:6.9,lineHeight:1.14};
 }
 function studentPdfDayTable(a){
   const days=a.days||[];
-  if(!days.length) return {text:'Gerçekleşen görev günü bulunmuyor.',fontSize:8,color:'#64748B',italics:true};
+  if(!days.length) return {text:'Görev günü verisi bulunmuyor.',fontSize:8,color:'#64748B',italics:true};
   const body=[[
     {text:'Gün',style:'pdfTableHead'},
-    {text:'Durum',style:'pdfTableHead',alignment:'center'},
+    {text:'Ders görevleri (+ / ! / -)',style:'pdfTableHead'},
     {text:'Hedef / Çözüm',style:'pdfTableHead',alignment:'center'},
-    {text:'Verilen ders görevleri',style:'pdfTableHead'},
     {text:'Doğru / Yanlış / Boş',style:'pdfTableHead',alignment:'center'},
     {text:'Başarı',style:'pdfTableHead',alignment:'center'}
   ]];
   days.forEach((d,i)=>{
-    const info=studentPdfStatusInfo(d.statusKey);
+    const fill=i%2?'#FFFFFF':'#F8FAFC';
     body.push([
-      {text:studentPdfDayLabel(d),fontSize:7.1,bold:true,color:'#263244',fillColor:i%2?'#FFFFFF':'#F8FAFC'},
-      {text:info.label,fontSize:6.8,bold:true,alignment:'center',color:info.text,fillColor:info.fill,margin:[2,2,2,2]},
-      {text:`${Number(d.targetTotal||0)} / ${Number(d.doneTotal||0)}`,fontSize:7.1,bold:true,alignment:'center',color:'#334155',fillColor:i%2?'#FFFFFF':'#F8FAFC'},
-      {...studentPdfDayAssignmentCell(d),fillColor:i%2?'#FFFFFF':'#F8FAFC'},
-      {text:`${Number(d.correct||0)} / ${Number(d.wrong||0)} / ${Number(d.empty||0)}`,fontSize:7,alignment:'center',color:'#334155',fillColor:i%2?'#FFFFFF':'#F8FAFC'},
-      {text:Number(d.doneTotal||0)>0?`%${Number(d.accuracy||0)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:Number(d.accuracy||0)>=70?'#166534':'#991B1B',fillColor:i%2?'#FFFFFF':'#F8FAFC'}
+      {text:studentPdfDayLabel(d),fontSize:7.1,bold:true,color:'#263244',fillColor:fill},
+      {...studentPdfDayAssignmentCell(d),fillColor:fill},
+      {text:`${Number(d.targetTotal||0)} / ${Number(d.doneTotal||0)}`,fontSize:7.1,bold:true,alignment:'center',color:'#334155',fillColor:fill},
+      {text:`${Number(d.correct||0)} / ${Number(d.wrong||0)} / ${Number(d.empty||0)}`,fontSize:7,alignment:'center',color:'#334155',fillColor:fill},
+      {text:Number(d.doneTotal||0)>0?`%${Number(d.accuracy||0)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:Number(d.accuracy||0)>=70?'#166534':'#991B1B',fillColor:fill}
     ]);
   });
-  return {stack:[
-    {text:'+ yeşil: görev tamamlandı. ! turuncu: görev eksik kaldı. - kırmızı: görev yapılmadı. Ders görevleri aynı satırda yan yana gösterilir.',fontSize:6.7,color:'#64748B',margin:[0,0,0,3]},
-    {table:{headerRows:1,dontBreakRows:true,widths:[48,52,56,'*',66,40],body},layout:{
-      hLineWidth:()=>.5,vLineWidth:()=>.5,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',
-      paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3
-    }}
-  ]};
+  return {table:{headerRows:1,dontBreakRows:true,widths:[52,'*',62,76,44],body},layout:{
+    hLineWidth:()=>.5,vLineWidth:()=>.5,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',
+    paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3
+  }};
 }
 function studentPdfPageContent(a,index,total,task,ctx){
   const st=a.student||{};
@@ -4014,11 +3983,11 @@ function buildStudentPdfDocument(task,analyses,ctx){
       {type:'rect',x:0,y:0,w:pageSize.width,h:6,color:'#E66012'}
     ]}),
     footer:(currentPage,pageCount)=>({margin:[22,0,22,8],columns:[
-      {text:'Fenomen Eğitim Kurumları',fontSize:6.8,bold:true,color:'#9A3412'},
-      {text:`Sayfa ${currentPage} / ${pageCount}`,fontSize:6.8,color:'#64748B',alignment:'right'}
+      {text:'Fenomen Eğitim Kurumları',font:'Roboto',fontSize:6.8,bold:true,color:'#9A3412'},
+      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:6.8,color:'#64748B',alignment:'right'}
     ]}),
-    defaultStyle:{font:'Roboto',fontSize:8,color:'#263244',lineHeight:1.08},
-    styles:{pdfTableHead:{fontSize:6.8,bold:true,color:'#475569',fillColor:'#EEF2F7'}},
+    defaultStyle:{font:'Roboto',fontSize:8.1,color:'#263244',lineHeight:1.1},
+    styles:{pdfTableHead:{font:'Roboto',fontSize:6.9,bold:true,color:'#475569',fillColor:'#EEF2F7'}},
     content:analyses.map((a,i)=>studentPdfPageContent(a,i,analyses.length,task,ctx))
   };
 }
