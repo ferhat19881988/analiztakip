@@ -3305,6 +3305,13 @@ function planHtml(w){
   return out;
 }
 /* Görev kartından indirilen genel PDF ve öğrenci metin raporları. */
+const PDF_REPORT_STATUS=Object.freeze({
+  done:{text:'#166534',fill:'#ECFDF3'},
+  partial:{text:'#5B21B6',fill:'#F3E8FF'},
+  missing:{text:'#991B1B',fill:'#FFF1F2'},
+  info:{text:'#1D4ED8',fill:'#EFF6FF'},
+  neutral:{text:'#64748B',fill:'#F1F5F9'}
+});
 function reportPct(value,total){return total>0?Math.round((Number(value||0)/Number(total||0))*100):0;}
 function reportAverage(values){const nums=(values||[]).map(Number).filter(Number.isFinite); return nums.length?Math.round(nums.reduce((s,n)=>s+n,0)/nums.length):0;}
 function reportFilePart(value){
@@ -3427,22 +3434,22 @@ function taskReportStatusEmoji(key){return key==='done'?'✅':key==='partial'?'�
 function taskReportStatusLabel(key){return key==='done'?'Tamamlandı':key==='partial'?'Eksik tamamlandı':'Çalışma görünmüyor';}
 function generalPdfMetricCell(title,value,detail,fill='#FFFFFF',valueColor='#172033'){
   return {fillColor:fill,margin:[8,7,8,7],stack:[
-    {text:title,fontSize:6.5,bold:true,color:'#64748B',characterSpacing:.35},
+    {text:title,fontSize:7.3,bold:true,color:'#64748B',characterSpacing:.25},
     {text:String(value),fontSize:16,bold:true,color:valueColor,margin:[0,3,0,1]},
-    {text:detail,fontSize:6.3,color:'#64748B'}
+    {text:detail,fontSize:7,color:'#64748B'}
   ]};
 }
 function generalPdfSectionTitle(text){
-  return {text,bold:true,fontSize:9.4,color:'#9A3412',margin:[0,8,0,4],characterSpacing:.15};
+  return {text,bold:true,fontSize:10,color:'#9A3412',margin:[0,8,0,4],characterSpacing:.1};
 }
 function generalPdfStatus(a,totalDays){
   const total=Number(a.stats?.total||0);
-  if(!total) return {label:'Çalışma kaydı yok',fill:'#FFF1F2',text:'#991B1B'};
-  if(totalDays>0 && a.completedDays===totalDays && a.completionPct>=95) return {label:'Tüm görevler tamamlandı',fill:'#ECFDF3',text:'#166534'};
-  if(a.completionPct>=85 && a.accuracy>=70) return {label:'Düzenli ve başarılı',fill:'#ECFDF3',text:'#166534'};
-  if(a.completionPct>=70) return {label:'Düzenli ilerleme',fill:'#EFF6FF',text:'#1D4ED8'};
-  if(a.completionPct>=40) return {label:'Kısmi tamamlama',fill:'#FFF7ED',text:'#9A3412'};
-  return {label:'Düşük tamamlama',fill:'#FFF1F2',text:'#991B1B'};
+  if(!total) return {label:'Çalışma kaydı yok',...PDF_REPORT_STATUS.missing};
+  if(totalDays>0 && a.completedDays===totalDays && a.completionPct>=95) return {label:'Tüm görevler tamamlandı',...PDF_REPORT_STATUS.done};
+  if(a.completionPct>=85 && a.accuracy>=70) return {label:'Düzenli ve başarılı',...PDF_REPORT_STATUS.done};
+  if(a.completionPct>=70) return {label:'Düzenli ilerleme',...PDF_REPORT_STATUS.info};
+  if(a.completionPct>=40) return {label:'Kısmi tamamlama',...PDF_REPORT_STATUS.partial};
+  return {label:'Düşük tamamlama',...PDF_REPORT_STATUS.missing};
 }
 
 function generalPdfStudentStatusText(a,totalDays){
@@ -3503,12 +3510,12 @@ function generalPdfDayRows(analyses,ctx){
 
 function generalPdfAchievementInfo(correct,total){
   const count=Number(total||0);
-  if(!count) return {label:'Veri yok',fill:'#F1F5F9',text:'#64748B'};
+  if(!count) return {label:'Veri yok',...PDF_REPORT_STATUS.neutral};
   const pct=reportPct(correct,count);
-  if(pct>=85) return {label:'Çok iyi',fill:'#ECFDF3',text:'#166534'};
-  if(pct>=70) return {label:'İyi',fill:'#EFF6FF',text:'#1D4ED8'};
-  if(pct>=50) return {label:'Orta',fill:'#FFF7ED',text:'#9A3412'};
-  return {label:'Düşük',fill:'#FFF1F2',text:'#991B1B'};
+  if(pct>=85) return {label:'Çok iyi',...PDF_REPORT_STATUS.done};
+  if(pct>=70) return {label:'İyi',...PDF_REPORT_STATUS.info};
+  if(pct>=50) return {label:'Orta',...PDF_REPORT_STATUS.partial};
+  return {label:'Düşük',...PDF_REPORT_STATUS.missing};
 }
 function buildTaskGeneralPdfDocument(task,analyses,ctx){
   const studentCount=analyses.length;
@@ -3550,16 +3557,16 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     {text:'Başarı %',style:'generalPdfHead',alignment:'center'}
   ]];
   dayRows.forEach((x,i)=>dayBody.push([
-    {text:`${dayName(x.day)} - ${fmtDate(x.day)}`,fontSize:6.9,bold:true,fillColor:alternating(i)},
-    {text:String(x.doneStudents),fontSize:7.1,bold:true,alignment:'center',color:'#166534',fillColor:alternating(i)},
-    {text:String(x.partialStudents),fontSize:7.1,bold:true,alignment:'center',color:'#9A3412',fillColor:alternating(i)},
-    {text:String(x.missingStudents),fontSize:7.1,bold:true,alignment:'center',color:'#991B1B',fillColor:alternating(i)},
-    {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.1,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
-    {text:String(x.solved),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
-    {text:String(x.correct),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
-    {text:String(x.wrong),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
-    {text:String(x.empty),fontSize:6.9,alignment:'center',fillColor:alternating(i)},
-    {text:x.solved?`%${reportPct(x.correct,x.solved)}`:'-',fontSize:7.1,bold:true,alignment:'center',color:reportPct(x.correct,x.solved)>=70?'#166534':'#991B1B',fillColor:alternating(i)}
+    {text:`${dayName(x.day)} - ${fmtDate(x.day)}`,fontSize:7.4,bold:true,fillColor:alternating(i)},
+    {text:String(x.doneStudents),fontSize:7.6,bold:true,alignment:'center',color:PDF_REPORT_STATUS.done.text,fillColor:alternating(i)},
+    {text:String(x.partialStudents),fontSize:7.6,bold:true,alignment:'center',color:PDF_REPORT_STATUS.partial.text,fillColor:alternating(i)},
+    {text:String(x.missingStudents),fontSize:7.6,bold:true,alignment:'center',color:PDF_REPORT_STATUS.missing.text,fillColor:alternating(i)},
+    {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.6,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?PDF_REPORT_STATUS.done.text:PDF_REPORT_STATUS.missing.text,fillColor:alternating(i)},
+    {text:String(x.solved),fontSize:7.4,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.correct),fontSize:7.4,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.wrong),fontSize:7.4,alignment:'center',fillColor:alternating(i)},
+    {text:String(x.empty),fontSize:7.4,alignment:'center',fillColor:alternating(i)},
+    {text:x.solved?`%${reportPct(x.correct,x.solved)}`:'-',fontSize:7.6,bold:true,alignment:'center',color:reportPct(x.correct,x.solved)>=70?PDF_REPORT_STATUS.done.text:PDF_REPORT_STATUS.missing.text,fillColor:alternating(i)}
   ]));
   const dayTable=dayRows.length?{table:{headerRows:1,dontBreakRows:true,widths:[92,47,47,58,52,50,44,44,38,52],body:dayBody},layout:{
     hLineWidth:()=>.45,vLineWidth:()=>.45,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>3,paddingRight:()=>3,paddingTop:()=>2.7,paddingBottom:()=>2.7
@@ -3578,13 +3585,13 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     const questionTotal=Number(x.correct||0)+Number(x.wrong||0)+Number(x.empty||0);
     const achievement=generalPdfAchievementInfo(x.correct,questionTotal);
     lessonBody.push([
-      {text:x.lesson||'Ders',fontSize:7,bold:true,fillColor:alternating(i)},
-      {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.2,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?'#166534':'#991B1B',fillColor:alternating(i)},
-      {text:String(x.correct),fontSize:7,alignment:'center',fillColor:alternating(i)},
-      {text:String(x.wrong),fontSize:7,alignment:'center',fillColor:alternating(i)},
-      {text:String(x.empty),fontSize:7,alignment:'center',fillColor:alternating(i)},
-      {text:questionTotal?`%${reportPct(x.correct,questionTotal)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:achievement.text,fillColor:alternating(i)},
-      {text:achievement.label,fontSize:6.8,bold:true,alignment:'center',color:achievement.text,fillColor:achievement.fill,margin:[2,2,2,2]}
+      {text:x.lesson||'Ders',fontSize:7.6,bold:true,fillColor:alternating(i)},
+      {text:`%${reportPct(x.credit,x.target)}`,fontSize:7.7,bold:true,alignment:'center',color:reportPct(x.credit,x.target)>=70?PDF_REPORT_STATUS.done.text:PDF_REPORT_STATUS.missing.text,fillColor:alternating(i)},
+      {text:String(x.correct),fontSize:7.5,alignment:'center',fillColor:alternating(i)},
+      {text:String(x.wrong),fontSize:7.5,alignment:'center',fillColor:alternating(i)},
+      {text:String(x.empty),fontSize:7.5,alignment:'center',fillColor:alternating(i)},
+      {text:questionTotal?`%${reportPct(x.correct,questionTotal)}`:'-',fontSize:7.7,bold:true,alignment:'center',color:achievement.text,fillColor:alternating(i)},
+      {text:achievement.label,fontSize:7.4,bold:true,alignment:'center',color:achievement.text,fillColor:achievement.fill,margin:[2,2,2,2]}
     ]);
   });
   const lessonTable=lessonRows.length?{table:{headerRows:1,dontBreakRows:true,widths:['*',65,55,55,48,62,90],body:lessonBody},layout:{
@@ -3595,8 +3602,8 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     {text:'Düzenli ilerleyen öğrenciler',style:'generalPdfHead'},
     {text:'Öncelikli takip gereken öğrenciler',style:'generalPdfHead'}
   ],[
-    {text:topCompletion.length?topCompletion.map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı.`).join('\n'):'Yeterli çalışma verisi bulunmuyor.',fontSize:6.9,lineHeight:1.24,fillColor:'#F0FDF4',color:'#166534',margin:[7,6,7,6]},
-    {text:supportNeeded.length?supportNeeded.slice(0,6).map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı; ${a.missingDays} gün çalışma yok; başarı %${a.accuracy}.`).join('\n'):'Öncelikli takip grubunda öğrenci bulunmuyor.',fontSize:6.9,lineHeight:1.24,fillColor:'#FFF7ED',color:'#9A3412',margin:[7,6,7,6]}
+    {text:topCompletion.length?topCompletion.map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı.`).join('\n'):'Yeterli çalışma verisi bulunmuyor.',fontSize:7.3,lineHeight:1.28,fillColor:'#F0FDF4',color:'#166534',margin:[7,6,7,6]},
+    {text:supportNeeded.length?supportNeeded.slice(0,6).map((a,i)=>`${i+1}. ${a.student.name} - Görev %${a.completionPct}; ${totalDays} günün ${a.completedDays} gününü tamamladı; ${a.missingDays} gün çalışma yok; başarı %${a.accuracy}.`).join('\n'):'Öncelikli takip grubunda öğrenci bulunmuyor.',fontSize:7.3,lineHeight:1.28,fillColor:'#FFF7ED',color:'#9A3412',margin:[7,6,7,6]}
   ]];
 
   const studentBody=[[
@@ -3611,9 +3618,8 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     {text:'Başarı %',style:'generalPdfStudentHead',alignment:'center'},
     {text:'Genel değerlendirme',style:'generalPdfStudentHead'}
   ]];
-  const denseStudents=studentCount>28;
-  const studentFont=denseStudents?5.7:6.4;
-  const studentPadding=denseStudents?1.5:2.5;
+  const studentFont=7;
+  const studentPadding=2.4;
   analyses.forEach((a,i)=>{
     const info=generalPdfStatus(a,totalDays);
     const fill=alternating(i);
@@ -3655,18 +3661,18 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
       {type:'rect',x:0,y:0,w:pageSize.width,h:6,color:'#E66012'}
     ]}),
     footer:(currentPage,pageCount)=>({margin:[20,0,20,6],columns:[
-      {text:`Rapor tarihi: ${ctx.moment.text}`,font:'Roboto',fontSize:6.1,color:'#64748B'},
-      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:6.1,color:'#64748B',alignment:'right'}
+      {text:`Rapor tarihi: ${ctx.moment.text}`,font:'Roboto',fontSize:7,color:'#64748B'},
+      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:7,color:'#64748B',alignment:'right'}
     ]}),
-    defaultStyle:{font:'Roboto',fontSize:7.2,color:'#263244',lineHeight:1.08},
+    defaultStyle:{font:'Roboto',fontSize:8,color:'#263244',lineHeight:1.12},
     styles:{
-      generalPdfHead:{font:'Roboto',fontSize:6.5,bold:true,color:'#475569',fillColor:headerFill},
-      generalPdfStudentHead:{font:'Roboto',fontSize:6.1,bold:true,color:'#334155',fillColor:'#E9EEF5',lineHeight:1.05}
+      generalPdfHead:{font:'Roboto',fontSize:7.4,bold:true,color:'#475569',fillColor:headerFill},
+      generalPdfStudentHead:{font:'Roboto',fontSize:7,bold:true,color:'#334155',fillColor:'#E9EEF5',lineHeight:1.1}
     },
     content:[
       {table:{widths:['*','auto'],body:[[
-        {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'GENEL GÖREV ANALİZ RAPORU',fontSize:7.2,bold:true,color:'#FFEDD5',margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[12,8,12,8]},
-        {stack:[{text:targetLabel(task),fontSize:8.5,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}`,fontSize:6.8,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[12,8,12,8]}
+        {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'GENEL GÖREV ANALİZ RAPORU',fontSize:8,bold:true,color:'#FFEDD5',margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[12,8,12,8]},
+        {stack:[{text:targetLabel(task),fontSize:9,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}`,fontSize:7.5,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[12,8,12,8]}
       ]]},layout:'noBorders'},
       {table:{widths:['*','*','*','*','*','*'],body:[[
         generalPdfMetricCell('ÖĞRENCİ',studentCount,`${activeStudents.length} öğrencide çalışma kaydı var`,'#FFFFFF','#172033'),
@@ -3682,14 +3688,14 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
       lessonTable,
       generalPdfSectionTitle('YÖNETİCİ ÖZETİ VE ÖNCELİKLİ TAKİP'),
       {table:{widths:['*','*','*'],body:[[
-        {stack:[{text:'GENEL DEĞERLENDİRME',style:'generalPdfHead',margin:[0,0,0,4]},...managementSummary.map(x=>({text:x,fontSize:6.8,color:'#334155',margin:[0,1,0,1]}))],fillColor:'#FFFFFF',margin:[7,6,7,6]},
+        {stack:[{text:'GENEL DEĞERLENDİRME',style:'generalPdfHead',margin:[0,0,0,4]},...managementSummary.map(x=>({text:x,fontSize:7.3,color:'#334155',margin:[0,1,0,1]}))],fillColor:'#FFFFFF',margin:[7,6,7,6]},
         {table:{widths:['*'],body:highlightBody.map(row=>[row[0]])},layout:{hLineWidth:()=>.4,vLineWidth:()=>.4,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
         {table:{widths:['*'],body:highlightBody.map(row=>[row[1]])},layout:{hLineWidth:()=>.4,vLineWidth:()=>.4,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}}
       ]]},layout:{hLineWidth:()=>.5,vLineWidth:()=>.5,hLineColor:()=>line,vLineColor:()=>line,paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
       {stack:[
         {table:{widths:['*','auto'],body:[[
           {text:'ÖĞRENCİ BAZLI GENEL DURUM',fontSize:13,bold:true,color:'#FFFFFF',fillColor:'#9A3412',margin:[10,8,10,8]},
-          {text:`${studentCount} öğrenci - ${fmtDate(ctx.start)} / ${fmtDate(ctx.end)}`,fontSize:7,bold:true,color:'#FFFFFF',alignment:'right',fillColor:'#E66012',margin:[10,10,10,8]}
+          {text:`${studentCount} öğrenci - ${fmtDate(ctx.start)} / ${fmtDate(ctx.end)}`,fontSize:7.6,bold:true,color:'#FFFFFF',alignment:'right',fillColor:'#E66012',margin:[10,10,10,8]}
         ]]},layout:'noBorders'},
         studentTable
       ],pageBreak:'before'}
@@ -3792,9 +3798,9 @@ function studentPdfDayLabel(d){
 }
 
 function studentPdfResultInfo(pct){
-  if(pct>=85) return {label:'Çok iyi',fill:'#DCFCE7',text:'#166534'};
-  if(pct>=70) return {label:'İyi',fill:'#EAF2FF',text:'#1D4ED8'};
-  return {label:'Düşük',fill:'#FFF1F2',text:'#991B1B'};
+  if(pct>=85) return {label:'Çok iyi',...PDF_REPORT_STATUS.done};
+  if(pct>=70) return {label:'İyi',...PDF_REPORT_STATUS.info};
+  return {label:'Düşük',...PDF_REPORT_STATUS.missing};
 }
 function studentPdfCompactNames(items,labelFn,limit=4){
   const names=(items||[]).map(labelFn).filter(Boolean);
@@ -3810,9 +3816,9 @@ function studentPdfGeneralStatusRows(a){
   const empty=Number(a.stats?.empty||0);
   const dayText=rows=>rows.length?studentPdfCompactNames(rows,x=>studentPdfDayLabel(x),10):'Yok';
   return [
-    {label:'Tamamlanan günler',value:`${completed.length} gün`,detail:dayText(completed),fill:'#ECFDF3',text:'#166534'},
-    {label:'Eksik yapılan günler',value:`${partial.length} gün`,detail:dayText(partial),fill:'#FFF7ED',text:'#9A3412'},
-    {label:'Yapılmayan günler',value:`${missing.length} gün`,detail:dayText(missing),fill:'#FFF1F2',text:'#991B1B'},
+    {label:'Tamamlanan günler',value:`${completed.length} gün`,detail:dayText(completed),...PDF_REPORT_STATUS.done},
+    {label:'Eksik yapılan günler',value:`${partial.length} gün`,detail:dayText(partial),...PDF_REPORT_STATUS.partial},
+    {label:'Yapılmayan günler',value:`${missing.length} gün`,detail:dayText(missing),...PDF_REPORT_STATUS.missing},
     {label:'Yanlış ve boş sorular',value:`${wrong} yanlış / ${empty} boş`,detail:`Toplam ${wrong+empty} soru`,fill:'#EFF6FF',text:'#1D4ED8'}
   ];
 }
@@ -3824,13 +3830,13 @@ function studentPdfSummaryText(a){
 }
 function studentPdfMetricCell(title,value,detail,fill='#FFFFFF',valueColor='#172033'){
   return {fillColor:fill,margin:[8,7,8,7],stack:[
-    {text:title,fontSize:7,bold:true,color:'#64748B',characterSpacing:.4},
+    {text:title,fontSize:7.6,bold:true,color:'#64748B',characterSpacing:.25},
     {text:String(value),fontSize:17,bold:true,color:valueColor,margin:[0,3,0,1]},
-    {text:detail,fontSize:6.8,color:'#64748B'}
+    {text:detail,fontSize:7.2,color:'#64748B'}
   ]};
 }
 function studentPdfSectionTitle(text){
-  return {text,bold:true,fontSize:9.5,color:'#9A3412',margin:[0,6,0,3],characterSpacing:.25};
+  return {text,bold:true,fontSize:10,color:'#9A3412',margin:[0,6,0,3],characterSpacing:.15};
 }
 function studentPdfSubjectTable(a){
   const rows=studentPdfSubjectRows(a);
@@ -3845,11 +3851,11 @@ function studentPdfSubjectTable(a){
   rows.forEach(x=>{
     const result=studentPdfResultInfo(x.pct);
     body.push([
-      {text:x.lesson||'Ders',fontSize:7.5,bold:true,color:'#263244'},
-      {text:String(x.total),fontSize:7.5,alignment:'center'},
-      {text:`${x.correct} / ${x.wrong} / ${x.empty}`,fontSize:7.5,alignment:'center'},
-      {text:`%${x.pct}`,fontSize:8,bold:true,alignment:'center',color:result.text},
-      {text:result.label,fontSize:6.8,bold:true,alignment:'center',color:result.text,fillColor:result.fill,margin:[2,2,2,2]}
+      {text:x.lesson||'Ders',fontSize:8,bold:true,color:'#263244'},
+      {text:String(x.total),fontSize:8,alignment:'center'},
+      {text:`${x.correct} / ${x.wrong} / ${x.empty}`,fontSize:8,alignment:'center'},
+      {text:`%${x.pct}`,fontSize:8.3,bold:true,alignment:'center',color:result.text},
+      {text:result.label,fontSize:7.4,bold:true,alignment:'center',color:result.text,fillColor:result.fill,margin:[2,2,2,2]}
     ]);
   });
   return {table:{headerRows:1,widths:['*',35,88,42,58],body},layout:{
@@ -3882,9 +3888,9 @@ function studentPdfWeakAreaBox(a){
     {text:'Başarı oranı',style:'pdfTableHead',alignment:'center'}
   ]];
   visible.forEach((x,i)=>body.push([
-    {text:x.lesson,fontSize:7.5,bold:true,color:'#263244',fillColor:i%2?'#FFFFFF':'#FFF8F8'},
-    {text:x.topic,fontSize:7.5,color:'#475569',fillColor:i%2?'#FFFFFF':'#FFF8F8'},
-    {text:`%${x.pct}`,fontSize:8,bold:true,alignment:'center',color:'#991B1B',fillColor:'#FFF1F2'}
+    {text:x.lesson,fontSize:8,bold:true,color:'#263244',fillColor:i%2?'#FFFFFF':'#FFF8F8'},
+    {text:x.topic,fontSize:8,color:'#475569',fillColor:i%2?'#FFFFFF':'#FFF8F8'},
+    {text:`%${x.pct}`,fontSize:8.3,bold:true,alignment:'center',color:PDF_REPORT_STATUS.missing.text,fillColor:PDF_REPORT_STATUS.missing.fill}
   ]));
   return {table:{headerRows:1,widths:[105,'*',62],body},layout:{
     hLineWidth:()=>.55,vLineWidth:()=>.55,hLineColor:()=> '#FECDD3',vLineColor:()=> '#FECDD3',
@@ -3894,9 +3900,9 @@ function studentPdfWeakAreaBox(a){
 function studentPdfGeneralStatusTable(a){
   const rows=studentPdfGeneralStatusRows(a);
   return {table:{widths:[104,74,'*'],body:rows.map(row=>[
-    {text:row.label,fontSize:7.4,bold:true,color:row.text,fillColor:row.fill,margin:[6,4,6,4]},
-    {text:row.value,fontSize:7.6,bold:true,alignment:'center',color:row.text,fillColor:row.fill,margin:[4,4,4,4]},
-    {text:row.detail,fontSize:7.3,bold:row.label==='Yanlış ve boş sorular',color:'#334155',fillColor:'#FFFFFF',margin:[6,4,6,4]}
+    {text:row.label,fontSize:7.8,bold:true,color:row.text,fillColor:row.fill,margin:[6,4,6,4]},
+    {text:row.value,fontSize:8,bold:true,alignment:'center',color:row.text,fillColor:row.fill,margin:[4,4,4,4]},
+    {text:row.detail,fontSize:7.8,bold:row.label==='Yanlış ve boş sorular',color:'#334155',fillColor:'#FFFFFF',margin:[6,4,6,4]}
   ])},layout:{
     hLineWidth:()=>.55,vLineWidth:()=>.55,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',
     paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0
@@ -3904,16 +3910,16 @@ function studentPdfGeneralStatusTable(a){
 }
 function studentPdfDayAssignmentCell(d){
   const rows=d.lessonRows||[];
-  if(!rows.length) return {text:'Ders görevi verilmedi.',fontSize:6.8,color:'#64748B',italics:true};
+  if(!rows.length) return {text:'Ders görevi verilmedi.',fontSize:7.4,color:'#64748B',italics:true};
   const parts=[];
   rows.forEach((x,index)=>{
     const status=x.status==='done'?'done':x.status==='partial'?'partial':'missing';
     const symbol=status==='done'?'+':status==='partial'?'!':'-';
-    const color=status==='done'?'#166534':status==='partial'?'#9A3412':'#991B1B';
+    const color=PDF_REPORT_STATUS[status].text;
     if(index>0) parts.push({text:'  |  ',color:'#94A3B8',bold:true});
     parts.push({text:`${symbol} ${x.lesson} ${Number(x.done||0)}/${Number(x.target||0)}`,bold:true,color});
   });
-  return {text:parts,fontSize:6.9,lineHeight:1.14};
+  return {text:parts,fontSize:7.5,lineHeight:1.18};
 }
 function studentPdfDayTable(a){
   const days=a.days||[];
@@ -3928,11 +3934,11 @@ function studentPdfDayTable(a){
   days.forEach((d,i)=>{
     const fill=i%2?'#FFFFFF':'#F8FAFC';
     body.push([
-      {text:studentPdfDayLabel(d),fontSize:7.1,bold:true,color:'#263244',fillColor:fill},
+      {text:studentPdfDayLabel(d),fontSize:7.7,bold:true,color:'#263244',fillColor:fill},
       {...studentPdfDayAssignmentCell(d),fillColor:fill},
-      {text:`${Number(d.targetTotal||0)} / ${Number(d.doneTotal||0)}`,fontSize:7.1,bold:true,alignment:'center',color:'#334155',fillColor:fill},
-      {text:`${Number(d.correct||0)} / ${Number(d.wrong||0)} / ${Number(d.empty||0)}`,fontSize:7,alignment:'center',color:'#334155',fillColor:fill},
-      {text:Number(d.doneTotal||0)>0?`%${Number(d.accuracy||0)}`:'-',fontSize:7.2,bold:true,alignment:'center',color:Number(d.accuracy||0)>=70?'#166534':'#991B1B',fillColor:fill}
+      {text:`${Number(d.targetTotal||0)} / ${Number(d.doneTotal||0)}`,fontSize:7.7,bold:true,alignment:'center',color:'#334155',fillColor:fill},
+      {text:`${Number(d.correct||0)} / ${Number(d.wrong||0)} / ${Number(d.empty||0)}`,fontSize:7.5,alignment:'center',color:'#334155',fillColor:fill},
+      {text:Number(d.doneTotal||0)>0?`%${Number(d.accuracy||0)}`:'-',fontSize:7.8,bold:true,alignment:'center',color:Number(d.accuracy||0)>=70?PDF_REPORT_STATUS.done.text:PDF_REPORT_STATUS.missing.text,fillColor:fill}
     ]);
   });
   return {table:{headerRows:1,dontBreakRows:true,widths:[52,'*',62,76,44],body},layout:{
@@ -3946,12 +3952,12 @@ function studentPdfPageContent(a,index,total,task,ctx){
   const accuracyColor=a.accuracy>=70?'#166534':'#991B1B';
   const page={stack:[
     {table:{widths:['*','auto'],body:[[
-      {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'ÖĞRENCİ GÖREV RAPORU',fontSize:7.5,bold:true,color:'#FFEDD5',characterSpacing:1.2,margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[11,9,11,9]},
-      {stack:[{text:`${index+1} / ${total}`,fontSize:9,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}`,fontSize:7,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[10,9,10,9]}
+      {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'ÖĞRENCİ GÖREV RAPORU',fontSize:8,bold:true,color:'#FFEDD5',characterSpacing:1,margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[11,9,11,9]},
+      {stack:[{text:`${index+1} / ${total}`,fontSize:9,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}`,fontSize:7.6,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[10,9,10,9]}
     ]]},layout:'noBorders'},
     {table:{widths:['*','auto'],body:[[
-      {stack:[{text:st.name||'Öğrenci',fontSize:18,bold:true,color:'#172033'},{text:`${st.className||'-'} Sınıfı - No: ${st.no||'-'}`,fontSize:8,color:'#64748B',margin:[0,3,0,0]}],margin:[0,9,0,4]},
-      {text:targetLabel(task),fontSize:8,bold:true,color:'#9A3412',alignment:'right',margin:[10,13,0,0]}
+      {stack:[{text:st.name||'Öğrenci',fontSize:18,bold:true,color:'#172033'},{text:`${st.className||'-'} Sınıfı - No: ${st.no||'-'}`,fontSize:8.5,color:'#64748B',margin:[0,3,0,0]}],margin:[0,9,0,4]},
+      {text:targetLabel(task),fontSize:8.5,bold:true,color:'#9A3412',alignment:'right',margin:[10,13,0,0]}
     ]]},layout:'noBorders'},
     studentPdfSectionTitle('GÖREV ÖZETİ'),
     {table:{widths:['*','*','*','*'],body:[[
@@ -3960,7 +3966,7 @@ function studentPdfPageContent(a,index,total,task,ctx){
       studentPdfMetricCell('BAŞARI ORANI',`%${a.accuracy}`,`${a.stats?.correct||0} D / ${a.stats?.wrong||0} Y / ${a.stats?.empty||0} B`,'#F8FAFC',accuracyColor),
       studentPdfMetricCell('TAMAMLANAN GÜN',`${a.completedDays}/${a.days.length}`,`${a.partialDays} eksik - ${a.missingDays} yapılmadı`,'#FFFFFF','#172033')
     ]]},layout:{hLineWidth:()=>.7,vLineWidth:()=>.7,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
-    {table:{widths:['*'],body:[[{text:studentPdfSummaryText(a),fontSize:8.2,bold:true,color:'#334155',fillColor:'#F1F5F9',margin:[8,6,8,6]}]]},layout:'noBorders',margin:[0,5,0,0]},
+    {table:{widths:['*'],body:[[{text:studentPdfSummaryText(a),fontSize:8.6,bold:true,color:'#334155',fillColor:'#F1F5F9',margin:[8,6,8,6]}]]},layout:'noBorders',margin:[0,5,0,0]},
     studentPdfSectionTitle('DERSLERE GÖRE SONUÇ'),
     studentPdfSubjectTable(a),
     studentPdfSectionTitle('ÇALIŞILMASI GEREKEN ALANLAR'),
@@ -3983,11 +3989,11 @@ function buildStudentPdfDocument(task,analyses,ctx){
       {type:'rect',x:0,y:0,w:pageSize.width,h:6,color:'#E66012'}
     ]}),
     footer:(currentPage,pageCount)=>({margin:[22,0,22,8],columns:[
-      {text:'Fenomen Eğitim Kurumları',font:'Roboto',fontSize:6.8,bold:true,color:'#9A3412'},
-      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:6.8,color:'#64748B',alignment:'right'}
+      {text:'Fenomen Eğitim Kurumları',font:'Roboto',fontSize:7.4,bold:true,color:'#9A3412'},
+      {text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:7.4,color:'#64748B',alignment:'right'}
     ]}),
-    defaultStyle:{font:'Roboto',fontSize:8.1,color:'#263244',lineHeight:1.1},
-    styles:{pdfTableHead:{font:'Roboto',fontSize:6.9,bold:true,color:'#475569',fillColor:'#EEF2F7'}},
+    defaultStyle:{font:'Roboto',fontSize:8.6,color:'#263244',lineHeight:1.15},
+    styles:{pdfTableHead:{font:'Roboto',fontSize:7.5,bold:true,color:'#475569',fillColor:'#EEF2F7'}},
     content:analyses.map((a,i)=>studentPdfPageContent(a,i,analyses.length,task,ctx))
   };
 }
