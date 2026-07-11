@@ -1156,6 +1156,9 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .teacher-task-card .actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .teacher-task-card .actions button{width:100%;min-height:34px;font-size:11px;padding:7px 8px;border-radius:13px}
 .teacher-task-card .actions .danger-btn{grid-column:auto}
+.teacher-task-card .actions .task-report-btn{grid-column:1 / -1;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#9a3412;font-weight:900}
+.teacher-task-card .actions .task-report-btn:hover{background:#ffedd5;border-color:#fb923c}
+.teacher-task-card .actions .task-report-btn:disabled{opacity:.7;cursor:wait;transform:none}
 .teacher-task-card .task-track-box{margin-top:0;padding:9px;border-radius:14px;max-height:140px;overflow:auto}
 .data-entry-package-list{display:grid;gap:12px}
 .data-entry-package{border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#fff,#fbfdff);padding:14px;box-shadow:var(--shadow-xs)}
@@ -1321,6 +1324,7 @@ function lessonNames(){return state.lessons.map(x=>x.name).filter(Boolean);}
 function getTeacherName(id){const t=state.teachers.find(x=>cleanId(x.id)===cleanId(id)); return t?.name || (cleanId(id)===cleanId(state.teacher?.id) ? state.teacher?.name : `Öğretmen ${id || '?'}`);}
 function normalizePhoneTR(raw){let d=String(raw||'').replace(/\D/g,''); if(!d) return ''; if(d.startsWith('0090')&&d.length>=14) d=d.slice(2,14); else if(d.startsWith('90')&&d.length>=12) d=d.slice(0,12); else if(d.startsWith('0')&&d.length===11) d='9'+d; else if(d.length===10) d='90'+d; return d;}
 function copyText(text){if(navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return Promise.resolve();}
+function downloadUtf8Text(filename,text){const blob=new Blob(['\uFEFF',String(text||'')],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.style.display='none'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);}
 function isOkLike(v){const s=String(v ?? '').trim().toLowerCase(); return v===true || v===1 || ['true','1','ok','success','successful','başarılı','basarili'].includes(s);}
 async function fetchWithTimeout(url, options={}, timeoutMs=15000){
   const controller=new AbortController();
@@ -2022,47 +2026,65 @@ async function saveTaskFromWizard(){
 async function deleteTask(key){if(!confirm('Bu görevlendirmeyi silmek istiyor musunuz?')) return; await deleteJson(`verianalizi001/haftalikGorevler/${key}`); await logAction('Görev silme',`Görev silindi: ${key}`); await loadTasks(); setToast('Görev silindi','ok'); render();}
 async function logAction(type,detail){try{await postJson('verianalizi001/ogretmenIslemleri',{type,detail,teacherId:state.teacher?.id||'',teacherName:state.teacher?.name||'',time:nowText()});}catch(e){}}
 
-async function loadStats(studentNo,start,end){
+/* Çalışma kayıtlarını tek merkezde normalize edip analiz eden ortak yapı. */
+function emptyStudyStats(){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[],records:[]};}
+function normalizeStudyRecord(rec){
+  if(!rec || typeof rec!=='object') return null;
+  const dateRaw=rec.dateKey||rec.tarih||rec.date||rec.tarihSaat||rec.createdAt||'';
+  const date=isoFromAny(dateRaw);
+  if(!date) return null;
+  const lesson=rec.ders||rec.lesson||rec.course||'Genel';
+  const topic=rec.anaKonu||rec.konu||rec.topic||rec.mainTopic||'Genel';
+  const subtopic=rec.altKonu||rec.alt||rec.subtopic||rec.subTopic||'Genel';
+  const total=Math.max(0,Number(rec.toplam??rec.toplamSoru??rec.total??rec.soruSayisi??0)||0);
+  const wrong=Math.max(0,Number(rec.yanlis??rec.wrong??0)||0);
+  const empty=Math.max(0,Number(rec.bos??rec.empty??0)||0);
+  const correct=Math.max(0,Number(rec.dogru??rec.correct??Math.max(0,total-wrong-empty))||0);
+  return {date,lesson:String(lesson||'Genel').trim()||'Genel',topic:String(topic||'Genel').trim()||'Genel',subtopic:String(subtopic||'Genel').trim()||'Genel',total,correct,wrong,empty,raw:rec};
+}
+function summarizeStudyRecords(records){
+  let total=0,correct=0,wrong=0,empty=0; const active=new Set();
+  const subjects={},topics={},subtopics={};
+  (records||[]).forEach(r=>{
+    total+=r.total; correct+=r.correct; wrong+=r.wrong; empty+=r.empty; if(r.date) active.add(r.date);
+    if(!subjects[r.lesson]) subjects[r.lesson]={lesson:r.lesson,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+    subjects[r.lesson].total+=r.total; subjects[r.lesson].correct+=r.correct; subjects[r.lesson].wrong+=r.wrong; subjects[r.lesson].empty+=r.empty; subjects[r.lesson].entryCount++;
+    const tk=`${r.lesson}|||${r.topic}`;
+    if(!topics[tk]) topics[tk]={lesson:r.lesson,topic:r.topic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+    topics[tk].total+=r.total; topics[tk].correct+=r.correct; topics[tk].wrong+=r.wrong; topics[tk].empty+=r.empty; topics[tk].entryCount++;
+    const sk=`${r.lesson}|||${r.topic}|||${r.subtopic}`;
+    if(!subtopics[sk]) subtopics[sk]={lesson:r.lesson,topic:r.topic,subtopic:r.subtopic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
+    subtopics[sk].total+=r.total; subtopics[sk].correct+=r.correct; subtopics[sk].wrong+=r.wrong; subtopics[sk].empty+=r.empty; subtopics[sk].entryCount++;
+  });
+  return {total,correct,wrong,empty,entryCount:(records||[]).length,activeDays:active.size,subjects:Object.values(subjects).sort((a,b)=>b.total-a.total),topics:Object.values(topics).sort((a,b)=>b.total-a.total),subtopics:Object.values(subtopics).sort((a,b)=>b.total-a.total),records:[...(records||[])].sort((a,b)=>recordSortValue(a)-recordSortValue(b))};
+}
+function buildStatsFromStudyRecords(root,start,end,options={}){
+  const endDate=isoFromAny(options.endDate||end);
+  const endTime=String(options.endTime||'');
+  const endMinutes=minutesFromTimeText(endTime);
+  const records=[];
+  for(const rec of Object.values(root||{})){
+    const normalized=normalizeStudyRecord(rec);
+    if(!normalized || !dateInRange(normalized.date,start,end)) continue;
+    if(endMinutes!==null && normalized.date===endDate){
+      const displayTime=recordTimeText(normalized);
+      const match=String(displayTime||'').match(/(\d{2}:\d{2})/);
+      const recordMinutes=match?minutesFromTimeText(match[1]):null;
+      if(recordMinutes!==null && recordMinutes>endMinutes) continue;
+    }
+    records.push(normalized);
+  }
+  return summarizeStudyRecords(records);
+}
+async function loadStats(studentNo,start,end,options={}){
   const cacheKey=`${studentNo}|${start}|${end}`;
-  if(state.statsCache?.[cacheKey]) return structuredClone(state.statsCache[cacheKey]);
+  if(!options.force && state.statsCache?.[cacheKey]) return structuredClone(state.statsCache[cacheKey]);
   try{
     const root=await getJson(`verianalizi001/calismaKayitlari/${studentNo}`)||{};
-    let total=0,correct=0,wrong=0,empty=0,entryCount=0; const active=new Set();
-    const subjects={}, topics={}, subtopics={};
-    const records=[];
-    for(const rec of Object.values(root)){
-      if(!rec||typeof rec!=='object') continue;
-      const date=rec.dateKey||rec.tarih||rec.date||rec.tarihSaat||rec.createdAt||'';
-      if(!dateInRange(date,start,end)) continue;
-      const lesson=rec.ders||rec.lesson||rec.course||'Genel';
-      const topic=rec.anaKonu||rec.konu||rec.topic||rec.mainTopic||'Genel';
-      const subtopic=rec.altKonu||rec.alt||rec.subtopic||rec.subTopic||'Genel';
-      const t=Number(rec.toplam??rec.toplamSoru??rec.total??rec.soruSayisi??0);
-      const w=Number(rec.yanlis??rec.wrong??0);
-      const e=Number(rec.bos??rec.empty??0);
-      const c=Number(rec.dogru??rec.correct??Math.max(0,t-w-e));
-      total+=t; correct+=c; wrong+=w; empty+=e; entryCount++;
-      const iso=isoFromAny(date); if(iso) active.add(iso);
-      records.push({date:iso,lesson,topic,subtopic,total:t,correct:c,wrong:w,empty:e,raw:rec});
-      if(!subjects[lesson]) subjects[lesson]={lesson,total:0,correct:0,wrong:0,empty:0,entryCount:0};
-      subjects[lesson].total+=t; subjects[lesson].correct+=c; subjects[lesson].wrong+=w; subjects[lesson].empty+=e; subjects[lesson].entryCount++;
-      const tk=`${lesson}|||${topic}`;
-      if(!topics[tk]) topics[tk]={lesson,topic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
-      topics[tk].total+=t; topics[tk].correct+=c; topics[tk].wrong+=w; topics[tk].empty+=e; topics[tk].entryCount++;
-      const sk=`${lesson}|||${topic}|||${subtopic}`;
-      if(!subtopics[sk]) subtopics[sk]={lesson,topic,subtopic,total:0,correct:0,wrong:0,empty:0,entryCount:0};
-      subtopics[sk].total+=t; subtopics[sk].correct+=c; subtopics[sk].wrong+=w; subtopics[sk].empty+=e; subtopics[sk].entryCount++;
-    }
-    const result={
-      total,correct,wrong,empty,entryCount,activeDays:active.size,
-      subjects:Object.values(subjects).sort((a,b)=>b.total-a.total),
-      topics:Object.values(topics).sort((a,b)=>b.total-a.total),
-      subtopics:Object.values(subtopics).sort((a,b)=>b.total-a.total),
-      records
-    };
-    state.statsCache=state.statsCache||{}; state.statsCache[cacheKey]=structuredClone(result);
+    const result=buildStatsFromStudyRecords(root,start,end,options);
+    if(!options.force){state.statsCache=state.statsCache||{}; state.statsCache[cacheKey]=structuredClone(result);}
     return result;
-  }catch(e){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[],records:[]};}
+  }catch(e){return emptyStudyStats();}
 }
 async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.dateKey||rec?.tarih||rec?.date||rec?.tarihSaat||rec?.createdAt||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
 function taskIsActiveForStudentOnDay(task,student,day){
@@ -3265,8 +3287,263 @@ function planHtml(w){
   }
   return out;
 }
+/* Görev kartından indirilen genel ve öğrenciye özel TXT raporları. */
+function reportPct(value,total){return total>0?Math.round((Number(value||0)/Number(total||0))*100):0;}
+function reportAverage(values){const nums=(values||[]).map(Number).filter(Number.isFinite); return nums.length?Math.round(nums.reduce((s,n)=>s+n,0)/nums.length):0;}
+function reportFilePart(value){
+  return String(value||'rapor')
+    .replaceAll('İ','I').replaceAll('ı','i').replaceAll('Ş','S').replaceAll('ş','s')
+    .replaceAll('Ğ','G').replaceAll('ğ','g').replaceAll('Ü','U').replaceAll('ü','u')
+    .replaceAll('Ö','O').replaceAll('ö','o').replaceAll('Ç','C').replaceAll('ç','c')
+    .replace(/[^A-Za-z0-9._-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+function reportDateFilePart(value){return fmtDate(value).replaceAll('.','-')||reportFilePart(value);}
+function reportMomentInfo(date=new Date()){
+  const p=appDateParts(date);
+  return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`,text:`${p.day}.${p.month}.${p.year} ${p.hour}:${p.minute}`,fileTime:`${p.hour}-${p.minute}`};
+}
+function taskReportEffectiveEnd(task,momentDate){
+  const clickDay=appDateISO(momentDate);
+  const taskEnd=isoFromAny(task?.end)||clickDay;
+  return taskEnd<clickDay?taskEnd:clickDay;
+}
+function taskReportDayContext(task,start,end){
+  return taskDayKeys(task).filter(day=>day>=start && day<=end).map(day=>{
+    const targets=aggregateTaskItemsByLesson(taskItemsForDay(task,day));
+    return {day,targets,targetTotal:targets.reduce((sum,x)=>sum+Number(x.target||0),0)};
+  }).filter(x=>x.targetTotal>0);
+}
+function taskReportGroupRecords(records){
+  const map=new Map();
+  (records||[]).forEach(r=>{
+    const lesson=String(r.lesson||'Genel').trim()||'Genel';
+    const topic=String(r.topic||'').trim();
+    const subtopic=String(r.subtopic||'').trim();
+    const key=[lesson,topic,subtopic].join('|||');
+    if(!map.has(key)) map.set(key,{lesson,topic,subtopic,total:0,correct:0,wrong:0,empty:0,entryCount:0});
+    const row=map.get(key);
+    row.total+=Number(r.total||0); row.correct+=Number(r.correct||0); row.wrong+=Number(r.wrong||0); row.empty+=Number(r.empty||0); row.entryCount++;
+  });
+  return [...map.values()].sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr')||a.topic.localeCompare(b.topic,'tr')||a.subtopic.localeCompare(b.subtopic,'tr'));
+}
+function taskReportDataQuality(records){
+  let mismatch=0,missingTopic=0,missingLesson=0;
+  (records||[]).forEach(r=>{
+    if(Number(r.total||0)!==Number(r.correct||0)+Number(r.wrong||0)+Number(r.empty||0)) mismatch++;
+    if(!String(r.lesson||'').trim() || String(r.lesson||'').trim()==='Genel') missingLesson++;
+    if((!String(r.topic||'').trim() || String(r.topic||'').trim()==='Genel') && (!String(r.subtopic||'').trim() || String(r.subtopic||'').trim()==='Genel')) missingTopic++;
+  });
+  return {mismatch,missingTopic,missingLesson,totalRecords:(records||[]).length};
+}
+function taskReportTrend(dayRows){
+  const values=(dayRows||[]).map(x=>Number(x.completionPct||0));
+  if(values.length<4) return {label:'Yeterli gün yok',delta:0};
+  const half=Math.floor(values.length/2);
+  const first=reportAverage(values.slice(0,half));
+  const last=reportAverage(values.slice(values.length-half));
+  const delta=last-first;
+  return {label:delta>=10?'Yükseliş':delta<=-10?'Düşüş':'Dengeli',delta,first,last};
+}
+function taskReportMaxMissingStreak(dayRows){
+  let current=0,max=0;
+  (dayRows||[]).forEach(x=>{current=x.statusKey==='missing'?current+1:0; max=Math.max(max,current);});
+  return max;
+}
+function buildTaskReportStudentAnalysis(task,student,stats,dayContext){
+  const records=stats?.records||[];
+  const recordsByDate=new Map();
+  records.forEach(r=>{if(!recordsByDate.has(r.date)) recordsByDate.set(r.date,[]); recordsByDate.get(r.date).push(r);});
+  const taskDaySet=new Set(dayContext.map(x=>x.day));
+  const days=dayContext.map(ctx=>{
+    const dayRecords=recordsByDate.get(ctx.day)||[];
+    const doneByLesson=recordDoneByLesson(dayRecords);
+    const targetLessons=new Set(ctx.targets.map(x=>x.lesson));
+    const lessonRows=ctx.targets.map(x=>{
+      const done=Number(doneByLesson[x.lesson]||0), target=Number(x.target||0), credit=creditedTaskDone(done,target);
+      return {lesson:x.lesson,target,done,credit,diff:done-target,status:done>=target?'done':done>0?'partial':'missing'};
+    });
+    const extraLessons=Object.entries(doneByLesson).filter(([lesson,total])=>!targetLessons.has(lesson) && Number(total)>0).map(([lesson,total])=>({lesson,total:Number(total)}));
+    const targetTotal=lessonRows.reduce((s,x)=>s+x.target,0);
+    const doneTotal=dayRecords.reduce((s,r)=>s+Number(r.total||0),0);
+    const credited=lessonRows.reduce((s,x)=>s+x.credit,0);
+    const correct=dayRecords.reduce((s,r)=>s+Number(r.correct||0),0);
+    const wrong=dayRecords.reduce((s,r)=>s+Number(r.wrong||0),0);
+    const empty=dayRecords.reduce((s,r)=>s+Number(r.empty||0),0);
+    const allLessonsDone=lessonRows.length>0 && lessonRows.every(x=>x.done>=x.target);
+    const statusKey=allLessonsDone?'done':doneTotal>0?'partial':'missing';
+    return {day:ctx.day,targets:ctx.targets,lessonRows,extraLessons,targetTotal,doneTotal,credited,correct,wrong,empty,accuracy:reportPct(correct,doneTotal),completionPct:reportPct(credited,targetTotal),statusKey,records:dayRecords,topicRows:taskReportGroupRecords(dayRecords)};
+  });
+  const targetTotal=days.reduce((s,x)=>s+x.targetTotal,0);
+  const doneOnTaskDays=days.reduce((s,x)=>s+x.doneTotal,0);
+  const credited=days.reduce((s,x)=>s+x.credited,0);
+  const completedDays=days.filter(x=>x.statusKey==='done').length;
+  const partialDays=days.filter(x=>x.statusKey==='partial').length;
+  const missingDays=days.filter(x=>x.statusKey==='missing').length;
+  const activeTaskDays=days.filter(x=>x.doneTotal>0).length;
+  const offTargetRecords=records.filter(r=>!taskDaySet.has(r.date));
+  const offTargetTotal=offTargetRecords.reduce((s,r)=>s+Number(r.total||0),0);
+  const extraQuestions=Math.max(0,Number(stats?.total||0)-credited);
+  const lessonCandidates=(stats?.subjects||[]).filter(x=>Number(x.total||0)>=10).map(x=>({...x,pct:reportPct(x.correct,x.total)}));
+  const topicCandidates=(stats?.topics||[]).filter(x=>Number(x.total||0)>=10 && String(x.topic||'').trim() && String(x.topic||'').trim()!=='Genel').map(x=>({...x,pct:reportPct(x.correct,x.total)}));
+  const strongestLesson=[...lessonCandidates].sort((a,b)=>b.pct-a.pct||b.total-a.total)[0]||null;
+  const weakestLesson=[...lessonCandidates].sort((a,b)=>a.pct-b.pct||b.total-a.total)[0]||null;
+  const strongestTopic=[...topicCandidates].sort((a,b)=>b.pct-a.pct||b.total-a.total)[0]||null;
+  const weakestTopic=[...topicCandidates].sort((a,b)=>a.pct-b.pct||b.total-a.total)[0]||null;
+  const trend=taskReportTrend(days);
+  const quality=taskReportDataQuality(records);
+  const completionPct=reportPct(credited,targetTotal);
+  const coveragePct=reportPct(activeTaskDays,days.length);
+  const accuracy=reportPct(stats?.correct,stats?.total);
+  const positives=[];
+  if(completedDays===days.length && days.length) positives.push('planlanan tüm günleri tamamladı');
+  else if(completedDays) positives.push(`${completedDays} günü eksiksiz tamamladı`);
+  if(accuracy>=80 && Number(stats?.total||0)>=20) positives.push(`genel doğruluk oranı güçlü (%${accuracy})`);
+  if(strongestTopic) positives.push(`en güçlü konu ${strongestTopic.lesson} / ${strongestTopic.topic} (%${strongestTopic.pct})`);
+  if(extraQuestions>0) positives.push(`hedefin üzerinde veya hedef dışı ${extraQuestions} ek soru çözdü`);
+  if(trend.label==='Yükseliş') positives.push(`son günlerde tamamlama eğilimi +${trend.delta} puan yükseldi`);
+  const attention=[];
+  if(!Number(stats?.total||0)) attention.push('bu aralıkta veri girişi bulunmuyor');
+  if(missingDays) attention.push(`${missingDays} planlı günde veri girişi yapılmadı`);
+  if(partialDays) attention.push(`${partialDays} gün kısmi tamamlandı`);
+  if(completionPct<60 && targetTotal>0) attention.push(`görev tamamlama oranı düşük (%${completionPct})`);
+  if(weakestTopic && weakestTopic.pct<60) attention.push(`öncelikli konu ${weakestTopic.lesson} / ${weakestTopic.topic} (%${weakestTopic.pct})`);
+  if(taskReportMaxMissingStreak(days)>=2) attention.push(`${taskReportMaxMissingStreak(days)} gün üst üste veri girişi yok`);
+  if(quality.mismatch) attention.push(`${quality.mismatch} kayıtta toplam ile doğru-yanlış-boş sayıları uyuşmuyor`);
+  return {task,student,stats,days,targetTotal,doneOnTaskDays,credited,completionPct,completedDays,partialDays,missingDays,activeTaskDays,coveragePct,offTargetRecords,offTargetTotal,extraQuestions,accuracy,strongestLesson,weakestLesson,strongestTopic,weakestTopic,trend,quality,positives,attention,maxMissingStreak:taskReportMaxMissingStreak(days)};
+}
+function taskReportStatusEmoji(key){return key==='done'?'✅':key==='partial'?'⚠️':'❌';}
+function taskReportStudentSummaryLine(a,totalDays){
+  return `• *${a.student.name}* (${a.student.className||'-'}): ${a.completedDays}/${totalDays} gün • %${a.completionPct} tamamlama • ${a.credited}/${a.targetTotal} hedef soru • ${a.stats.total} toplam soru`;
+}
+function taskReportRankLines(list,totalDays,emptyText='Kayıt yok.'){
+  if(!(list||[]).length) return `• ${emptyText}`;
+  return list.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.completedDays}/${totalDays} gün • %${a.completionPct} • ${a.stats.total} soru`).join('\n');
+}
+function buildTaskGeneralReportText(task,analyses,ctx){
+  const studentCount=analyses.length;
+  const totalDays=ctx.dayContext.length;
+  const totalTarget=analyses.reduce((s,a)=>s+a.targetTotal,0);
+  const totalCredited=analyses.reduce((s,a)=>s+a.credited,0);
+  const totalSolved=analyses.reduce((s,a)=>s+Number(a.stats.total||0),0);
+  const totalCorrect=analyses.reduce((s,a)=>s+Number(a.stats.correct||0),0);
+  const totalWrong=analyses.reduce((s,a)=>s+Number(a.stats.wrong||0),0);
+  const totalEmpty=analyses.reduce((s,a)=>s+Number(a.stats.empty||0),0);
+  const totalEntries=analyses.reduce((s,a)=>s+Number(a.stats.entryCount||0),0);
+  const overallCompletion=reportPct(totalCredited,totalTarget);
+  const overallAccuracy=reportPct(totalCorrect,totalSolved);
+  const dataStudents=analyses.filter(a=>a.stats.total>0);
+  const noData=analyses.filter(a=>a.stats.total===0);
+  const full=analyses.filter(a=>totalDays>0 && a.completedDays===totalDays);
+  const followNeeded=analyses.filter(a=>a.stats.total===0 || a.completionPct<50 || a.coveragePct<50).sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total);
+  const topCompletion=[...analyses].sort((a,b)=>b.completionPct-a.completionPct||b.completedDays-a.completedDays||b.stats.total-a.stats.total||a.student.name.localeCompare(b.student.name,'tr')).slice(0,5);
+  const lowCompletion=[...analyses].sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total||a.student.name.localeCompare(b.student.name,'tr')).slice(0,5);
+  const mostQuestions=[...analyses].sort((a,b)=>b.stats.total-a.stats.total||b.completionPct-a.completionPct).slice(0,5);
+  const accuracyEligible=analyses.filter(a=>a.stats.total>=20);
+  const bestAccuracy=[...accuracyEligible].sort((a,b)=>b.accuracy-a.accuracy||b.stats.total-a.stats.total).slice(0,5);
+  const weakAccuracy=[...accuracyEligible].sort((a,b)=>a.accuracy-b.accuracy||b.stats.total-a.stats.total).slice(0,5);
+  const lessonMap=new Map();
+  analyses.forEach(a=>a.days.forEach(d=>d.lessonRows.forEach(row=>{
+    if(!lessonMap.has(row.lesson)) lessonMap.set(row.lesson,{lesson:row.lesson,target:0,done:0,credit:0});
+    const x=lessonMap.get(row.lesson); x.target+=row.target; x.done+=row.done; x.credit+=row.credit;
+  })));
+  const lessonAccuracyMap=new Map();
+  analyses.forEach(a=>(a.stats.subjects||[]).forEach(s=>{
+    if(!lessonAccuracyMap.has(s.lesson)) lessonAccuracyMap.set(s.lesson,{lesson:s.lesson,total:0,correct:0,wrong:0,empty:0});
+    const x=lessonAccuracyMap.get(s.lesson); x.total+=s.total; x.correct+=s.correct; x.wrong+=s.wrong; x.empty+=s.empty;
+  }));
+  const lessonLines=[...lessonMap.values()].sort((a,b)=>b.target-a.target).map(x=>{
+    const acc=lessonAccuracyMap.get(x.lesson)||{total:0,correct:0,wrong:0,empty:0};
+    return `• *${x.lesson}:* Hedef ${x.target} • Karşılanan ${x.credit} • Çözülen ${x.done} • Tamamlama %${reportPct(x.credit,x.target)} • Doğruluk %${reportPct(acc.correct,acc.total)}`;
+  }).join('\n')||'• Ders bazlı hedef yok.';
+  const topicMap=new Map();
+  analyses.forEach(a=>(a.stats.topics||[]).forEach(t=>{
+    if(!String(t.topic||'').trim() || String(t.topic||'').trim()==='Genel') return;
+    const key=`${t.lesson}|||${t.topic}`;
+    if(!topicMap.has(key)) topicMap.set(key,{lesson:t.lesson,topic:t.topic,total:0,correct:0,wrong:0,empty:0});
+    const x=topicMap.get(key); x.total+=t.total; x.correct+=t.correct; x.wrong+=t.wrong; x.empty+=t.empty;
+  }));
+  const topicRows=[...topicMap.values()].filter(x=>x.total>=20).map(x=>({...x,pct:reportPct(x.correct,x.total)}));
+  const strongTopics=[...topicRows].sort((a,b)=>b.pct-a.pct||b.total-a.total).slice(0,5);
+  const weakTopics=[...topicRows].sort((a,b)=>a.pct-b.pct||b.total-a.total).slice(0,5);
+  const dayLines=ctx.dayContext.map(dc=>{
+    const rows=analyses.map(a=>a.days.find(d=>d.day===dc.day)).filter(Boolean);
+    const target=rows.reduce((s,d)=>s+d.targetTotal,0), credit=rows.reduce((s,d)=>s+d.credited,0), done=rows.reduce((s,d)=>s+d.doneTotal,0);
+    const complete=rows.filter(d=>d.statusKey==='done').length, partial=rows.filter(d=>d.statusKey==='partial').length, missing=rows.filter(d=>d.statusKey==='missing').length;
+    return `• *${fmtDateWithDay(dc.day)}:* Hedef ${target} • Karşılanan ${credit} • Çözülen ${done} • %${reportPct(credit,target)} | ✅ ${complete} • ⚠️ ${partial} • ❌ ${missing}`;
+  }).join('\n')||'• Henüz gerçekleşmiş planlı gün yok.';
+  const classMap=new Map();
+  analyses.forEach(a=>{
+    const cls=a.student.className||'Sınıf bilgisi yok';
+    if(!classMap.has(cls)) classMap.set(cls,{className:cls,students:0,target:0,credit:0,solved:0});
+    const x=classMap.get(cls); x.students++; x.target+=a.targetTotal; x.credit+=a.credited; x.solved+=a.stats.total;
+  });
+  const classLines=[...classMap.values()].sort((a,b)=>a.className.localeCompare(b.className,'tr',{numeric:true})).map(x=>`• *${x.className}:* ${x.students} öğrenci • %${reportPct(x.credit,x.target)} tamamlama • ${x.solved} soru`).join('\n');
+  const quality=analyses.reduce((acc,a)=>({mismatch:acc.mismatch+a.quality.mismatch,missingTopic:acc.missingTopic+a.quality.missingTopic,missingLesson:acc.missingLesson+a.quality.missingLesson}),{mismatch:0,missingTopic:0,missingLesson:0});
+  const allStudentLines=[...analyses].sort((a,b)=>a.student.name.localeCompare(b.student.name,'tr')).map(a=>taskReportStudentSummaryLine(a,totalDays)).join('\n')||'• Öğrenci yok.';
+  const topicStrongText=strongTopics.length?strongTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — %${x.pct} (${x.total} soru)`).join('\n'):'• Yeterli örneklem yok.';
+  const topicWeakText=weakTopics.length?weakTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — %${x.pct} (${x.total} soru)`).join('\n'):'• Yeterli örneklem yok.';
+  const accuracyText=list=>list.length?list.map((a,i)=>`${i+1}. *${a.student.name}* — %${a.accuracy} (${a.stats.total} soru)`).join('\n'):'• En az 20 soruluk yeterli veri yok.';
+  return `📊 *GENEL GÖREV RAPORU*\n\n🏫 *Kurum:* ${state.settings.kurumAdi}\n🎯 *Görev:* ${targetLabel(task)}\n👨‍🏫 *Görevi veren:* ${getTeacherName(task.teacherId)}\n🗓️ *Analiz dönemi:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor oluşturma:* ${ctx.moment.text}\n📅 *Planlanan gün:* ${totalDays}/${ctx.totalPlannedDays} gün gerçekleşti\n\n━━━━━━━━━━━━━━━━━━━━\n1️⃣ *YÖNETİCİ ÖZETİ*\n\n👥 Öğrenci sayısı: *${studentCount}*\n🎯 Toplam hedef: *${totalTarget} soru*\n✅ Hedefe sayılan çözüm: *${totalCredited} soru*\n📚 Toplam çözülen: *${totalSolved} soru*\n📈 Genel tamamlama: *%${overallCompletion}*\n🎯 Genel doğruluk: *%${overallAccuracy}* — D ${totalCorrect} / Y ${totalWrong} / B ${totalEmpty}\n📝 Veri girişi: *${totalEntries} kayıt* • ${dataStudents.length} öğrencide veri • ${noData.length} öğrencide veri yok\n🏁 Tüm gerçekleşen günleri tamamlayan: *${full.length} öğrenci*\n🔎 Yakın takip gerektiren: *${followNeeded.length} öğrenci*\n\n━━━━━━━━━━━━━━━━━━━━\n2️⃣ *ÖĞRENCİ BAZLI TAMAMLANAN GÜN SAYISI*\n\n${allStudentLines}\n\n━━━━━━━━━━━━━━━━━━━━\n3️⃣ *ÖNE ÇIKANLAR*\n\n🏆 *En yüksek görev tamamlama*\n${taskReportRankLines(topCompletion,totalDays)}\n\n📚 *En çok soru çözenler*\n${mostQuestions.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.stats.total} soru • %${a.completionPct} görev`).join('\n')||'• Kayıt yok.'}\n\n🎯 *En yüksek doğruluk — en az 20 soru*\n${accuracyText(bestAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n4️⃣ *TAKİP GEREKTİREN ÖĞRENCİLER*\n\n⚠️ *Düşük görev tamamlama*\n${taskReportRankLines(lowCompletion,totalDays)}\n\n🧭 *Öncelikli takip listesi*\n${followNeeded.length?followNeeded.map(a=>`• *${a.student.name}* — %${a.completionPct} tamamlama • ${a.activeTaskDays}/${totalDays} aktif gün • ${a.stats.total} soru${a.stats.total===0?' • veri girişi yok':''}`).join('\n'):'• Belirgin takip ihtiyacı görünmüyor.'}\n\n📉 *Düşük doğruluk — en az 20 soru*\n${accuracyText(weakAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n5️⃣ *DERS VE KONU ANALİZİ*\n\n📘 *Ders bazında hedef / çözüm*\n${lessonLines}\n\n🌟 *Güçlü konular — en az 20 soru*\n${topicStrongText}\n\n🛠️ *Geliştirilmesi gereken konular — en az 20 soru*\n${topicWeakText}\n\n━━━━━━━━━━━━━━━━━━━━\n6️⃣ *GÜN GÜN TOPLU DURUM*\n\n${dayLines}\n\n━━━━━━━━━━━━━━━━━━━━\n7️⃣ *SINIF DAĞILIMI*\n\n${classLines||'• Sınıf bilgisi yok.'}\n\n━━━━━━━━━━━━━━━━━━━━\n8️⃣ *VERİ KALİTESİ KONTROLÜ*\n\n• Toplam ile doğru + yanlış + boş uyuşmayan kayıt: *${quality.mismatch}*\n• Konu / alt konu bilgisi bulunmayan kayıt: *${quality.missingTopic}*\n• Ders bilgisi bulunmayan kayıt: *${quality.missingLesson}*\n\n📌 *Not:* Tamamlama oranı, her dersin günlük hedefi ayrı ayrı dikkate alınarak hesaplanır. Bir derste hedef üstü çözülen sorular, başka bir dersin eksik hedefini kapatmaz. “Takip gerektiren” ifadesi yargılama değil; düşük veri girişi, düşük gün kapsamı veya düşük hedef karşılama nedeniyle öğretmen kontrolü önerilen öğrencileri gösterir.\n`;
+}
+function buildTaskStudentReportBlock(a,index,total,ctx){
+  const st=a.student;
+  const positive=a.positives.length?a.positives.slice(0,3).map(x=>`• ${x}`).join('\n'):'• Bu aralıkta öne çıkan olumlu veri henüz oluşmadı.';
+  const attention=a.attention.length?a.attention.slice(0,4).map(x=>`• ${x}`).join('\n'):'• Belirgin bir takip başlığı görünmüyor.';
+  const dayText=a.days.map(d=>{
+    const lessonText=d.lessonRows.map(x=>`${x.lesson} ${x.done}/${x.target} ${x.status==='done'?'✅':x.status==='partial'?'⚠️':'❌'}`).concat(d.extraLessons.map(x=>`${x.lesson} +${x.total} hedef dışı`)).join(' • ');
+    const topicText=d.topicRows.length?d.topicRows.map(x=>`  ↳ ${x.lesson} / ${[x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||'Konu bilgisi yok'}: ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty} • %${reportPct(x.correct,x.total)}`).join('\n'):'  ↳ Kayıt bulunmuyor.';
+    return `${taskReportStatusEmoji(d.statusKey)} *${fmtDateWithDay(d.day)}* — ${d.statusKey==='done'?'Tamamlandı':d.statusKey==='partial'?'Kısmi tamamlandı':'Veri girişi yok'}\n  Hedef ${d.targetTotal} • Çözülen ${d.doneTotal} • Hedefe sayılan ${d.credited} • Tamamlama %${d.completionPct} • D/Y/B ${d.correct}/${d.wrong}/${d.empty}\n  Dersler: ${lessonText||'Hedef yok'}\n${topicText}`;
+  }).join('\n\n')||'• Henüz gerçekleşmiş planlı gün yok.';
+  const lessonText=(a.stats.subjects||[]).length?a.stats.subjects.map(x=>`• *${x.lesson}:* ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty} • %${reportPct(x.correct,x.total)}`).join('\n'):'• Ders bazlı çalışma kaydı yok.';
+  const offTargetText=a.offTargetRecords.length?`\n\n➕ *Plan dışı / hedef olmayan günlerde çalışma:* ${a.offTargetTotal} soru\n${[...new Set(a.offTargetRecords.map(r=>r.date))].sort().map(day=>taskReportGroupRecords(a.offTargetRecords.filter(r=>r.date===day)).map(x=>`• ${fmtDate(day)} • ${x.lesson} / ${[x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||'Konu bilgisi yok'}: ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty}`).join('\n')).join('\n')}`:'';
+  const strongest=a.strongestTopic?`${a.strongestTopic.lesson} / ${a.strongestTopic.topic} (%${a.strongestTopic.pct}, ${a.strongestTopic.total} soru)`:(a.strongestLesson?`${a.strongestLesson.lesson} (%${a.strongestLesson.pct})`:'Yeterli veri yok');
+  const weakest=a.weakestTopic?`${a.weakestTopic.lesson} / ${a.weakestTopic.topic} (%${a.weakestTopic.pct}, ${a.weakestTopic.total} soru)`:(a.weakestLesson?`${a.weakestLesson.lesson} (%${a.weakestLesson.pct})`:'Yeterli veri yok');
+  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 *${index+1}/${total} — ${st.name}*\n🏷️ *Sınıf / No:* ${st.className||'-'} / ${st.no}\n\nSayın Velimiz, merhaba. 👋\n*${st.name}* öğrencimizin ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)} tarihleri arasındaki görev çalışma özeti aşağıdadır.\n\n📌 *Genel Özet*\n• Planlı gün: *${a.days.length}*\n• Tamamlanan / Kısmi / Veri yok: *${a.completedDays} / ${a.partialDays} / ${a.missingDays} gün*\n• Görev hedefi: *${a.targetTotal} soru*\n• Hedefe sayılan: *${a.credited} soru*\n• Toplam çözülen: *${a.stats.total} soru*\n• Görev tamamlama: *%${a.completionPct}*\n• Veri girilen planlı gün: *${a.activeTaskDays}/${a.days.length}* — %${a.coveragePct}\n• Doğru / Yanlış / Boş: *${a.stats.correct} / ${a.stats.wrong} / ${a.stats.empty}*\n• Genel doğruluk: *%${a.accuracy}*\n• Veri girişi: *${a.stats.entryCount} kayıt*\n• Eğilim: *${a.trend.label}${a.trend.label!=='Yeterli gün yok'?` (${a.trend.delta>=0?'+':''}${a.trend.delta} puan)`:''}*\n\n✅ *Olumlu Yönler*\n${positive}\n\n⚠️ *Takip Edilmesi Gerekenler*\n${attention}\n\n🌟 *Güçlü alan:* ${strongest}\n🛠️ *Öncelikli gelişim alanı:* ${weakest}\n\n🗓️ *Gün Gün Görev ve Çalışma Detayı*\n\n${dayText}${offTargetText}\n\n📚 *Ders Bazlı Genel Dağılım*\n${lessonText}\n\n📎 *Veri Kontrolü:* ${a.quality.mismatch} uyumsuz kayıt • ${a.quality.missingTopic} konu bilgisi eksik kayıt\n\nBilginize sunar, iyi günler dileriz.\n*${state.settings.kurumAdi}*\n`;
+}
+function buildTaskStudentReportText(task,analyses,ctx){
+  return `👥 *ÖĞRENCİYE ÖZEL GÖREV RAPORLARI*\n\n🎯 *Görev:* ${targetLabel(task)}\n🗓️ *Analiz dönemi:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor oluşturma:* ${ctx.moment.text}\n👨‍🏫 *Görevi veren:* ${getTeacherName(task.teacherId)}\n📌 Her öğrenci bölümü çizgiyle ayrılmıştır ve tek başına WhatsApp’a kopyalanabilecek biçimde hazırlanmıştır.\n\n${analyses.map((a,i)=>buildTaskStudentReportBlock(a,i,analyses.length,ctx)).join('\n\n')}\n`;
+}
+async function downloadTaskReports(taskKey,button){
+  const task=state.tasks.find(x=>x.key===taskKey);
+  if(!task){setToast('Görev bulunamadı.','error'); return;}
+  const momentDate=new Date();
+  const moment=reportMomentInfo(momentDate);
+  const start=isoFromAny(task.start);
+  const end=taskReportEffectiveEnd(task,momentDate);
+  if(!start){setToast('Görevin başlangıç tarihi geçersiz.','error'); return;}
+  if(start>end){setToast(`Bu görev henüz başlamadı. Başlangıç: ${fmtDate(start)}`,'error'); return;}
+  const studentNos=studentsForTask(task).map(cleanId);
+  const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:task.className||''});
+  if(!students.length){setToast('Bu görev için raporlanacak öğrenci bulunamadı.','error'); return;}
+  const oldText=button?.innerHTML;
+  if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>Rapor hazırlanıyor';}
+  setToast(`${students.length} öğrenci için iki rapor hazırlanıyor...`);
+  try{
+    const dayContext=taskReportDayContext(task,start,end);
+    const plannedEnd=isoFromAny(task.end)||end;
+    const totalPlannedDays=taskDayKeys(task).filter(day=>day>=start && day<=plannedEnd).length;
+    const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true,endDate:end,endTime:moment.time})));
+    const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
+      .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
+    const ctx={start,end,moment,dayContext,totalPlannedDays};
+    const generalText=buildTaskGeneralReportText(task,analyses,ctx);
+    const studentText=buildTaskStudentReportText(task,analyses,ctx);
+    const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
+    downloadUtf8Text(`GENEL_RAPOR_${period}.txt`,generalText);
+    setTimeout(()=>downloadUtf8Text(`OGRENCI_OZEL_RAPOR_${period}.txt`,studentText),180);
+    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(start)}-${fmtDate(end)} aralığında genel ve öğrenci özel TXT raporları indirildi.`);
+    setToast('Genel ve öğrenciye özel iki TXT raporu indirildi.','ok');
+  }catch(e){
+    console.error('Görev raporu hatası:',e);
+    setToast('Rapor hazırlanamadı: '+(e?.message||e),'error');
+  }finally{
+    if(button){button.disabled=false; button.innerHTML=oldText||'📊 Raporu İndir';}
+  }
+}
+
+
 function teacherTaskCardHtml(t,isPast=false){
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button></div></div>`;
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="warning-btn task-report-btn" data-report-task="${esc(t.key)}">📊 Raporu İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
@@ -3339,7 +3616,7 @@ function updatePreviewLive(){
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));});}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-task]').forEach(b=>b.onclick=()=>downloadTaskReports(b.dataset.reportTask,b));}
 
 
 function lessonDesignerHtml(){
