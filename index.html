@@ -1156,8 +1156,11 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .teacher-task-card .actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .teacher-task-card .actions button{width:100%;min-height:34px;font-size:11px;padding:7px 8px;border-radius:13px}
 .teacher-task-card .actions .danger-btn{grid-column:auto}
-.teacher-task-card .actions .task-report-btn{grid-column:1 / -1;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#9a3412;font-weight:900}
-.teacher-task-card .actions .task-report-btn:hover{background:#ffedd5;border-color:#fb923c}
+.teacher-task-card .actions .task-report-btn{grid-column:1 / -1;font-weight:900;white-space:normal;line-height:1.2}
+.teacher-task-card .actions .general-report-btn{background:linear-gradient(135deg,#eef4ff,#dbeafe);border-color:#bfdbfe;color:#1d4ed8}
+.teacher-task-card .actions .general-report-btn:hover{background:#dbeafe;border-color:#93c5fd}
+.teacher-task-card .actions .student-report-btn{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#9a3412}
+.teacher-task-card .actions .student-report-btn:hover{background:#ffedd5;border-color:#fb923c}
 .teacher-task-card .actions .task-report-btn:disabled{opacity:.7;cursor:wait;transform:none}
 .teacher-task-card .task-track-box{margin-top:0;padding:9px;border-radius:14px;max-height:140px;overflow:auto}
 .data-entry-package-list{display:grid;gap:12px}
@@ -3287,7 +3290,7 @@ function planHtml(w){
   }
   return out;
 }
-/* Görev kartından indirilen genel ve öğrenciye özel TXT raporları. */
+/* Görev kartından ayrı ayrı indirilen genel ve öğrenci TXT raporları. */
 function reportPct(value,total){return total>0?Math.round((Number(value||0)/Number(total||0))*100):0;}
 function reportAverage(values){const nums=(values||[]).map(Number).filter(Number.isFinite); return nums.length?Math.round(nums.reduce((s,n)=>s+n,0)/nums.length):0;}
 function reportFilePart(value){
@@ -3320,29 +3323,22 @@ function taskReportGroupRecords(records){
     const topic=String(r.topic||'').trim();
     const subtopic=String(r.subtopic||'').trim();
     const key=[lesson,topic,subtopic].join('|||');
-    if(!map.has(key)) map.set(key,{lesson,topic,subtopic,total:0,correct:0,wrong:0,empty:0,entryCount:0});
+    if(!map.has(key)) map.set(key,{lesson,topic,subtopic,total:0,correct:0,wrong:0,empty:0});
     const row=map.get(key);
-    row.total+=Number(r.total||0); row.correct+=Number(r.correct||0); row.wrong+=Number(r.wrong||0); row.empty+=Number(r.empty||0); row.entryCount++;
+    row.total+=Number(r.total||0); row.correct+=Number(r.correct||0); row.wrong+=Number(r.wrong||0); row.empty+=Number(r.empty||0);
   });
   return [...map.values()].sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr')||a.topic.localeCompare(b.topic,'tr')||a.subtopic.localeCompare(b.subtopic,'tr'));
 }
-function taskReportDataQuality(records){
-  let mismatch=0,missingTopic=0,missingLesson=0;
-  (records||[]).forEach(r=>{
-    if(Number(r.total||0)!==Number(r.correct||0)+Number(r.wrong||0)+Number(r.empty||0)) mismatch++;
-    if(!String(r.lesson||'').trim() || String(r.lesson||'').trim()==='Genel') missingLesson++;
-    if((!String(r.topic||'').trim() || String(r.topic||'').trim()==='Genel') && (!String(r.subtopic||'').trim() || String(r.subtopic||'').trim()==='Genel')) missingTopic++;
-  });
-  return {mismatch,missingTopic,missingLesson,totalRecords:(records||[]).length};
-}
 function taskReportTrend(dayRows){
-  const values=(dayRows||[]).map(x=>Number(x.completionPct||0));
-  if(values.length<4) return {label:'Yeterli gün yok',delta:0};
+  const rows=dayRows||[];
+  const values=rows.map(x=>Number(x.completionPct||0));
+  const workedDays=rows.filter(x=>Number(x.doneTotal||0)>0).length;
+  if(values.length<4 || workedDays<2) return {label:'',delta:0};
   const half=Math.floor(values.length/2);
   const first=reportAverage(values.slice(0,half));
   const last=reportAverage(values.slice(values.length-half));
   const delta=last-first;
-  return {label:delta>=10?'Yükseliş':delta<=-10?'Düşüş':'Dengeli',delta,first,last};
+  return {label:delta>=10?'Son günlerde görev tamamlama arttı.':delta<=-10?'Son günlerde görev tamamlama azaldı.':'Çalışma düzeni genel olarak dengeli ilerledi.',delta};
 }
 function taskReportMaxMissingStreak(dayRows){
   let current=0,max=0;
@@ -3390,34 +3386,40 @@ function buildTaskReportStudentAnalysis(task,student,stats,dayContext){
   const strongestTopic=[...topicCandidates].sort((a,b)=>b.pct-a.pct||b.total-a.total)[0]||null;
   const weakestTopic=[...topicCandidates].sort((a,b)=>a.pct-b.pct||b.total-a.total)[0]||null;
   const trend=taskReportTrend(days);
-  const quality=taskReportDataQuality(records);
   const completionPct=reportPct(credited,targetTotal);
-  const coveragePct=reportPct(activeTaskDays,days.length);
   const accuracy=reportPct(stats?.correct,stats?.total);
+  const maxMissingStreak=taskReportMaxMissingStreak(days);
   const positives=[];
-  if(completedDays===days.length && days.length) positives.push('planlanan tüm günleri tamamladı');
-  else if(completedDays) positives.push(`${completedDays} günü eksiksiz tamamladı`);
-  if(accuracy>=80 && Number(stats?.total||0)>=20) positives.push(`genel doğruluk oranı güçlü (%${accuracy})`);
-  if(strongestTopic) positives.push(`en güçlü konu ${strongestTopic.lesson} / ${strongestTopic.topic} (%${strongestTopic.pct})`);
-  if(extraQuestions>0) positives.push(`hedefin üzerinde veya hedef dışı ${extraQuestions} ek soru çözdü`);
-  if(trend.label==='Yükseliş') positives.push(`son günlerde tamamlama eğilimi +${trend.delta} puan yükseldi`);
+  if(completedDays===days.length && days.length) positives.push('Planlanan tüm görev günlerini tamamladı.');
+  else if(completedDays) positives.push(`${completedDays} görev gününü eksiksiz tamamladı.`);
+  if(accuracy>=80 && Number(stats?.total||0)>=20) positives.push(`Soruların %${accuracy}'ini doğru yanıtladı.`);
+  if(strongestTopic) positives.push(`${strongestTopic.lesson} / ${strongestTopic.topic} konusunda başarılı bir çalışma gösterdi.`);
+  else if(strongestLesson) positives.push(`${strongestLesson.lesson} dersindeki başarı oranı %${strongestLesson.pct}.`);
+  if(extraQuestions>0) positives.push(`Görev hedefinin dışında ${extraQuestions} ek soru çözdü.`);
+  if(trend.label && trend.delta>=10) positives.push(trend.label);
   const attention=[];
-  if(!Number(stats?.total||0)) attention.push('bu aralıkta veri girişi bulunmuyor');
-  if(missingDays) attention.push(`${missingDays} planlı günde veri girişi yapılmadı`);
-  if(partialDays) attention.push(`${partialDays} gün kısmi tamamlandı`);
-  if(completionPct<60 && targetTotal>0) attention.push(`görev tamamlama oranı düşük (%${completionPct})`);
-  if(weakestTopic && weakestTopic.pct<60) attention.push(`öncelikli konu ${weakestTopic.lesson} / ${weakestTopic.topic} (%${weakestTopic.pct})`);
-  if(taskReportMaxMissingStreak(days)>=2) attention.push(`${taskReportMaxMissingStreak(days)} gün üst üste veri girişi yok`);
-  if(quality.mismatch) attention.push(`${quality.mismatch} kayıtta toplam ile doğru-yanlış-boş sayıları uyuşmuyor`);
-  return {task,student,stats,days,targetTotal,doneOnTaskDays,credited,completionPct,completedDays,partialDays,missingDays,activeTaskDays,coveragePct,offTargetRecords,offTargetTotal,extraQuestions,accuracy,strongestLesson,weakestLesson,strongestTopic,weakestTopic,trend,quality,positives,attention,maxMissingStreak:taskReportMaxMissingStreak(days)};
+  if(!Number(stats?.total||0)) attention.push('Bu tarih aralığında herhangi bir çalışma görünmüyor.');
+  if(missingDays) attention.push(`${missingDays} görev gününde çalışma görünmüyor.`);
+  if(partialDays) attention.push(`${partialDays} görev günü eksik kaldı.`);
+  if(completionPct<60 && targetTotal>0) attention.push(`Görevin %${completionPct}'i tamamlandı; daha düzenli takip faydalı olacaktır.`);
+  if(weakestTopic && weakestTopic.pct<60) attention.push(`${weakestTopic.lesson} / ${weakestTopic.topic} konusunda tekrar yapılması faydalı olacaktır.`);
+  else if(weakestLesson && weakestLesson.pct<60) attention.push(`${weakestLesson.lesson} dersinde ek çalışma faydalı olacaktır.`);
+  if(maxMissingStreak>=2) attention.push(`${maxMissingStreak} görev günü üst üste çalışma görünmüyor.`);
+  if(trend.label && trend.delta<=-10) attention.push(trend.label);
+  return {task,student,stats,days,targetTotal,doneOnTaskDays,credited,completionPct,completedDays,partialDays,missingDays,activeTaskDays,offTargetRecords,offTargetTotal,extraQuestions,accuracy,strongestLesson,weakestLesson,strongestTopic,weakestTopic,trend,positives,attention,maxMissingStreak};
 }
 function taskReportStatusEmoji(key){return key==='done'?'✅':key==='partial'?'⚠️':'❌';}
+function taskReportStatusLabel(key){return key==='done'?'Tamamlandı':key==='partial'?'Eksik tamamlandı':'Çalışma görünmüyor';}
 function taskReportStudentSummaryLine(a,totalDays){
-  return `• *${a.student.name}* (${a.student.className||'-'}): ${a.completedDays}/${totalDays} gün • %${a.completionPct} tamamlama • ${a.credited}/${a.targetTotal} hedef soru • ${a.stats.total} toplam soru`;
+  return `• *${a.student.name}* (${a.student.className||'-'}): ${a.completedDays}/${totalDays} gün tamamlandı • Görev %${a.completionPct} • ${a.stats.total} soru • Doğruluk %${a.accuracy}`;
 }
-function taskReportRankLines(list,totalDays,emptyText='Kayıt yok.'){
+function taskReportRankLines(list,totalDays,emptyText='Bu başlıkta öğrenci bulunmuyor.'){
   if(!(list||[]).length) return `• ${emptyText}`;
-  return list.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.completedDays}/${totalDays} gün • %${a.completionPct} • ${a.stats.total} soru`).join('\n');
+  return list.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.completedDays}/${totalDays} gün • Görev %${a.completionPct} • ${a.stats.total} soru`).join('\n');
+}
+function taskReportNameLines(list,emptyText='Bu başlıkta öğrenci bulunmuyor.'){
+  if(!(list||[]).length) return `• ${emptyText}`;
+  return list.map(a=>`• *${a.student.name}* (${a.student.className||'-'})`).join('\n');
 }
 function buildTaskGeneralReportText(task,analyses,ctx){
   const studentCount=analyses.length;
@@ -3428,19 +3430,20 @@ function buildTaskGeneralReportText(task,analyses,ctx){
   const totalCorrect=analyses.reduce((s,a)=>s+Number(a.stats.correct||0),0);
   const totalWrong=analyses.reduce((s,a)=>s+Number(a.stats.wrong||0),0);
   const totalEmpty=analyses.reduce((s,a)=>s+Number(a.stats.empty||0),0);
-  const totalEntries=analyses.reduce((s,a)=>s+Number(a.stats.entryCount||0),0);
   const overallCompletion=reportPct(totalCredited,totalTarget);
   const overallAccuracy=reportPct(totalCorrect,totalSolved);
-  const dataStudents=analyses.filter(a=>a.stats.total>0);
-  const noData=analyses.filter(a=>a.stats.total===0);
+  const workedStudents=analyses.filter(a=>a.stats.total>0);
+  const noWork=analyses.filter(a=>a.stats.total===0);
   const full=analyses.filter(a=>totalDays>0 && a.completedDays===totalDays);
-  const followNeeded=analyses.filter(a=>a.stats.total===0 || a.completionPct<50 || a.coveragePct<50).sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total);
-  const topCompletion=[...analyses].sort((a,b)=>b.completionPct-a.completionPct||b.completedDays-a.completedDays||b.stats.total-a.stats.total||a.student.name.localeCompare(b.student.name,'tr')).slice(0,5);
-  const lowCompletion=[...analyses].sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total||a.student.name.localeCompare(b.student.name,'tr')).slice(0,5);
-  const mostQuestions=[...analyses].sort((a,b)=>b.stats.total-a.stats.total||b.completionPct-a.completionPct).slice(0,5);
+  const supportNeeded=analyses.filter(a=>a.stats.total===0 || a.completionPct<60 || a.missingDays>=2 || (a.stats.total>=20 && a.accuracy<60))
+    .sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total);
+  const topCompletion=[...analyses].filter(a=>a.completionPct>0).sort((a,b)=>b.completionPct-a.completionPct||b.completedDays-a.completedDays||b.stats.total-a.stats.total||a.student.name.localeCompare(b.student.name,'tr')).slice(0,5);
+  const mostQuestions=[...analyses].filter(a=>a.stats.total>0).sort((a,b)=>b.stats.total-a.stats.total||b.completionPct-a.completionPct).slice(0,5);
+  const lowCompletion=[...analyses].filter(a=>a.completionPct<60).sort((a,b)=>a.completionPct-b.completionPct||a.stats.total-b.stats.total).slice(0,10);
+  const irregular=[...analyses].filter(a=>a.missingDays>=2).sort((a,b)=>b.missingDays-a.missingDays||a.completionPct-b.completionPct).slice(0,10);
   const accuracyEligible=analyses.filter(a=>a.stats.total>=20);
   const bestAccuracy=[...accuracyEligible].sort((a,b)=>b.accuracy-a.accuracy||b.stats.total-a.stats.total).slice(0,5);
-  const weakAccuracy=[...accuracyEligible].sort((a,b)=>a.accuracy-b.accuracy||b.stats.total-a.stats.total).slice(0,5);
+  const weakAccuracy=[...accuracyEligible].filter(a=>a.accuracy<60).sort((a,b)=>a.accuracy-b.accuracy||b.stats.total-a.stats.total).slice(0,10);
   const lessonMap=new Map();
   analyses.forEach(a=>a.days.forEach(d=>d.lessonRows.forEach(row=>{
     if(!lessonMap.has(row.lesson)) lessonMap.set(row.lesson,{lesson:row.lesson,target:0,done:0,credit:0});
@@ -3453,8 +3456,8 @@ function buildTaskGeneralReportText(task,analyses,ctx){
   }));
   const lessonLines=[...lessonMap.values()].sort((a,b)=>b.target-a.target).map(x=>{
     const acc=lessonAccuracyMap.get(x.lesson)||{total:0,correct:0,wrong:0,empty:0};
-    return `• *${x.lesson}:* Hedef ${x.target} • Karşılanan ${x.credit} • Çözülen ${x.done} • Tamamlama %${reportPct(x.credit,x.target)} • Doğruluk %${reportPct(acc.correct,acc.total)}`;
-  }).join('\n')||'• Ders bazlı hedef yok.';
+    return `• *${x.lesson}:* Görev ${x.target} soru • Tamamlanan ${x.credit} (%${reportPct(x.credit,x.target)}) • Toplam çözüm ${x.done} • Doğruluk %${reportPct(acc.correct,acc.total)}`;
+  }).join('\n')||'• Derslere göre görev bulunmuyor.';
   const topicMap=new Map();
   analyses.forEach(a=>(a.stats.topics||[]).forEach(t=>{
     if(!String(t.topic||'').trim() || String(t.topic||'').trim()==='Genel') return;
@@ -3464,48 +3467,54 @@ function buildTaskGeneralReportText(task,analyses,ctx){
   }));
   const topicRows=[...topicMap.values()].filter(x=>x.total>=20).map(x=>({...x,pct:reportPct(x.correct,x.total)}));
   const strongTopics=[...topicRows].sort((a,b)=>b.pct-a.pct||b.total-a.total).slice(0,5);
-  const weakTopics=[...topicRows].sort((a,b)=>a.pct-b.pct||b.total-a.total).slice(0,5);
+  const weakTopics=[...topicRows].filter(x=>x.pct<60).sort((a,b)=>a.pct-b.pct||b.total-a.total).slice(0,5);
   const dayLines=ctx.dayContext.map(dc=>{
     const rows=analyses.map(a=>a.days.find(d=>d.day===dc.day)).filter(Boolean);
     const target=rows.reduce((s,d)=>s+d.targetTotal,0), credit=rows.reduce((s,d)=>s+d.credited,0), done=rows.reduce((s,d)=>s+d.doneTotal,0);
     const complete=rows.filter(d=>d.statusKey==='done').length, partial=rows.filter(d=>d.statusKey==='partial').length, missing=rows.filter(d=>d.statusKey==='missing').length;
-    return `• *${fmtDateWithDay(dc.day)}:* Hedef ${target} • Karşılanan ${credit} • Çözülen ${done} • %${reportPct(credit,target)} | ✅ ${complete} • ⚠️ ${partial} • ❌ ${missing}`;
-  }).join('\n')||'• Henüz gerçekleşmiş planlı gün yok.';
+    return `• *${fmtDateWithDay(dc.day)}:* ${complete} öğrenci tamamladı • ${partial} öğrenci eksik bıraktı • ${missing} öğrencide çalışma görünmüyor • Görev %${reportPct(credit,target)} • ${done} soru`;
+  }).join('\n')||'• Henüz gerçekleşen görev günü bulunmuyor.';
   const classMap=new Map();
   analyses.forEach(a=>{
     const cls=a.student.className||'Sınıf bilgisi yok';
     if(!classMap.has(cls)) classMap.set(cls,{className:cls,students:0,target:0,credit:0,solved:0});
     const x=classMap.get(cls); x.students++; x.target+=a.targetTotal; x.credit+=a.credited; x.solved+=a.stats.total;
   });
-  const classLines=[...classMap.values()].sort((a,b)=>a.className.localeCompare(b.className,'tr',{numeric:true})).map(x=>`• *${x.className}:* ${x.students} öğrenci • %${reportPct(x.credit,x.target)} tamamlama • ${x.solved} soru`).join('\n');
-  const quality=analyses.reduce((acc,a)=>({mismatch:acc.mismatch+a.quality.mismatch,missingTopic:acc.missingTopic+a.quality.missingTopic,missingLesson:acc.missingLesson+a.quality.missingLesson}),{mismatch:0,missingTopic:0,missingLesson:0});
-  const allStudentLines=[...analyses].sort((a,b)=>a.student.name.localeCompare(b.student.name,'tr')).map(a=>taskReportStudentSummaryLine(a,totalDays)).join('\n')||'• Öğrenci yok.';
-  const topicStrongText=strongTopics.length?strongTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — %${x.pct} (${x.total} soru)`).join('\n'):'• Yeterli örneklem yok.';
-  const topicWeakText=weakTopics.length?weakTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — %${x.pct} (${x.total} soru)`).join('\n'):'• Yeterli örneklem yok.';
-  const accuracyText=list=>list.length?list.map((a,i)=>`${i+1}. *${a.student.name}* — %${a.accuracy} (${a.stats.total} soru)`).join('\n'):'• En az 20 soruluk yeterli veri yok.';
-  return `📊 *GENEL GÖREV RAPORU*\n\n🏫 *Kurum:* ${state.settings.kurumAdi}\n🎯 *Görev:* ${targetLabel(task)}\n👨‍🏫 *Görevi veren:* ${getTeacherName(task.teacherId)}\n🗓️ *Analiz dönemi:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor oluşturma:* ${ctx.moment.text}\n📅 *Planlanan gün:* ${totalDays}/${ctx.totalPlannedDays} gün gerçekleşti\n\n━━━━━━━━━━━━━━━━━━━━\n1️⃣ *YÖNETİCİ ÖZETİ*\n\n👥 Öğrenci sayısı: *${studentCount}*\n🎯 Toplam hedef: *${totalTarget} soru*\n✅ Hedefe sayılan çözüm: *${totalCredited} soru*\n📚 Toplam çözülen: *${totalSolved} soru*\n📈 Genel tamamlama: *%${overallCompletion}*\n🎯 Genel doğruluk: *%${overallAccuracy}* — D ${totalCorrect} / Y ${totalWrong} / B ${totalEmpty}\n📝 Veri girişi: *${totalEntries} kayıt* • ${dataStudents.length} öğrencide veri • ${noData.length} öğrencide veri yok\n🏁 Tüm gerçekleşen günleri tamamlayan: *${full.length} öğrenci*\n🔎 Yakın takip gerektiren: *${followNeeded.length} öğrenci*\n\n━━━━━━━━━━━━━━━━━━━━\n2️⃣ *ÖĞRENCİ BAZLI TAMAMLANAN GÜN SAYISI*\n\n${allStudentLines}\n\n━━━━━━━━━━━━━━━━━━━━\n3️⃣ *ÖNE ÇIKANLAR*\n\n🏆 *En yüksek görev tamamlama*\n${taskReportRankLines(topCompletion,totalDays)}\n\n📚 *En çok soru çözenler*\n${mostQuestions.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.stats.total} soru • %${a.completionPct} görev`).join('\n')||'• Kayıt yok.'}\n\n🎯 *En yüksek doğruluk — en az 20 soru*\n${accuracyText(bestAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n4️⃣ *TAKİP GEREKTİREN ÖĞRENCİLER*\n\n⚠️ *Düşük görev tamamlama*\n${taskReportRankLines(lowCompletion,totalDays)}\n\n🧭 *Öncelikli takip listesi*\n${followNeeded.length?followNeeded.map(a=>`• *${a.student.name}* — %${a.completionPct} tamamlama • ${a.activeTaskDays}/${totalDays} aktif gün • ${a.stats.total} soru${a.stats.total===0?' • veri girişi yok':''}`).join('\n'):'• Belirgin takip ihtiyacı görünmüyor.'}\n\n📉 *Düşük doğruluk — en az 20 soru*\n${accuracyText(weakAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n5️⃣ *DERS VE KONU ANALİZİ*\n\n📘 *Ders bazında hedef / çözüm*\n${lessonLines}\n\n🌟 *Güçlü konular — en az 20 soru*\n${topicStrongText}\n\n🛠️ *Geliştirilmesi gereken konular — en az 20 soru*\n${topicWeakText}\n\n━━━━━━━━━━━━━━━━━━━━\n6️⃣ *GÜN GÜN TOPLU DURUM*\n\n${dayLines}\n\n━━━━━━━━━━━━━━━━━━━━\n7️⃣ *SINIF DAĞILIMI*\n\n${classLines||'• Sınıf bilgisi yok.'}\n\n━━━━━━━━━━━━━━━━━━━━\n8️⃣ *VERİ KALİTESİ KONTROLÜ*\n\n• Toplam ile doğru + yanlış + boş uyuşmayan kayıt: *${quality.mismatch}*\n• Konu / alt konu bilgisi bulunmayan kayıt: *${quality.missingTopic}*\n• Ders bilgisi bulunmayan kayıt: *${quality.missingLesson}*\n\n📌 *Not:* Tamamlama oranı, her dersin günlük hedefi ayrı ayrı dikkate alınarak hesaplanır. Bir derste hedef üstü çözülen sorular, başka bir dersin eksik hedefini kapatmaz. “Takip gerektiren” ifadesi yargılama değil; düşük veri girişi, düşük gün kapsamı veya düşük hedef karşılama nedeniyle öğretmen kontrolü önerilen öğrencileri gösterir.\n`;
+  const classLines=[...classMap.values()].sort((a,b)=>a.className.localeCompare(b.className,'tr',{numeric:true})).map(x=>`• *${x.className}:* ${x.students} öğrenci • Görev %${reportPct(x.credit,x.target)} • ${x.solved} soru`).join('\n');
+  const allStudentLines=[...analyses].sort((a,b)=>a.student.name.localeCompare(b.student.name,'tr')).map(a=>taskReportStudentSummaryLine(a,totalDays)).join('\n')||'• Öğrenci bulunmuyor.';
+  const topicStrongText=strongTopics.length?strongTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — Başarı %${x.pct} • ${x.total} soru`).join('\n'):'• Karşılaştırma yapacak kadar soru çözülmemiş.';
+  const topicWeakText=weakTopics.length?weakTopics.map((x,i)=>`${i+1}. *${x.lesson} / ${x.topic}* — Başarı %${x.pct} • ${x.total} soru`).join('\n'):'• Belirgin bir konu eksiği görünmüyor.';
+  const accuracyText=list=>list.length?list.map((a,i)=>`${i+1}. *${a.student.name}* — Doğruluk %${a.accuracy} • ${a.stats.total} soru`).join('\n'):'• Bu başlıkta öğrenci bulunmuyor.';
+  return `📊 *GENEL GÖREV RAPORU*\n\n🏫 *Kurum:* ${state.settings.kurumAdi}\n🎯 *Görev:* ${targetLabel(task)}\n👨‍🏫 *Öğretmen:* ${getTeacherName(task.teacherId)}\n🗓️ *Tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor zamanı:* ${ctx.moment.text}\n\n━━━━━━━━━━━━━━━━━━━━\n1️⃣ *KISA BAKIŞ*\n\n👥 Toplam öğrenci: *${studentCount}*\n📅 Gerçekleşen görev günü: *${totalDays}/${ctx.totalPlannedDays}*\n✅ Görevin tamamlanan kısmı: *%${overallCompletion}*\n📚 Toplam çözülen soru: *${totalSolved}*\n🎯 Genel doğruluk: *%${overallAccuracy}* — ${totalCorrect} doğru / ${totalWrong} yanlış / ${totalEmpty} boş\n🙋 Çalışma yapan öğrenci: *${workedStudents.length}*\n⛔ Çalışma görünmeyen öğrenci: *${noWork.length}*\n🏁 Tüm görev günlerini tamamlayan: *${full.length}*\n📍 Destek ve takip gereken öğrenci: *${supportNeeded.length}*\n\n━━━━━━━━━━━━━━━━━━━━\n2️⃣ *TÜM ÖĞRENCİLERİN DURUMU*\n\n${allStudentLines}\n\n━━━━━━━━━━━━━━━━━━━━\n3️⃣ *ÖNE ÇIKAN ÖĞRENCİLER*\n\n🏆 *Görevi en düzenli tamamlayanlar*\n${taskReportRankLines(topCompletion,totalDays)}\n\n📚 *En çok soru çözenler*\n${mostQuestions.length?mostQuestions.map((a,i)=>`${i+1}. *${a.student.name}* — ${a.stats.total} soru • Görev %${a.completionPct}`).join('\n'):'• Henüz soru çözümü görünmüyor.'}\n\n🎯 *Doğruluk oranı en yüksek olanlar — en az 20 soru*\n${accuracyText(bestAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n4️⃣ *DESTEK GEREKEN ÖĞRENCİLER*\n\n⛔ *Hiç çalışma görünmeyenler*\n${taskReportNameLines(noWork,'Tüm öğrencilerde çalışma görünüyor.')}\n\n⚠️ *Görevin yarısından azını tamamlayanlar*\n${taskReportRankLines(lowCompletion,totalDays,'Bu durumda öğrenci bulunmuyor.')}\n\n📅 *İki veya daha fazla görev gününü boş bırakanlar*\n${irregular.length?irregular.map(a=>`• *${a.student.name}* — ${a.missingDays} gün çalışma görünmüyor • Görev %${a.completionPct}`).join('\n'):'• Bu durumda öğrenci bulunmuyor.'}\n\n🧩 *Doğruluk desteği gerekenler — en az 20 soru*\n${accuracyText(weakAccuracy)}\n\n━━━━━━━━━━━━━━━━━━━━\n5️⃣ *DERS VE KONU DURUMU*\n\n📘 *Derslere göre*\n${lessonLines}\n\n🌟 *En başarılı konular*\n${topicStrongText}\n\n🛠️ *Tekrar edilmesi gereken konular*\n${topicWeakText}\n\n━━━━━━━━━━━━━━━━━━━━\n6️⃣ *GÜNLERE GÖRE SINIF DURUMU*\n\n${dayLines}\n\n━━━━━━━━━━━━━━━━━━━━\n7️⃣ *SINIF ÖZETİ*\n\n${classLines||'• Sınıf bilgisi bulunmuyor.'}\n\n📌 *Not:* Görev tamamlama oranı her dersin kendi günlük hedefi üzerinden hesaplanmıştır. Bir derste fazladan çözülen sorular, başka bir dersin eksik kalan görevini tamamlamaz.\n`;
 }
 function buildTaskStudentReportBlock(a,index,total,ctx){
   const st=a.student;
-  const positive=a.positives.length?a.positives.slice(0,3).map(x=>`• ${x}`).join('\n'):'• Bu aralıkta öne çıkan olumlu veri henüz oluşmadı.';
-  const attention=a.attention.length?a.attention.slice(0,4).map(x=>`• ${x}`).join('\n'):'• Belirgin bir takip başlığı görünmüyor.';
+  const positive=a.positives.length?a.positives.slice(0,3).map(x=>`• ${x}`).join('\n'):'• Bu dönem için olumlu değerlendirme yapacak kadar çalışma görünmüyor.';
+  const attention=a.attention.length?a.attention.slice(0,4).map(x=>`• ${x}`).join('\n'):'• Şu anda belirgin bir takip ihtiyacı görünmüyor.';
   const dayText=a.days.map(d=>{
-    const lessonText=d.lessonRows.map(x=>`${x.lesson} ${x.done}/${x.target} ${x.status==='done'?'✅':x.status==='partial'?'⚠️':'❌'}`).concat(d.extraLessons.map(x=>`${x.lesson} +${x.total} hedef dışı`)).join(' • ');
-    const topicText=d.topicRows.length?d.topicRows.map(x=>`  ↳ ${x.lesson} / ${[x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||'Konu bilgisi yok'}: ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty} • %${reportPct(x.correct,x.total)}`).join('\n'):'  ↳ Kayıt bulunmuyor.';
-    return `${taskReportStatusEmoji(d.statusKey)} *${fmtDateWithDay(d.day)}* — ${d.statusKey==='done'?'Tamamlandı':d.statusKey==='partial'?'Kısmi tamamlandı':'Veri girişi yok'}\n  Hedef ${d.targetTotal} • Çözülen ${d.doneTotal} • Hedefe sayılan ${d.credited} • Tamamlama %${d.completionPct} • D/Y/B ${d.correct}/${d.wrong}/${d.empty}\n  Dersler: ${lessonText||'Hedef yok'}\n${topicText}`;
-  }).join('\n\n')||'• Henüz gerçekleşmiş planlı gün yok.';
-  const lessonText=(a.stats.subjects||[]).length?a.stats.subjects.map(x=>`• *${x.lesson}:* ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty} • %${reportPct(x.correct,x.total)}`).join('\n'):'• Ders bazlı çalışma kaydı yok.';
-  const offTargetText=a.offTargetRecords.length?`\n\n➕ *Plan dışı / hedef olmayan günlerde çalışma:* ${a.offTargetTotal} soru\n${[...new Set(a.offTargetRecords.map(r=>r.date))].sort().map(day=>taskReportGroupRecords(a.offTargetRecords.filter(r=>r.date===day)).map(x=>`• ${fmtDate(day)} • ${x.lesson} / ${[x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||'Konu bilgisi yok'}: ${x.total} soru • D ${x.correct} / Y ${x.wrong} / B ${x.empty}`).join('\n')).join('\n')}`:'';
-  const strongest=a.strongestTopic?`${a.strongestTopic.lesson} / ${a.strongestTopic.topic} (%${a.strongestTopic.pct}, ${a.strongestTopic.total} soru)`:(a.strongestLesson?`${a.strongestLesson.lesson} (%${a.strongestLesson.pct})`:'Yeterli veri yok');
-  const weakest=a.weakestTopic?`${a.weakestTopic.lesson} / ${a.weakestTopic.topic} (%${a.weakestTopic.pct}, ${a.weakestTopic.total} soru)`:(a.weakestLesson?`${a.weakestLesson.lesson} (%${a.weakestLesson.pct})`:'Yeterli veri yok');
-  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 *${index+1}/${total} — ${st.name}*\n🏷️ *Sınıf / No:* ${st.className||'-'} / ${st.no}\n\nSayın Velimiz, merhaba. 👋\n*${st.name}* öğrencimizin ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)} tarihleri arasındaki görev çalışma özeti aşağıdadır.\n\n📌 *Genel Özet*\n• Planlı gün: *${a.days.length}*\n• Tamamlanan / Kısmi / Veri yok: *${a.completedDays} / ${a.partialDays} / ${a.missingDays} gün*\n• Görev hedefi: *${a.targetTotal} soru*\n• Hedefe sayılan: *${a.credited} soru*\n• Toplam çözülen: *${a.stats.total} soru*\n• Görev tamamlama: *%${a.completionPct}*\n• Veri girilen planlı gün: *${a.activeTaskDays}/${a.days.length}* — %${a.coveragePct}\n• Doğru / Yanlış / Boş: *${a.stats.correct} / ${a.stats.wrong} / ${a.stats.empty}*\n• Genel doğruluk: *%${a.accuracy}*\n• Veri girişi: *${a.stats.entryCount} kayıt*\n• Eğilim: *${a.trend.label}${a.trend.label!=='Yeterli gün yok'?` (${a.trend.delta>=0?'+':''}${a.trend.delta} puan)`:''}*\n\n✅ *Olumlu Yönler*\n${positive}\n\n⚠️ *Takip Edilmesi Gerekenler*\n${attention}\n\n🌟 *Güçlü alan:* ${strongest}\n🛠️ *Öncelikli gelişim alanı:* ${weakest}\n\n🗓️ *Gün Gün Görev ve Çalışma Detayı*\n\n${dayText}${offTargetText}\n\n📚 *Ders Bazlı Genel Dağılım*\n${lessonText}\n\n📎 *Veri Kontrolü:* ${a.quality.mismatch} uyumsuz kayıt • ${a.quality.missingTopic} konu bilgisi eksik kayıt\n\nBilginize sunar, iyi günler dileriz.\n*${state.settings.kurumAdi}*\n`;
+    const lessonText=d.lessonRows.map(x=>`${x.lesson}: ${x.done}/${x.target} ${x.status==='done'?'✅':x.status==='partial'?'⚠️':'❌'}`).concat(d.extraLessons.map(x=>`${x.lesson}: ${x.total} ek soru`)).join(' • ');
+    const topicLines=d.topicRows.map(x=>{
+      const path=[x.lesson,x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||x.lesson;
+      return `  - ${path}: ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş`;
+    }).join('\n');
+    const resultLine=d.doneTotal?`• Sonuç: ${d.correct} doğru / ${d.wrong} yanlış / ${d.empty} boş • Başarı %${d.accuracy}`:'• Bu gün için çalışma görünmüyor.';
+    return `${taskReportStatusEmoji(d.statusKey)} *${fmtDateWithDay(d.day)} — ${taskReportStatusLabel(d.statusKey)}*\n• Görev: ${d.credited}/${d.targetTotal} soru tamamlandı • Toplam çözüm: ${d.doneTotal}\n${resultLine}\n• Dersler: ${lessonText||'Görev bulunmuyor.'}${topicLines?`\n• Konular:\n${topicLines}`:''}`;
+  }).join('\n\n')||'• Henüz gerçekleşen görev günü bulunmuyor.';
+  const lessonText=(a.stats.subjects||[]).length?a.stats.subjects.map(x=>`• *${x.lesson}:* ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş • Başarı %${reportPct(x.correct,x.total)}`).join('\n'):'• Derslere göre çalışma görünmüyor.';
+  const offTargetText=a.offTargetRecords.length?`\n\n➕ *Görev günleri dışında yapılan ek çalışma:* ${a.offTargetTotal} soru\n${[...new Set(a.offTargetRecords.map(r=>r.date))].sort().map(day=>taskReportGroupRecords(a.offTargetRecords.filter(r=>r.date===day)).map(x=>{const path=[x.lesson,x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||x.lesson; return `• ${fmtDate(day)} — ${path}: ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş`;}).join('\n')).join('\n')}`:'';
+  const strongest=a.strongestTopic?`${a.strongestTopic.lesson} / ${a.strongestTopic.topic} — Başarı %${a.strongestTopic.pct}`:(a.strongestLesson?`${a.strongestLesson.lesson} — Başarı %${a.strongestLesson.pct}`:'Henüz karşılaştırma yapacak kadar soru çözülmemiş.');
+  const weakest=a.weakestTopic?`${a.weakestTopic.lesson} / ${a.weakestTopic.topic} — Başarı %${a.weakestTopic.pct}`:(a.weakestLesson?`${a.weakestLesson.lesson} — Başarı %${a.weakestLesson.pct}`:'Henüz karşılaştırma yapacak kadar soru çözülmemiş.');
+  const trendLine=a.trend.label?`\n• Çalışma gidişatı: *${a.trend.label.replace(/\.$/,'')}*`:'';
+  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 *${index+1}/${total} — ${st.name}*\n🏷️ *Sınıf / No:* ${st.className||'-'} / ${st.no}\n\nSayın Velimiz, merhaba. 👋\n*${st.name}* öğrencimizin ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)} tarihleri arasındaki görev durumu aşağıdadır.\n\n📌 *KISA ÖZET*\n• Görev günleri: *${a.completedDays} tamamlandı / ${a.partialDays} eksik / ${a.missingDays} çalışma görünmüyor*\n• Görev durumu: *${a.credited}/${a.targetTotal} soru tamamlandı — %${a.completionPct}*\n• Toplam çözülen: *${a.stats.total} soru*\n• Doğru / Yanlış / Boş: *${a.stats.correct} / ${a.stats.wrong} / ${a.stats.empty}*\n• Genel başarı: *%${a.accuracy}*${trendLine}\n\n✅ *İYİ GİDENLER*\n${positive}\n\n📍 *ÜZERİNDE DURULMASI GEREKENLER*\n${attention}\n\n🌟 *En güçlü olduğu alan:* ${strongest}\n🛠️ *Tekrar etmesi faydalı olacak alan:* ${weakest}\n\n🗓️ *GÜN GÜN ÇALIŞMA DURUMU*\n\n${dayText}${offTargetText}\n\n📚 *DERSLERE GÖRE GENEL DURUM*\n${lessonText}\n\n📌 *Not:* Bu raporda sisteme işlenen çalışmalar yer almaktadır.\n\nBilginize sunar, iyi günler dileriz.\n*${state.settings.kurumAdi}*\n`;
 }
 function buildTaskStudentReportText(task,analyses,ctx){
-  return `👥 *ÖĞRENCİYE ÖZEL GÖREV RAPORLARI*\n\n🎯 *Görev:* ${targetLabel(task)}\n🗓️ *Analiz dönemi:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor oluşturma:* ${ctx.moment.text}\n👨‍🏫 *Görevi veren:* ${getTeacherName(task.teacherId)}\n📌 Her öğrenci bölümü çizgiyle ayrılmıştır ve tek başına WhatsApp’a kopyalanabilecek biçimde hazırlanmıştır.\n\n${analyses.map((a,i)=>buildTaskStudentReportBlock(a,i,analyses.length,ctx)).join('\n\n')}\n`;
+  return `👥 *ÖĞRENCİ GÖREV RAPORLARI*\n\n🎯 *Görev:* ${targetLabel(task)}\n🗓️ *Tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor zamanı:* ${ctx.moment.text}\n👨‍🏫 *Öğretmen:* ${getTeacherName(task.teacherId)}\n📌 Her öğrenci ayrı bir bölümde yer almaktadır. İlgili bölüm doğrudan WhatsApp’a kopyalanabilir.\n\n${analyses.map((a,i)=>buildTaskStudentReportBlock(a,i,analyses.length,ctx)).join('\n\n')}\n`;
 }
-async function downloadTaskReports(taskKey,button){
+async function downloadTaskReport(taskKey,reportType,button){
   const task=state.tasks.find(x=>x.key===taskKey);
   if(!task){setToast('Görev bulunamadı.','error'); return;}
+  const isGeneral=reportType==='general';
+  const reportName=isGeneral?'Genel rapor':'Öğrenci raporu';
   const momentDate=new Date();
   const moment=reportMomentInfo(momentDate);
   const start=isoFromAny(task.start);
@@ -3516,8 +3525,8 @@ async function downloadTaskReports(taskKey,button){
   const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:task.className||''});
   if(!students.length){setToast('Bu görev için raporlanacak öğrenci bulunamadı.','error'); return;}
   const oldText=button?.innerHTML;
-  if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>Rapor hazırlanıyor';}
-  setToast(`${students.length} öğrenci için iki rapor hazırlanıyor...`);
+  if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>Hazırlanıyor';}
+  setToast(`${reportName} hazırlanıyor...`);
   try{
     const dayContext=taskReportDayContext(task,start,end);
     const plannedEnd=isoFromAny(task.end)||end;
@@ -3526,24 +3535,24 @@ async function downloadTaskReports(taskKey,button){
     const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
       .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
     const ctx={start,end,moment,dayContext,totalPlannedDays};
-    const generalText=buildTaskGeneralReportText(task,analyses,ctx);
-    const studentText=buildTaskStudentReportText(task,analyses,ctx);
     const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
-    downloadUtf8Text(`GENEL_RAPOR_${period}.txt`,generalText);
-    setTimeout(()=>downloadUtf8Text(`OGRENCI_OZEL_RAPOR_${period}.txt`,studentText),180);
-    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(start)}-${fmtDate(end)} aralığında genel ve öğrenci özel TXT raporları indirildi.`);
-    setToast('Genel ve öğrenciye özel iki TXT raporu indirildi.','ok');
+    if(isGeneral){
+      downloadUtf8Text(`GENEL_GOREV_RAPORU_${period}.txt`,buildTaskGeneralReportText(task,analyses,ctx));
+    }else{
+      downloadUtf8Text(`OGRENCI_GOREV_RAPORLARI_${period}.txt`,buildTaskStudentReportText(task,analyses,ctx));
+    }
+    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(start)}-${fmtDate(end)} aralığında ${reportName.toLocaleLowerCase('tr-TR')} indirildi.`);
+    setToast(`${reportName} indirildi.`,'ok');
   }catch(e){
     console.error('Görev raporu hatası:',e);
     setToast('Rapor hazırlanamadı: '+(e?.message||e),'error');
   }finally{
-    if(button){button.disabled=false; button.innerHTML=oldText||'📊 Raporu İndir';}
+    if(button){button.disabled=false; button.innerHTML=oldText||(isGeneral?'📊 Genel Raporu İndir':'👥 Öğrenci Raporunu İndir');}
   }
 }
 
-
 function teacherTaskCardHtml(t,isPast=false){
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="warning-btn task-report-btn" data-report-task="${esc(t.key)}">📊 Raporu İndir</button></div></div>`;
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
@@ -3616,7 +3625,7 @@ function updatePreviewLive(){
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-task]').forEach(b=>b.onclick=()=>downloadTaskReports(b.dataset.reportTask,b));}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportGeneralTask,'general',b)); document.querySelectorAll('[data-report-students-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportStudentsTask,'students',b));}
 
 
 function lessonDesignerHtml(){
