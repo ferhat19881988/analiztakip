@@ -1187,12 +1187,243 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .daily-info-list small{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.3;margin-top:2px}
 @media(max-width:620px){.teacher-task-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.teacher-task-card{max-width:none}.data-record-row{grid-template-columns:1fr}.data-entry-package-head{display:grid;grid-template-columns:1fr}.data-entry-day h5{display:grid;grid-template-columns:1fr}.data-entry-date-filter{grid-template-columns:1fr 1fr}.data-entry-date-filter .field{grid-column:1 / -1}.data-entry-date-filter button{width:100%}}
 
+
+
+/* ÖĞRENCİ SUNUM PDF RAPORU */
+.teacher-task-card .actions .student-pdf-report-btn{
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+  border-color:#86efac;
+  color:#166534;
+}
+.teacher-task-card .actions .student-pdf-report-btn:hover{
+  background:#dcfce7;
+  border-color:#4ade80;
+}
+.student-pdf-stage{
+  position:fixed;
+  left:-10000px;
+  top:0;
+  width:794px;
+  z-index:-20;
+  pointer-events:none;
+}
+.student-pdf-page{
+  width:794px;
+  height:1123px;
+  overflow:hidden;
+  position:relative;
+  background:#f7f9fc;
+  color:#172033;
+  font-family:'Inter',Arial,sans-serif;
+  letter-spacing:-.01em;
+}
+.student-pdf-page *{box-sizing:border-box}
+.student-pdf-header{
+  min-height:188px;
+  padding:34px 44px 28px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(135deg,#7c2d12 0%,#e66012 58%,#f59e0b 100%);
+}
+.student-pdf-header::before,
+.student-pdf-header::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.12);
+}
+.student-pdf-header::before{width:240px;height:240px;right:-80px;top:-130px}
+.student-pdf-header::after{width:150px;height:150px;right:110px;bottom:-105px}
+.student-pdf-brand{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  position:relative;
+  z-index:1;
+}
+.student-pdf-brand-mark{
+  width:48px;
+  height:48px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:#c2410c;
+  font-size:27px;
+  font-weight:900;
+  box-shadow:0 12px 28px rgba(56,20,5,.2);
+}
+.student-pdf-brand strong{display:block;font-size:18px;font-weight:900;letter-spacing:.02em}
+.student-pdf-brand span{display:block;margin-top:3px;font-size:10px;font-weight:800;letter-spacing:.12em;opacity:.82}
+.student-pdf-header-main{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  align-items:flex-end;
+  margin-top:25px;
+}
+.student-pdf-header h1{
+  margin:0;
+  max-width:510px;
+  color:#fff;
+  font-size:31px;
+  line-height:1.04;
+  font-weight:900;
+  letter-spacing:-.045em;
+}
+.student-pdf-header-meta{margin-top:8px;font-size:12px;font-weight:700;color:rgba(255,255,255,.84)}
+.student-pdf-page-count{
+  min-width:82px;
+  padding:9px 12px;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  text-align:center;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.student-pdf-body{padding:24px 38px 58px}
+.student-pdf-welcome{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:20px;
+  align-items:center;
+  margin-bottom:15px;
+}
+.student-pdf-welcome h2{margin:0 0 5px;color:#172033;font-size:24px;font-weight:900;letter-spacing:-.04em}
+.student-pdf-welcome p{margin:0;color:#5f6b7d;font-size:12px;line-height:1.48;font-weight:700}
+.student-pdf-level{
+  min-width:150px;
+  padding:11px 14px;
+  border-radius:16px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  text-align:center;
+  font-size:12px;
+  font-weight:900;
+}
+.student-pdf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:13px}
+.student-pdf-metric{
+  min-height:80px;
+  padding:13px;
+  border-radius:17px;
+  border:1px solid #e4e9f1;
+  background:#fff;
+  box-shadow:0 7px 20px rgba(15,23,42,.05);
+}
+.student-pdf-metric span{display:block;color:#738095;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.student-pdf-metric strong{display:block;margin-top:6px;color:#172033;font-size:24px;line-height:1;font-weight:900;letter-spacing:-.05em}
+.student-pdf-metric small{display:block;margin-top:5px;color:#738095;font-size:9px;font-weight:700}
+.student-pdf-message{
+  margin-bottom:13px;
+  padding:13px 16px;
+  border-radius:17px;
+  border:1px solid #fed7aa;
+  background:linear-gradient(135deg,#fff7ed,#fff);
+  color:#7c2d12;
+  font-size:13px;
+  line-height:1.42;
+  font-weight:800;
+}
+.student-pdf-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}
+.student-pdf-panel{
+  border:1px solid #e4e9f1;
+  border-radius:18px;
+  background:#fff;
+  padding:14px 16px;
+  box-shadow:0 7px 20px rgba(15,23,42,.04);
+}
+.student-pdf-panel h3{
+  margin:0 0 9px;
+  color:#172033;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:-.025em;
+}
+.student-pdf-simple-list{display:grid;gap:7px}
+.student-pdf-simple-item{display:grid;grid-template-columns:22px minmax(0,1fr);gap:7px;align-items:start;color:#465267;font-size:11px;line-height:1.35;font-weight:700}
+.student-pdf-simple-icon{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:900}
+.student-pdf-simple-icon.good{background:#dcfce7;color:#166534}
+.student-pdf-simple-icon.next{background:#ffedd5;color:#9a3412}
+.student-pdf-section-title{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  margin:0 0 8px;
+}
+.student-pdf-section-title h3{margin:0;color:#172033;font-size:14px;font-weight:900;letter-spacing:-.025em}
+.student-pdf-section-title span{color:#8490a2;font-size:9px;font-weight:800}
+.student-pdf-days{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-bottom:13px;
+}
+.student-pdf-day{
+  min-height:57px;
+  padding:9px 10px;
+  border-radius:13px;
+  border:1px solid #e4e9f1;
+  background:#fff;
+}
+.student-pdf-day.done{border-color:#bbf7d0;background:#f0fdf4}
+.student-pdf-day.partial{border-color:#fed7aa;background:#fff7ed}
+.student-pdf-day.missing{border-color:#fecaca;background:#fff5f5}
+.student-pdf-day-top{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.student-pdf-day-date{color:#172033;font-size:10px;font-weight:900}
+.student-pdf-day-state{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.student-pdf-day.done .student-pdf-day-state{color:#15803d}
+.student-pdf-day.partial .student-pdf-day-state{color:#c2410c}
+.student-pdf-day.missing .student-pdf-day-state{color:#b91c1c}
+.student-pdf-day-score{margin-top:6px;color:#536075;font-size:10px;font-weight:800}
+.student-pdf-days.compact{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.student-pdf-days.compact .student-pdf-day{min-height:50px;padding:7px 8px}
+.student-pdf-days.compact .student-pdf-day-date{font-size:9px}
+.student-pdf-days.compact .student-pdf-day-state{font-size:7px}
+.student-pdf-days.compact .student-pdf-day-score{font-size:8px;margin-top:4px}
+.student-pdf-subjects{display:grid;gap:7px}
+.student-pdf-subject{
+  display:grid;
+  grid-template-columns:150px minmax(0,1fr) 92px;
+  gap:10px;
+  align-items:center;
+  min-height:31px;
+}
+.student-pdf-subject b{color:#2a3445;font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-pdf-subject-bar{height:8px;border-radius:999px;background:#edf1f6;overflow:hidden}
+.student-pdf-subject-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#e66012,#f59e0b)}
+.student-pdf-subject-result{text-align:right;color:#536075;font-size:9px;font-weight:800}
+.student-pdf-empty{padding:13px;border-radius:14px;background:#f8fafc;border:1px dashed #cbd5e1;color:#64748b;font-size:11px;font-weight:700;text-align:center}
+.student-pdf-footer{
+  position:absolute;
+  left:38px;
+  right:38px;
+  bottom:22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:10px;
+  border-top:1px solid #e5e9f0;
+  color:#7b8799;
+  font-size:9px;
+  font-weight:800;
+}
+.student-pdf-footer strong{color:#9a3412}
+
 </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 <div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
@@ -3510,38 +3741,42 @@ function buildTaskStudentReportBlock(a,index,total,ctx){
 function buildTaskStudentReportText(task,analyses,ctx){
   return `👥 *ÖĞRENCİ GÖREV RAPORLARI*\n\n🎯 *Görev:* ${targetLabel(task)}\n🗓️ *Tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor zamanı:* ${ctx.moment.text}\n👨‍🏫 *Öğretmen:* ${getTeacherName(task.teacherId)}\n📌 Her öğrenci ayrı bir bölümde yer almaktadır. İlgili bölüm doğrudan WhatsApp’a kopyalanabilir.\n\n${analyses.map((a,i)=>buildTaskStudentReportBlock(a,i,analyses.length,ctx)).join('\n\n')}\n`;
 }
-async function downloadTaskReport(taskKey,reportType,button){
+async function prepareTaskReportData(taskKey,momentDate=new Date()){
   const task=state.tasks.find(x=>x.key===taskKey);
-  if(!task){setToast('Görev bulunamadı.','error'); return;}
-  const isGeneral=reportType==='general';
-  const reportName=isGeneral?'Genel rapor':'Öğrenci raporu';
-  const momentDate=new Date();
+  if(!task) throw new Error('Görev bulunamadı.');
   const moment=reportMomentInfo(momentDate);
   const start=isoFromAny(task.start);
   const end=taskReportEffectiveEnd(task,momentDate);
-  if(!start){setToast('Görevin başlangıç tarihi geçersiz.','error'); return;}
-  if(start>end){setToast(`Bu görev henüz başlamadı. Başlangıç: ${fmtDate(start)}`,'error'); return;}
+  if(!start) throw new Error('Görevin başlangıç tarihi geçersiz.');
+  if(start>end) throw new Error(`Bu görev henüz başlamadı. Başlangıç: ${fmtDate(start)}`);
   const studentNos=studentsForTask(task).map(cleanId);
   const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:task.className||''});
-  if(!students.length){setToast('Bu görev için raporlanacak öğrenci bulunamadı.','error'); return;}
+  if(!students.length) throw new Error('Bu görev için raporlanacak öğrenci bulunamadı.');
+  const dayContext=taskReportDayContext(task,start,end);
+  const plannedEnd=isoFromAny(task.end)||end;
+  const totalPlannedDays=taskDayKeys(task).filter(day=>day>=start && day<=plannedEnd).length;
+  const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true,endDate:end,endTime:moment.time})));
+  const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
+    .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
+  const ctx={start,end,moment,dayContext,totalPlannedDays};
+  const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
+  return {task,analyses,ctx,period};
+}
+
+async function downloadTaskReport(taskKey,reportType,button){
+  const isGeneral=reportType==='general';
+  const reportName=isGeneral?'Genel rapor':'Öğrenci raporu';
   const oldText=button?.innerHTML;
   if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>Hazırlanıyor';}
   setToast(`${reportName} hazırlanıyor...`);
   try{
-    const dayContext=taskReportDayContext(task,start,end);
-    const plannedEnd=isoFromAny(task.end)||end;
-    const totalPlannedDays=taskDayKeys(task).filter(day=>day>=start && day<=plannedEnd).length;
-    const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true,endDate:end,endTime:moment.time})));
-    const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
-      .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
-    const ctx={start,end,moment,dayContext,totalPlannedDays};
-    const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
+    const {task,analyses,ctx,period}=await prepareTaskReportData(taskKey);
     if(isGeneral){
       downloadUtf8Text(`GENEL_GOREV_RAPORU_${period}.txt`,buildTaskGeneralReportText(task,analyses,ctx));
     }else{
       downloadUtf8Text(`OGRENCI_GOREV_RAPORLARI_${period}.txt`,buildTaskStudentReportText(task,analyses,ctx));
     }
-    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(start)}-${fmtDate(end)} aralığında ${reportName.toLocaleLowerCase('tr-TR')} indirildi.`);
+    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(ctx.start)}-${fmtDate(ctx.end)} aralığında ${reportName.toLocaleLowerCase('tr-TR')} indirildi.`);
     setToast(`${reportName} indirildi.`,'ok');
   }catch(e){
     console.error('Görev raporu hatası:',e);
@@ -3551,8 +3786,154 @@ async function downloadTaskReport(taskKey,reportType,button){
   }
 }
 
+function studentPdfFirstName(name){return String(name||'Öğrenci').trim().split(/\s+/)[0]||'Öğrenci';}
+function studentPdfShortDate(day){
+  const parts=String(fmtDate(day)||'').split('.');
+  return parts.length>=2?`${parts[0]}.${parts[1]}`:String(fmtDate(day)||day||'');
+}
+function studentPdfAreaLabel(a,strong=true){
+  const topic=strong?a.strongestTopic:a.weakestTopic;
+  const lesson=strong?a.strongestLesson:a.weakestLesson;
+  if(topic) return [topic.lesson,topic.topic].filter(Boolean).join(' / ');
+  if(lesson) return lesson.lesson;
+  return '';
+}
+function studentPdfLevel(a){
+  if(!Number(a.stats?.total||0)) return 'Başlangıç zamanı';
+  if(a.completionPct>=90 && a.accuracy>=80) return 'Çok iyi ilerleme';
+  if(a.completionPct>=75) return 'İyi ilerleme';
+  if(a.completionPct>=40) return 'Gelişiyor';
+  return 'Bir sonraki adım hazır';
+}
+function studentPdfHeadline(a){
+  const first=studentPdfFirstName(a.student?.name);
+  if(!Number(a.stats?.total||0)) return `${first}, bu görevde henüz çalışma görünmüyor. Küçük bir adımla bugün başlayabilirsin.`;
+  if(a.completionPct>=90 && a.accuracy>=80) return `Harika iş ${first}! Görevlerini düzenli tamamladın ve sorularda güçlü bir sonuç gösterdin.`;
+  if(a.completionPct>=75) return `İyi gidiyorsun ${first}! Küçük eksiklerini tamamladığında hedefe ulaşacaksın.`;
+  if(a.completionPct>=40) return `${first}, çalışmaya başlamışsın. Eksik günlerini tamamlayarak sonucunu hızla yükseltebilirsin.`;
+  return `${first}, ilk adımı attın. Daha düzenli çalıştığında ilerlemeni hemen göreceksin.`;
+}
+function studentPdfStrengths(a){
+  const items=[];
+  const strongArea=studentPdfAreaLabel(a,true);
+  if(a.completedDays===a.days.length && a.days.length) items.push('Görev günlerinin tamamını bitirdin.');
+  else if(a.completedDays) items.push(`${a.completedDays} günü eksiksiz tamamladın.`);
+  if(a.accuracy>=80 && Number(a.stats?.total||0)>=10) items.push(`Doğru cevap oranın %${a.accuracy}.`);
+  if(strongArea) items.push(`${strongArea} alanında başarılısın.`);
+  if(a.extraQuestions>0) items.push(`Hedefin dışında ${a.extraQuestions} ek soru çözdün.`);
+  if(!items.length && Number(a.stats?.total||0)>0) items.push(`${a.stats.total} soru çözerek çalışmaya başladın.`);
+  if(!items.length) items.push('Başladığın her çalışma yeni bir ilerleme olacak.');
+  return items.slice(0,2);
+}
+function studentPdfNextSteps(a){
+  const items=[];
+  const weakArea=studentPdfAreaLabel(a,false);
+  if(a.missingDays) items.push(`Çalışma görünmeyen ${a.missingDays} günü tamamla.`);
+  if(a.partialDays) items.push(`Eksik kalan ${a.partialDays} günün sorularını bitir.`);
+  if(weakArea && Number(a.stats?.total||0)>=10) items.push(`${weakArea} konusunu kısa bir tekrar ile güçlendir.`);
+  if(a.accuracy<60 && Number(a.stats?.total||0)>=10) items.push('Yanlış yaptığın soruları yeniden incele.');
+  if(!items.length) items.push('Aynı çalışma düzenini sürdür.');
+  return items.slice(0,2);
+}
+function studentPdfMotivation(a){
+  if(!Number(a.stats?.total||0)) return 'Bugün 10 soruyla başla; ilk adım en önemli adımdır.';
+  if(a.completionPct>=90) return 'Düzenini koru; başarı tekrar edilen küçük adımlarla büyür.';
+  if(a.missingDays) return 'Bir eksik günü bugün tamamla ve ilerleme zincirini yeniden başlat.';
+  return 'Her gün biraz daha ilerle; hedefe düşündüğünden daha yakınsın.';
+}
+function studentPdfVisibleDays(a){
+  const days=a.days||[];
+  if(days.length<=24) return {rows:days,hidden:0};
+  return {rows:[...days.slice(0,12),...days.slice(-12)],hidden:days.length-24};
+}
+function studentPdfPageHtml(a,index,total,task,ctx){
+  const st=a.student;
+  const first=studentPdfFirstName(st.name);
+  const strengths=studentPdfStrengths(a);
+  const nextSteps=studentPdfNextSteps(a);
+  const visible=studentPdfVisibleDays(a);
+  const dayCompact=visible.rows.length>12?'compact':'';
+  const dayHtml=visible.rows.length?visible.rows.map(d=>{
+    const stateText=d.statusKey==='done'?'Tamam':d.statusKey==='partial'?'Biraz eksik':'Başlanmadı';
+    const score=d.targetTotal?`${d.credited}/${d.targetTotal} soru`:`${d.doneTotal} soru`;
+    return `<div class="student-pdf-day ${esc(d.statusKey)}"><div class="student-pdf-day-top"><span class="student-pdf-day-date">${esc(studentPdfShortDate(d.day))} ${esc((dayName(d.day)||'').slice(0,3))}</span><span class="student-pdf-day-state">${esc(stateText)}</span></div><div class="student-pdf-day-score">${esc(score)}${d.doneTotal?` • %${esc(d.accuracy)} doğru`:''}</div></div>`;
+  }).join(''):'<div class="student-pdf-empty">Henüz gerçekleşen görev günü bulunmuyor.</div>';
+  const subjects=(a.stats?.subjects||[]).filter(x=>Number(x.total||0)>0).sort((x,y)=>Number(y.total||0)-Number(x.total||0)).slice(0,5);
+  const maxSubject=Math.max(1,...subjects.map(x=>Number(x.total||0)));
+  const subjectHtml=subjects.length?subjects.map(x=>{
+    const pct=reportPct(x.correct,x.total);
+    const bar=Math.max(5,Math.round(Number(x.total||0)/maxSubject*100));
+    return `<div class="student-pdf-subject"><b>${esc(x.lesson||'Ders')}</b><div class="student-pdf-subject-bar"><span style="width:${bar}%"></span></div><div class="student-pdf-subject-result">${esc(x.total)} soru • %${esc(pct)}</div></div>`;
+  }).join(''):'<div class="student-pdf-empty">Derslere göre çalışma sonucu henüz oluşmadı.</div>';
+  const strengthHtml=strengths.map(x=>`<div class="student-pdf-simple-item"><span class="student-pdf-simple-icon good">✓</span><span>${esc(x)}</span></div>`).join('');
+  const nextHtml=nextSteps.map(x=>`<div class="student-pdf-simple-item"><span class="student-pdf-simple-icon next">→</span><span>${esc(x)}</span></div>`).join('');
+  return `<section class="student-pdf-page">
+    <header class="student-pdf-header">
+      <div class="student-pdf-brand"><div class="student-pdf-brand-mark">F</div><div><strong>FENOMEN EĞİTİM KURUMLARI</strong><span>ÖĞRENCİ GELİŞİM RAPORU</span></div></div>
+      <div class="student-pdf-header-main"><div><h1>${esc(st.name)}</h1><div class="student-pdf-header-meta">${esc(st.className||'-')} Sınıfı • No: ${esc(st.no)} • ${esc(fmtDate(ctx.start))} - ${esc(fmtDate(ctx.end))}</div></div><div class="student-pdf-page-count">${index+1} / ${total}</div></div>
+    </header>
+    <main class="student-pdf-body">
+      <div class="student-pdf-welcome"><div><h2>Merhaba ${esc(first)}!</h2><p>Bu sayfa, görev süresindeki çalışmalarını kolayca görmen için hazırlandı.</p></div><div class="student-pdf-level">${esc(studentPdfLevel(a))}</div></div>
+      <div class="student-pdf-metrics">
+        <div class="student-pdf-metric"><span>Görev Tamamlama</span><strong>%${esc(a.completionPct)}</strong><small>${esc(a.credited)}/${esc(a.targetTotal)} soru</small></div>
+        <div class="student-pdf-metric"><span>Çözdüğün Soru</span><strong>${esc(a.stats?.total||0)}</strong><small>Toplam soru</small></div>
+        <div class="student-pdf-metric"><span>Başarı Oranın</span><strong>%${esc(a.accuracy)}</strong><small>${esc(a.stats?.correct||0)} doğru</small></div>
+        <div class="student-pdf-metric"><span>Tam Gün</span><strong>${esc(a.completedDays)}/${esc(a.days.length)}</strong><small>Eksiksiz tamamlandı</small></div>
+      </div>
+      <div class="student-pdf-message">${esc(studentPdfHeadline(a))}</div>
+      <div class="student-pdf-two-col">
+        <section class="student-pdf-panel"><h3>İyi Gidenler</h3><div class="student-pdf-simple-list">${strengthHtml}</div></section>
+        <section class="student-pdf-panel"><h3>Sıradaki Hedefin</h3><div class="student-pdf-simple-list">${nextHtml}</div></section>
+      </div>
+      <div class="student-pdf-section-title"><h3>Gün Gün Durumun</h3><span>${visible.hidden?`İlk ve son günler gösterildi • Arada ${visible.hidden} gün var`:'Yeşil: tamam • Turuncu: eksik • Kırmızı: başlanmadı'}</span></div>
+      <div class="student-pdf-days ${dayCompact}">${dayHtml}</div>
+      <section class="student-pdf-panel"><div class="student-pdf-section-title"><h3>Derslere Göre Sonucun</h3><span>Çözülen soru • doğru oranı</span></div><div class="student-pdf-subjects">${subjectHtml}</div></section>
+    </main>
+    <footer class="student-pdf-footer"><span><strong>Kendine not:</strong> ${esc(studentPdfMotivation(a))}</span><span>${esc(getTeacherName(task.teacherId))}</span></footer>
+  </section>`;
+}
+
+async function downloadTaskStudentPdfReport(taskKey,button){
+  const oldText=button?.innerHTML;
+  if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>PDF hazırlanıyor';}
+  setToast('Öğrenci sunum PDF’si hazırlanıyor...');
+  let stage=null;
+  try{
+    if(typeof window.html2canvas!=='function') throw new Error('PDF görüntü motoru yüklenemedi. İnternet bağlantısını kontrol edin.');
+    if(!window.jspdf?.jsPDF) throw new Error('PDF kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');
+    const {task,analyses,ctx,period}=await prepareTaskReportData(taskKey);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true,putOnlyUsedFonts:true});
+    stage=document.createElement('div');
+    stage.className='student-pdf-stage';
+    document.body.appendChild(stage);
+    if(document.fonts?.ready) await document.fonts.ready;
+    for(let i=0;i<analyses.length;i++){
+      stage.innerHTML=studentPdfPageHtml(analyses[i],i,analyses.length,task,ctx);
+      const page=stage.firstElementChild;
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const canvas=await window.html2canvas(page,{scale:1.5,useCORS:true,allowTaint:false,backgroundColor:'#f7f9fc',logging:false,width:794,height:1123,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
+      const image=canvas.toDataURL('image/jpeg',0.92);
+      if(i>0) pdf.addPage('a4','portrait');
+      pdf.addImage(image,'JPEG',0,0,210,297,undefined,'FAST');
+      stage.innerHTML='';
+      setToast(`PDF hazırlanıyor: ${i+1}/${analyses.length}`);
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    pdf.save(`OGRENCI_SUNUM_RAPORU_${period}.pdf`);
+    await logAction('Öğrenci PDF raporu',`${targetLabel(task)} için ${fmtDate(ctx.start)}-${fmtDate(ctx.end)} aralığında ${analyses.length} öğrencilik sunum PDF’si indirildi.`);
+    setToast('Öğrenci sunum PDF’si indirildi.','ok');
+  }catch(e){
+    console.error('Öğrenci PDF raporu hatası:',e);
+    setToast('PDF hazırlanamadı: '+(e?.message||e),'error');
+  }finally{
+    if(stage?.parentNode) stage.parentNode.removeChild(stage);
+    if(button){button.disabled=false; button.innerHTML=oldText||'📄 Öğrenci Raporunu PDF İndir';}
+  }
+}
+
 function teacherTaskCardHtml(t,isPast=false){
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button></div></div>`;
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
@@ -3625,7 +4006,7 @@ function updatePreviewLive(){
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportGeneralTask,'general',b)); document.querySelectorAll('[data-report-students-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportStudentsTask,'students',b));}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportGeneralTask,'general',b)); document.querySelectorAll('[data-report-students-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportStudentsTask,'students',b)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
 
 
 function lessonDesignerHtml(){
