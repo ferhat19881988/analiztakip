@@ -1721,12 +1721,28 @@ function normalizeTask(key,o){
   const end=isoFromAny(o.end||o.endDate||o.bitisTarihi) || dayKeys[dayKeys.length-1] || addDaysISO(start,Math.max(1,explicitDuration||7)-1);
   const duration=explicitDuration || daysBetweenInclusive(start,end) || 7;
   const targetType=targetTypeFromLabel(o.targetType||o.hedefTuru||o.hedefTipi);
-  const studentNos=Array.isArray(o.studentNos)?o.studentNos.map(cleanId):(Array.isArray(o.ogrenciler)?o.ogrenciler.map(cleanId):(targetType==='student'&&o.targetValue?[cleanId(o.targetValue)]:[]));
+  const studentNos=uniqueStudentNos(Array.isArray(o.studentNos)?o.studentNos:(Array.isArray(o.ogrenciler)?o.ogrenciler:(targetType==='student'&&o.targetValue?[o.targetValue]:[])));
+  const rawAssignedStudentNos=Array.isArray(o.assignedStudentNos)?o.assignedStudentNos:(Array.isArray(o.hedefOgrenciNolari)?o.hedefOgrenciNolari:(Array.isArray(o.rosterStudentNos)?o.rosterStudentNos:[]));
+  const rosterMode=String(o.rosterMode||o.hedefListeModu||'').trim();
+  const hasRosterSnapshot=rosterMode==='snapshot' || Array.isArray(o.assignedStudentNos) || Array.isArray(o.hedefOgrenciNolari) || Array.isArray(o.rosterStudentNos);
+  const rawAssignedStudents=Array.isArray(o.assignedStudents)?o.assignedStudents:(Array.isArray(o.rosterSnapshot)?o.rosterSnapshot:[]);
+  const assignedStudents=rawAssignedStudents.map(item=>({
+    no:cleanId(item?.no||item?.studentNo||item?.ogrenciNo||''),
+    name:String(item?.name||item?.studentName||item?.adSoyad||''),
+    className:String(item?.className||item?.sinif||'')
+  })).filter(item=>item.no);
   return {
     key,start,days:duration,end,targetType,
     className:o.className||o.sinif||(['class','sinif'].includes(targetType)?(o.targetValue||''):''),
     targetValue:o.targetValue||o.hedefDegeri||'',
-    studentNos,plan:o.plan||planFromDaysObject(dayObj),
+    studentNos,
+    assignedStudentNos:uniqueStudentNos(rawAssignedStudentNos),
+    assignedStudents,
+    rosterMode:hasRosterSnapshot?'snapshot':rosterMode,
+    hasRosterSnapshot,
+    rosterCapturedAt:o.rosterCapturedAt||o.hedefListeKayitZamani||'',
+    rosterVersion:Number(o.rosterVersion||1),
+    plan:o.plan||planFromDaysObject(dayObj),
     daysObject:dayObj,daysObj:dayObj,
     teacherId:cleanId(o.teacherId||o.ogretmenID||''),
     teacherName:o.teacherName||o.ogretmenAdi||getTeacherName(o.teacherId||o.ogretmenID),
@@ -1741,21 +1757,64 @@ function targetTypeFromLabel(v){
   if(s.includes('öğr')||s.includes('student')) return 'student';
   return 'class';
 }
+function uniqueStudentNos(values){return [...new Set((values||[]).map(cleanId).filter(Boolean))];}
+function taskHasRosterSnapshot(task){
+  if(!task || task.hasRosterSnapshot===false) return false;
+  return Boolean(task.hasRosterSnapshot===true || task.rosterMode==='snapshot' || (Array.isArray(task.assignedStudentNos) && task.assignedStudentNos.length && task.rosterCapturedAt));
+}
+function currentStudentNosForTaskTarget(task,students=state.students){
+  const type=task?.targetType;
+  if(type==='all') return uniqueStudentNos(students.map(s=>s.no));
+  if(type==='class') return uniqueStudentNos(students.filter(s=>s.className===(task.className||task.targetValue)).map(s=>s.no));
+  const nos=task?.studentNos?.length?task.studentNos:(task?.targetValue?[task.targetValue]:[]);
+  return uniqueStudentNos(nos);
+}
+function sameTaskTarget(a,b){
+  if(!a||!b) return false;
+  const aType=a.targetType==='students'?'student':a.targetType;
+  const bType=b.targetType==='students'?'student':b.targetType;
+  if(aType!==bType) return false;
+  if(aType==='class') return String(a.className||a.targetValue||'')===String(b.className||b.targetValue||'');
+  if(aType==='student') return currentStudentNosForTaskTarget(a).join('|')===currentStudentNosForTaskTarget(b).join('|');
+  return true;
+}
+function rosterStudentRows(nos,students=state.students,previous=[]){
+  const currentMap=new Map((students||[]).map(s=>[cleanId(s.no),s]));
+  const previousMap=new Map((previous||[]).map(s=>[cleanId(s.no),s]));
+  return uniqueStudentNos(nos).map(no=>{
+    const s=currentMap.get(no)||previousMap.get(no)||{};
+    return {no,name:String(s.name||s.studentName||''),className:String(s.className||s.sinif||'')};
+  });
+}
+function applyTaskRosterPolicy(task,existingTask=null){
+  const isLegacyEdit=Boolean(existingTask && !taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
+  if(isLegacyEdit) return task;
+  const preserveExisting=Boolean(existingTask && taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
+  const assignedStudentNos=preserveExisting
+    ? uniqueStudentNos(existingTask.assignedStudentNos)
+    : currentStudentNosForTaskTarget(task);
+  task.assignedStudentNos=assignedStudentNos;
+  task.assignedStudents=preserveExisting
+    ? rosterStudentRows(assignedStudentNos,state.students,existingTask.assignedStudents)
+    : rosterStudentRows(assignedStudentNos,state.students);
+  task.rosterMode='snapshot';
+  task.hasRosterSnapshot=true;
+  task.rosterVersion=1;
+  task.rosterCapturedAt=preserveExisting?(existingTask.rosterCapturedAt||new Date().toISOString()):new Date().toISOString();
+  return task;
+}
 function targetLabel(task){
   if(task.targetType==='all') return 'Tüm öğrenciler';
   if(task.targetType==='student'||task.targetType==='students'){
-    const nos=task.studentNos?.length?task.studentNos:(task.targetValue?[task.targetValue]:[]);
-    if(nos.length===1){const st=state.students.find(s=>s.no===cleanId(nos[0])); return st?`${st.name}`:`Öğrenci ${nos[0]}`;}
+    const nos=taskHasRosterSnapshot(task)?uniqueStudentNos(task.assignedStudentNos):(task.studentNos?.length?uniqueStudentNos(task.studentNos):(task.targetValue?[cleanId(task.targetValue)]:[]));
+    if(nos.length===1){const st=state.students.find(s=>s.no===cleanId(nos[0])) || task.assignedStudents?.find(s=>cleanId(s.no)===cleanId(nos[0])); return st?`${st.name}`:`Öğrenci ${nos[0]}`;}
     return `${nos.length} öğrenci`;
   }
   return `${task.className||task.targetValue||'-'} sınıfı`;
 }
 function studentsForTask(task, students=state.students){
-  const type=task.targetType;
-  if(type==='all') return students.map(s=>s.no);
-  if(type==='class') return students.filter(s=>s.className===(task.className||task.targetValue)).map(s=>s.no);
-  const nos=task.studentNos?.length?task.studentNos:(task.targetValue?[task.targetValue]:[]);
-  return nos.map(cleanId).filter(Boolean);
+  if(taskHasRosterSnapshot(task)) return uniqueStudentNos(task.assignedStudentNos);
+  return currentStudentNosForTaskTarget(task,students);
 }
 function taskQuestionTotal(task){return Object.values(task.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);}
 function planKey(dayIndex, lesson){return `d${dayIndex}_${String(lesson||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[.#$\[\]\/\s]+/g,'_').replace(/[^A-Za-z0-9_ğüşöçıİĞÜŞÖÇ-]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')}`;}
@@ -2002,9 +2061,11 @@ function findConflicts(task, ignoreKey=''){
 }
 async function saveTaskFromWizard(){
   const task=buildTaskFromWizard();
+  const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
   if(task.start<todayISO()) throw new Error('Geçmiş güne görev verilemez. Başlangıç bugünden önce olamaz.');
   if(task.targetType==='class' && !task.className) throw new Error('Sınıf seçilmedi.');
   if(task.targetType==='students' && !task.studentNos.length) throw new Error('En az bir öğrenci seçin.');
+  applyTaskRosterPolicy(task,existingTask);
   const targetCount=studentsForTask(task).length; if(!targetCount) throw new Error('Bu hedefte öğrenci bulunamadı.');
   if(!taskQuestionTotal(task)) throw new Error('Programda en az bir ders için soru hedefi yazmalısınız.');
   const conflicts=findConflicts(task,state.editingTaskKey||'');
@@ -2013,7 +2074,6 @@ async function saveTaskFromWizard(){
     throw new Error(`Bu tarihlerde bu öğrencinin/program hedefinin görevi vardır: ${names}${conflicts[0].students.length>5?'...':''}. Çakışan görev: ${targetLabel(conflicts[0].task)} (${fmtDate(conflicts[0].task.start)}-${fmtDate(conflicts[0].task.end)}), veren: ${getTeacherName(conflicts[0].task.teacherId)}.`);
   }
   const now=nowText();
-  const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
   const packageId=existingTask?.packageId || state.editingTaskKey || `pkg_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
   const packageTitle=`${targetLabel(task)} • ${fmtDate(task.start)}-${fmtDate(task.end)}`;
   const common={...task,packageId,paketId:packageId,packageTitle,paketBaslik:packageTitle,createdAt:state.editingTaskKey?(existingTask?.createdAt||now):now,updatedAt:now,sureGun:task.days,durationDays:task.days,startDate:task.start,endDate:task.end,baslangicTarihi:fmtDate(task.start),bitisTarihi:fmtDate(task.end)};
@@ -2022,7 +2082,7 @@ async function saveTaskFromWizard(){
   const targetType=task.targetType==='students'?'student':task.targetType;
   const targetValue=targetType==='class'?task.className:(targetType==='student'?(task.studentNos.length===1?task.studentNos[0]:'multi'):'all');
   const singleStudent=targetType==='student' && task.studentNos.length===1 ? state.students.find(s=>s.no===task.studentNos[0]) : null;
-  payloads.push({...common,targetType,hedefTuru:targetType,targetValue,hedefDegeri:targetValue,studentNos:targetType==='student'?task.studentNos:[],sinif:targetType==='class'?task.className:(singleStudent?.className||''),className:targetType==='class'?task.className:(singleStudent?.className||'')});
+  payloads.push({...common,targetType,hedefTuru:targetType,targetValue,hedefDegeri:targetValue,studentNos:targetType==='student'?task.studentNos:[],assignedStudentNos:taskHasRosterSnapshot(task)?uniqueStudentNos(task.assignedStudentNos):undefined,hedefOgrenciNolari:taskHasRosterSnapshot(task)?uniqueStudentNos(task.assignedStudentNos):undefined,assignedStudents:taskHasRosterSnapshot(task)?task.assignedStudents:undefined,rosterSnapshot:taskHasRosterSnapshot(task)?task.assignedStudents:undefined,rosterMode:taskHasRosterSnapshot(task)?'snapshot':undefined,hedefListeModu:taskHasRosterSnapshot(task)?'snapshot':undefined,rosterCapturedAt:taskHasRosterSnapshot(task)?task.rosterCapturedAt:undefined,hedefListeKayitZamani:taskHasRosterSnapshot(task)?task.rosterCapturedAt:undefined,rosterVersion:taskHasRosterSnapshot(task)?1:undefined,sinif:targetType==='class'?task.className:(singleStudent?.className||''),className:targetType==='class'?task.className:(singleStudent?.className||'')});
   const savedKeys=[];
   if(state.editingTaskKey){
     await putJson(`verianalizi001/haftalikGorevler/${state.editingTaskKey}`,payloads[0]);
@@ -2037,7 +2097,8 @@ async function saveTaskFromWizard(){
     const verify=await getJson(`verianalizi001/haftalikGorevler/${key}`);
     if(!verify) throw new Error('Firebase doğrulaması başarısız: kayıt görünmüyor. Realtime Database kurallarını kontrol edin.');
   }
-  await logAction(state.editingTaskKey?'Görev güncelleme':'Görev kaydı',`${targetLabel(task)} için ${fmtDate(task.start)}-${fmtDate(task.end)} programı kaydedildi. Firebase key: ${savedKeys.join(', ')}`);
+  const rosterLog=taskHasRosterSnapshot(task)?` Sabit hedef listesi: ${studentsForTask(task).length} öğrenci.`:' Eski görev uyumluluğu: dinamik hedef listesi korunuyor.';
+  await logAction(state.editingTaskKey?'Görev güncelleme':'Görev kaydı',`${targetLabel(task)} için ${fmtDate(task.start)}-${fmtDate(task.end)} programı kaydedildi.${rosterLog} Firebase key: ${savedKeys.join(', ')}`);
   state.editingTaskKey=null; await loadTasks(); setToast(`Görev Firebase'e kaydedildi: ${savedKeys.length} kayıt`,'ok'); resetWizardAfterSave(); render();
 }
 async function deleteTask(key){if(!confirm('Bu görevlendirmeyi silmek istiyor musunuz?')) return; await deleteJson(`verianalizi001/haftalikGorevler/${key}`); await logAction('Görev silme',`Görev silindi: ${key}`); await loadTasks(); setToast('Görev silindi','ok'); render();}
@@ -3273,13 +3334,13 @@ function wizardStepContent(step,w,classes){
     return `<h3>Tarih ve Süre</h3><p class="wizard-help">Başlangıç gününü ve program süresini seçin. İsterseniz bitiş tarihini elle belirleyin; sistem süreyi otomatik hesaplar.</p><div class="compact-grid"><div class="field"><label>Başlangıç</label><input id="taskStart" class="input" type="date" min="${todayISO()}" value="${safeStart}"></div><div class="field"><label>Süre</label><select id="taskDays">${taskDurationOptions(w.days).map(d=>`<option value="${d}" ${Number(w.days)===Number(d)?'selected':''}>${d} gün</option>`).join('')}<option value="manual">Bitiş tarihini ben seçeyim…</option></select></div><div class="field"><label>Bitiş</label><div class="manual-end-summary"><input id="taskEndManual" class="input" type="date" min="${safeStart}" value="${endDate}"><button type="button" class="ghost" data-open-end-picker>Seç</button></div><p class="muted tiny" style="margin:0">Bitişi değiştirince gün sayısı ve program satırları sisteme uygun şekilde güncellenir.</p></div></div><div class="target-summary" id="wizardTargetSummary" style="margin-top:12px">${targetLabel({...w,end:endDate})} • ${studentsForTask({...w,end:endDate}).length} öğrenci • ${fmtDate(w.start)} - ${fmtDate(endDate)} • ${w.days} gün</div>${wizardActions(step)}`;
   }
   if(step===3) return `<h3>Hızlı Program</h3><p class="wizard-help">Hazır şablonlardan biriyle başlayın veya gün gün ders hedeflerini elle yazın.</p>${quickProgramToolbarHtml()}<div id="planArea" class="grid" style="margin-top:12px">${planHtml(w)}</div>${wizardActions(step)}`;
-  return `<h3>Önizleme ve Kayıt</h3><p class="wizard-help">Kaydetmeden önce hedef, tarih ve toplam soru bilgisini kontrol edin. Sistem çakışan tarih aralığını engeller.</p><div id="taskPreview" class="task-preview-box"></div><div id="firebaseStatus" class="target-summary" style="margin-top:12px">Firebase kaydı hazır.</div>${wizardActions(step,true)}`;
+  return `<h3>Önizleme ve Kayıt</h3><p class="wizard-help">Kaydetmeden önce hedef, tarih ve toplam soru bilgisini kontrol edin. Sistem çakışan tarih aralığını engeller.</p><div id="taskPreview" class="task-preview-box"></div><div id="firebaseStatus" class="target-summary" style="margin-top:12px">Yeni görevlerde öğrenci listesi kaydetme anında sabitlenir.</div>${wizardActions(step,true)}`;
 }
 function wizardActions(step,isFinal=false){
   return `<div class="wizard-actions"><div>${step>1?'<button type="button" class="ghost" data-wizard-prev>← Geri</button>':''}</div><div class="right">${step<4?'<button type="button" class="primary" data-wizard-next>İleri →</button>':`<button id="saveTask" class="primary">${state.editingTaskKey?'Görevi Güncelle':'Görevi Kaydet'}</button>${state.editingTaskKey?'<button id="cancelEdit" class="ghost">Düzenlemeyi İptal Et</button>':''}`}<span id="taskStatus" class="muted tiny"></span></div></div>`;
 }
 function targetFieldsHtml(w,classes){
-  if(w.targetType==='all') return '<div class="target-summary">Tüm aktif öğrenciler seçildi. Görev bütün öğrenci panelinde görünür.</div>';
+  if(w.targetType==='all') return '<div class="target-summary">Tüm aktif öğrenciler seçildi. Kaydetme anındaki öğrenci listesi göreve sabitlenecek; sonradan eklenen öğrenciler bu göreve otomatik dahil edilmeyecek.</div>';
   if(w.targetType==='class') return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="muted tiny" id="classCount"></p>`;
   const allClasses=['Tümü',...classes];
   const selectedCount=(w.studentNos||[]).length;
@@ -4037,7 +4098,8 @@ async function downloadTaskStudentPdfReport(taskKey,button){
 }
 
 function teacherTaskCardHtml(t,isPast=false){
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span></div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
+  const rosterBadge=taskHasRosterSnapshot(t)?`<span class="badge blue">🔒 ${studentsForTask(t).length} kişilik sabit liste</span>`:'<span class="badge orange">Eski görev • güncel liste</span>';
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span>${rosterBadge}</div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
@@ -4103,12 +4165,21 @@ function updatePlanDayTotalsLive(){
 function updatePreviewLive(){
   const w=state.taskWizard; if(!w) return;
   const task={...w,end:taskWizardEndDate(w)};
-  const count=studentsForTask(task).length;
+  const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
+  const preserveSnapshot=Boolean(existingTask && taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
+  const legacyEdit=Boolean(existingTask && !taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
+  const count=preserveSnapshot?studentsForTask(existingTask).length:studentsForTask(task).length;
   const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
+  const rosterNote=legacyEdit
+    ? 'Bu eski görev mevcut güncel sınıf listesi mantığıyla çalışmaya devam edecek.'
+    : (preserveSnapshot
+      ? `Bu görevde kayıtlı ${count} kişilik sabit öğrenci listesi korunacak; sonradan gelen öğrenciler eklenmeyecek.`
+      : `Kaydettiğiniz anda bu ${count} kişilik öğrenci listesi sabitlenecek; daha sonra sınıfa gelen öğrenciler bu görevden sorumlu olmayacak.`);
   updatePlanDayTotalsLive();
-  const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı ${count} öğrenciyi kapsıyor.`;
+  const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı şu anda ${count} öğrenciyi kapsıyor. Kayıtta liste sabitlenir.`;
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
-  const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
+  const status=document.getElementById('firebaseStatus'); if(status) status.textContent=rosterNote;
+  const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p><b>Öğrenci listesi:</b> ${esc(rosterNote)}</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
 function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportGeneralTask,'general',b)); document.querySelectorAll('[data-report-students-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportStudentsTask,'students',b)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
 
