@@ -1114,6 +1114,8 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .daily-student-card:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(15,23,42,.10);border-color:#fed7aa}
 .daily-student-card.warning{background:linear-gradient(180deg,#fff7ed,#fff);border-color:#fed7aa}
 .daily-student-card.good{background:linear-gradient(180deg,#f2fff7,#fff);border-color:#bbf7d0}
+.daily-student-card.entry-only{background:linear-gradient(180deg,#ecfeff,#fff);border-color:#99f6e4;box-shadow:0 10px 26px rgba(13,148,136,.10)}
+.daily-student-card.entry-only .avatar{background:linear-gradient(135deg,#ccfbf1,#a7f3d0);color:#0f766e}
 .daily-student-card.no-entry:not(.warning){background:linear-gradient(180deg,#f8fafc,#fff)}
 .daily-student-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
 .daily-student-head h3{margin:0;color:var(--ink);font-size:15px;font-weight:900;line-height:1.2}
@@ -1122,6 +1124,7 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .daily-status-pill.warning{background:#fff1f2;color:#991b1b;border-color:#fecdd3}
 .daily-status-pill.good{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .daily-status-pill.progress{background:#eef4ff;color:#1d4ed8;border-color:#dbeafe}
+.daily-status-pill.entry-only{background:#ecfeff;color:#0f766e;border-color:#99f6e4}
 .daily-status-pill.neutral{background:#f8fafc;color:#475569;border-color:var(--line)}
 .daily-metric-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .daily-metric-row div{border:1px solid var(--line);border-radius:16px;background:#fff;padding:10px;min-width:0}
@@ -2623,13 +2626,14 @@ function dailyStudentCardHtml(item){
   const hasTask=item.totalTarget>0;
   const pct=hasTask ? item.completionPct : null;
   const filterStatus=dailyFilterStatus(item);
-  const status=!hasTask?'neutral':(filterStatus==='completed'?'good':(filterStatus==='zero'?'warning':'progress'));
-  const statusText=!hasTask?'Seçili gün görev yok':(filterStatus==='completed'?'Görev tamamlandı':(filterStatus==='zero'?'Hiç yapmadı':'Görev tamamlanmadı'));
-  const entryText=item.stats.entryCount>0?`${item.stats.entryCount} giriş • ${item.stats.total} soru`:'Giriş yok';
+  const hasEntry=Number(item.stats?.entryCount||0)>0;
+  const status=!hasTask?(hasEntry?'entry-only':'neutral'):(filterStatus==='completed'?'good':(filterStatus==='zero'?'warning':'progress'));
+  const statusText=!hasTask?(hasEntry?'Görev yok • giriş yaptı':'Seçili gün görev yok'):(filterStatus==='completed'?'Görev tamamlandı':(filterStatus==='zero'?'Hiç yapmadı':'Görev tamamlanmadı'));
+  const entryText=hasEntry?`${item.stats.entryCount} giriş • ${item.stats.total} soru`:'Giriş yok';
   const targetText=hasTask?`${item.totalDone} çözdü / ${item.totalTarget} hedef`:'Atanmış hedef yok';
   const pctText=hasTask?`%${pct}`:'—';
   const warningHtml=filterStatus==='zero'?'<div class="daily-warning-note">Seçili gün görevlendirmesi için hiç çalışma girişi görünmüyor.</div>':(filterStatus==='incomplete'?'<div class="daily-warning-note">Görev başladı ancak %100 tamamlanmadı. Eksik kalan dersler takip edilmeli.</div>':'');
-  const noEntryClass=item.stats.entryCount===0?' no-entry':'';
+  const noEntryClass=hasEntry?'':' no-entry';
   return `<article class="daily-student-card ${status}${noEntryClass}">
     <div class="daily-student-head">
       <div class="avatar">${esc((st.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div>
