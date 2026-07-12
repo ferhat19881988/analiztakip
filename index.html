@@ -1297,7 +1297,7 @@ const toastEl = document.getElementById('toast');
 const state = {
   settings:{kurumAdi:DEFAULT_KURUM, logoUrl:DEFAULT_LOGO, dailyLimit:3},
   teacher:null, teachers:[], students:[], lessons:structuredClone(DEFAULT_LESSONS),
-  followClasses:[], tasks:[], activeTab:'dashboard', selectedStudent:null,
+  followClasses:[], tasks:[], activeTab:'dashboard', selectedStudent:null, studentDetailOrigin:'students',
   range:null, loading:false, draftConfirm:null, editingTaskKey:null, adminOps:null,
   taskWizardStep:1, adminOpsMap:{},
   studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
@@ -1779,18 +1779,12 @@ function taskHasRosterSnapshot(task){
 function currentStudentNosForTaskTarget(task,students=state.students){
   const type=task?.targetType;
   if(type==='all') return uniqueStudentNos(students.map(s=>s.no));
-  if(type==='class') return uniqueStudentNos(students.filter(s=>s.className===(task.className||task.targetValue)).map(s=>s.no));
+  if(type==='class'){
+    if(task?.rosterSelectionExplicit===true || (Array.isArray(task?.studentNos) && task.studentNos.length)) return uniqueStudentNos(task.studentNos);
+    return uniqueStudentNos(students.filter(s=>s.className===(task.className||task.targetValue)).map(s=>s.no));
+  }
   const nos=task?.studentNos?.length?task.studentNos:(task?.targetValue?[task.targetValue]:[]);
   return uniqueStudentNos(nos);
-}
-function sameTaskTarget(a,b){
-  if(!a||!b) return false;
-  const aType=a.targetType==='students'?'student':a.targetType;
-  const bType=b.targetType==='students'?'student':b.targetType;
-  if(aType!==bType) return false;
-  if(aType==='class') return String(a.className||a.targetValue||'')===String(b.className||b.targetValue||'');
-  if(aType==='student') return currentStudentNosForTaskTarget(a).join('|')===currentStudentNosForTaskTarget(b).join('|');
-  return true;
 }
 function rosterStudentRows(nos,students=state.students,previous=[]){
   const currentMap=new Map((students||[]).map(s=>[cleanId(s.no),s]));
@@ -1801,20 +1795,15 @@ function rosterStudentRows(nos,students=state.students,previous=[]){
   });
 }
 function applyTaskRosterPolicy(task,existingTask=null){
-  const isLegacyEdit=Boolean(existingTask && !taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
-  if(isLegacyEdit) return task;
-  const preserveExisting=Boolean(existingTask && taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
-  const assignedStudentNos=preserveExisting
-    ? uniqueStudentNos(existingTask.assignedStudentNos)
-    : currentStudentNosForTaskTarget(task);
+  const assignedStudentNos=currentStudentNosForTaskTarget(task);
+  const previousStudentNos=taskHasRosterSnapshot(existingTask)?uniqueStudentNos(existingTask.assignedStudentNos):[];
+  const sameRoster=previousStudentNos.length===assignedStudentNos.length && previousStudentNos.every(no=>assignedStudentNos.includes(no));
   task.assignedStudentNos=assignedStudentNos;
-  task.assignedStudents=preserveExisting
-    ? rosterStudentRows(assignedStudentNos,state.students,existingTask.assignedStudents)
-    : rosterStudentRows(assignedStudentNos,state.students);
+  task.assignedStudents=rosterStudentRows(assignedStudentNos,state.students,existingTask?.assignedStudents||[]);
   task.rosterMode='snapshot';
   task.hasRosterSnapshot=true;
   task.rosterVersion=1;
-  task.rosterCapturedAt=preserveExisting?(existingTask.rosterCapturedAt||new Date().toISOString()):new Date().toISOString();
+  task.rosterCapturedAt=sameRoster && existingTask?.rosterCapturedAt ? existingTask.rosterCapturedAt : new Date().toISOString();
   return task;
 }
 function targetLabel(task){
@@ -2058,7 +2047,7 @@ function buildTaskFromWizard(){
   const studentNos=[...new Set((w.studentNos||[]).map(cleanId))].filter(Boolean);
   const plan={};
   for(const [k,v] of Object.entries(w.plan||{})){const n=String(v||'').replace(/\D/g,'').slice(0,4); if(n && n!=='0') plan[k]=n;}
-  return {start,days,end:addDaysISO(start,days-1),targetType:mode,className,studentNos,plan,teacherId:state.teacher.id,teacherName:state.teacher.name,status:'aktif'};
+  return {start,days,end:addDaysISO(start,days-1),targetType:mode,className,studentNos,rosterSelectionExplicit:mode==='class'||mode==='students',plan,teacherId:state.teacher.id,teacherName:state.teacher.name,status:'aktif'};
 }
 
 function findConflicts(task, ignoreKey=''){
@@ -2078,6 +2067,7 @@ async function saveTaskFromWizard(){
   const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
   if(task.start<todayISO()) throw new Error('Geçmiş güne görev verilemez. Başlangıç bugünden önce olamaz.');
   if(task.targetType==='class' && !task.className) throw new Error('Sınıf seçilmedi.');
+  if(task.targetType==='class' && !task.studentNos.length) throw new Error('Bu görev için sınıftan en az bir öğrenci seçin.');
   if(task.targetType==='students' && !task.studentNos.length) throw new Error('En az bir öğrenci seçin.');
   applyTaskRosterPolicy(task,existingTask);
   const targetCount=studentsForTask(task).length; if(!targetCount) throw new Error('Bu hedefte öğrenci bulunamadı.');
@@ -2542,7 +2532,7 @@ function renderLogin(){
 }
 function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
 function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
-function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); forgetTeacherId(); state.teacher=null; state.selectedStudent=null; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
+function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.studentDetailOrigin=b.dataset.tab==='dashboard'?'dashboard':'students'; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); forgetTeacherId(); state.teacher=null; state.selectedStudent=null; state.studentDetailOrigin='students'; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
 function statsHtml(items){return `<div class="grid four">${items.map(x=>`<div class="stat-card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong><span>${esc(x[2])}</span></div>`).join('')}</div>`;}
 
@@ -2585,6 +2575,7 @@ function openStudentDetail(studentNo){
   }else{
     state.studentListUi={...(state.studentListUi||{}),lastStudentNo:st.no};
   }
+  state.studentDetailOrigin=['dashboard','students'].includes(state.activeTab)?state.activeTab:'students';
   state.selectedStudent=st;
   state.studentDetailTab='summary';
   state.studentDataEntryDate=todayISO();
@@ -2762,7 +2753,13 @@ async function renderStudentDetail(main,st){
     ${studentDetailTabsHtml(tab)}
     <div id="studentDetailContent">${studentDetailTabContent(tab,st,contentStats,tasks,messages,tab==='tasks'?null:range)}</div>
   </div>`;
-  document.getElementById('backStudents').onclick=()=>{state.selectedStudent=null; state.activeTab='students'; state.returnToStudentList=true; render();};
+  document.getElementById('backStudents').onclick=()=>{
+    const origin=state.studentDetailOrigin==='dashboard'?'dashboard':'students';
+    state.selectedStudent=null;
+    state.activeTab=origin;
+    state.returnToStudentList=origin==='students';
+    render();
+  };
   if(tab!=='tasks' && tab!=='data') bindRangeSelector();
   bindStudentDetailTabs();
   if(tab==='data') bindDataEntryAnalysis(st,contentStats,tasks);
@@ -3324,7 +3321,24 @@ function renderTasks(main){
   <div class="grid"><div class="card">${taskWizardHtml()}</div><div class="card"><h3>Verdiğim Görevler</h3><div class="thin-list">${teacherTasksHtml()}</div></div></div>`;
   bindTaskWizard(); bindTaskList(); updatePreviewLive();
 }
-function resetWizardAfterSave(doRender=true){state.taskWizard={targetType:'class',className:state.students.find(s=>s.className)?.className||'',studentNos:[],start:todayISO(),days:7,plan:defaultPlan(7)}; state.editingTaskKey=null; state.taskWizardStep=1; if(doRender) render();}
+function sortedStudentsByNumber(list=state.students){
+  return [...(list||[])].sort((a,b)=>String(a.no||'').localeCompare(String(b.no||''),'tr',{numeric:true})||String(a.name||'').localeCompare(String(b.name||''),'tr'));
+}
+function wizardClassStudentNos(className){return sortedStudentsByNumber(state.students.filter(s=>s.className===className)).map(s=>cleanId(s.no)).filter(Boolean);}
+function initializeWizardClassRoster(w,force=false){
+  if(!w || w.targetType!=='class') return w;
+  const firstClass=sortedStudentsByNumber(state.students).find(s=>s.className)?.className||'';
+  w.className=w.className||firstClass;
+  if(force || w.rosterClassName!==w.className || !Array.isArray(w.studentNos)) w.studentNos=wizardClassStudentNos(w.className);
+  w.rosterClassName=w.className;
+  w.rosterSelectionExplicit=true;
+  return w;
+}
+function createDefaultTaskWizard(){
+  const className=sortedStudentsByNumber(state.students).find(s=>s.className)?.className||'';
+  return initializeWizardClassRoster({targetType:'class',className,studentNos:[],start:todayISO(),days:7,plan:defaultPlan(7)},true);
+}
+function resetWizardAfterSave(doRender=true){state.taskWizard=createDefaultTaskWizard(); state.editingTaskKey=null; state.taskWizardStep=1; if(doRender) render();}
 function wizardStepMeta(){return [
   ['1','Hedef','Kime verilecek?'],
   ['2','Tarih','Ne zaman?'],
@@ -3333,8 +3347,8 @@ function wizardStepMeta(){return [
 ];}
 function taskWizardHtml(){
   const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
-  const w=state.taskWizard||{targetType:'class',className:classes[0]||'',studentNos:[],start:todayISO(),days:7,plan:defaultPlan(7)};
-  w.className=w.className||classes[0]||''; w.plan=resizePlan(w.plan,w.days); state.taskWizard=w;
+  const w=state.taskWizard||createDefaultTaskWizard();
+  w.className=w.className||classes[0]||''; w.plan=resizePlan(w.plan,w.days); if(w.targetType==='class') initializeWizardClassRoster(w); state.taskWizard=w;
   const step=Math.max(1,Math.min(4,Number(state.taskWizardStep||1)));
   const progress=`<div class="wizard-progress">${wizardStepMeta().map(([n,t,sub])=>`<button type="button" class="wizard-node ${step===Number(n)?'active':''} ${step>Number(n)?'done':''}" data-wizard-jump="${n}"><span class="num">${step>Number(n)?'✓':n}</span><b>${t}</b><span>${sub}</span></button>`).join('')}</div>`;
   return `<div class="wizard-shell real-wizard">${progress}<div class="wizard-panel">${wizardStepContent(step,w,classes)}</div></div>`;
@@ -3355,14 +3369,19 @@ function wizardActions(step,isFinal=false){
 }
 function targetFieldsHtml(w,classes){
   if(w.targetType==='all') return '<div class="target-summary">Tüm aktif öğrenciler seçildi. Kaydetme anındaki öğrenci listesi göreve sabitlenecek; sonradan eklenen öğrenciler bu göreve otomatik dahil edilmeyecek.</div>';
-  if(w.targetType==='class') return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><p class="muted tiny" id="classCount"></p>`;
+  if(w.targetType==='class'){
+    initializeWizardClassRoster(w);
+    const classStudents=sortedStudentsByNumber(state.students.filter(s=>s.className===w.className));
+    const selectedCount=(w.studentNos||[]).length;
+    return `<div class="field"><label>Sınıf seç</label><select id="taskClass">${classes.map(c=>`<option ${c===w.className?'selected':''}>${esc(c)}</option>`).join('')}</select></div><div class="row" style="margin-top:10px"><button type="button" class="secondary" data-class-roster-all>Tümünü Seç</button><button type="button" class="ghost" data-class-roster-clear>Seçimi Temizle</button></div><p class="muted tiny" id="classCount"></p><div id="selectedCount" class="selected-count">Seçili öğrenci: ${selectedCount} / ${classStudents.length}</div><div id="studentPickList" class="student-pick-list">${studentPickListHtml(classStudents,w.studentNos||[])}</div>`;
+  }
   const allClasses=['Tümü',...classes];
   const selectedCount=(w.studentNos||[]).length;
-  return `<div class="student-picker-tools"><div class="field"><label>Öğrenci ara</label><input id="taskStudentSearch" class="input" placeholder="Ad / no / sınıf"></div><div class="field"><label>Sınıf süz</label><select id="studentClassFilter">${allClasses.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div></div><div id="selectedCount" class="selected-count">Seçili öğrenci: ${selectedCount}</div><div id="studentPickList" class="student-pick-list">${studentPickListHtml(state.students,w.studentNos||[])}</div>`;
+  return `<div class="student-picker-tools"><div class="field"><label>Öğrenci ara</label><input id="taskStudentSearch" class="input" placeholder="Ad / no / sınıf"></div><div class="field"><label>Sınıf süz</label><select id="studentClassFilter">${allClasses.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div></div><div id="selectedCount" class="selected-count">Seçili öğrenci: ${selectedCount}</div><div id="studentPickList" class="student-pick-list">${studentPickListHtml(sortedStudentsByNumber(state.students),w.studentNos||[])}</div>`;
 }
 function studentPickListHtml(list,selected=[]){
   const set=new Set((selected||[]).map(cleanId));
-  return list.map(s=>{const checked=set.has(cleanId(s.no)); return `<label class="student-option ${checked?'selected':''}"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${checked?'checked':''}><span class="checkmark">✓</span><span class="student-meta"><b>${esc(s.name)}</b><span>${esc(s.className||'-')}</span></span><span class="student-badge">No ${esc(s.no)}</span></label>`;}).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
+  return sortedStudentsByNumber(list).map(s=>{const checked=set.has(cleanId(s.no)); return `<label class="student-option ${checked?'selected':''}"><input class="student-check" type="checkbox" value="${esc(s.no)}" ${checked?'checked':''}><span class="checkmark">✓</span><span class="student-meta"><b>${esc(s.name)}</b><span>${esc(s.className||'-')}</span></span><span class="student-badge">No ${esc(s.no)}</span></label>`;}).join('')||'<div class="empty">Öğrenci bulunamadı.</div>';
 }
 function planHtml(w){
   const names=lessonNames(); let out=''; const weeks=Math.ceil(w.days/7);
@@ -3779,12 +3798,12 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
 }
 function taskParentMissingLessonText(analysis){
   const rows=(analysis.days||[]).map(day=>{
-    const missing=(day.lessonRows||[]).filter(row=>Number(row.done||0)<Number(row.target||0));
-    if(!missing.length) return '';
-    const lessons=missing.map(row=>`*${row.lesson}:* ${Math.max(0,Number(row.target||0)-Number(row.done||0))} soru eksik`).join(', ');
+    const incomplete=(day.lessonRows||[]).filter(row=>Number(row.done||0)<Number(row.target||0));
+    if(!incomplete.length) return '';
+    const lessons=incomplete.map(row=>`*${row.lesson}* (${Number(row.done||0)>0?'eksik':'yapılmadı'})`).join(', ');
     return `• *${fmtDateWithDay(day.day)}:* ${lessons}`;
   }).filter(Boolean);
-  return rows.length?rows.join('\n'):'• Eksik ders bulunmuyor.';
+  return rows.length?rows.join('\n'):'• Eksik veya yapılmayan ders bulunmuyor.';
 }
 function taskParentGeneralStatus(analysis,ctx){
   if(Number(analysis.targetTotal||0)<=0) return 'Görev verisi bulunmuyor';
@@ -3792,9 +3811,60 @@ function taskParentGeneralStatus(analysis,ctx){
   if(Number(analysis.stats?.total||0)<=0) return 'Yapılmadı';
   return 'Eksik tamamlandı';
 }
+function taskParentSubjectRows(analysis){
+  return studentPdfSubjectRows(analysis).sort((a,b)=>String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+}
+function taskParentSubjectAchievementText(analysis){
+  const rows=taskParentSubjectRows(analysis);
+  return rows.length?rows.map(row=>`• *${row.lesson}:* %${row.pct}`).join('\n'):'• Ders bazlı başarı verisi bulunmuyor.';
+}
+function taskParentBestLessonText(analysis){
+  const rows=taskParentSubjectRows(analysis).sort((a,b)=>b.pct-a.pct||Number(b.total||0)-Number(a.total||0)||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+  return rows.length?`• *${rows[0].lesson}:* %${rows[0].pct}`:'• Ders bazlı başarı verisi bulunmuyor.';
+}
+function taskParentAttentionSection(analysis){
+  const weak=taskParentSubjectRows(analysis).filter(row=>row.pct<70).sort((a,b)=>a.pct-b.pct||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+  if(!weak.length) return '';
+  return `
+
+⚠️ *DİKKAT EDİLMESİ GEREKEN DERSLER*
+${weak.map(row=>`• *${row.lesson}:* %${row.pct} başarı — %70'in altında`).join('\n')}`;
+}
 function buildTaskParentWhatsAppReport(task,analysis,ctx){
   const st=analysis.student;
-  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf / No:* ${st.className||'-'} / ${st.no}\n*Değerlendirilen tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n\n📌 *GENEL GÖREV DURUMU*\n• Durum: *${taskParentGeneralStatus(analysis,ctx)}*\n• ${ctx.end<ctx.plannedEnd?'Bugüne kadar verilen':'Verilen'} toplam soru: *${analysis.targetTotal}*\n• Öğrencinin çözdüğü toplam soru: *${analysis.stats.total}*\n• Göreve sayılan soru: *${analysis.credited}*\n• Görev tamamlama oranı: *%${analysis.completionPct}*\n• Gün durumu: *${analysis.completedDays} tamamlandı / ${analysis.partialDays} eksik / ${analysis.missingDays} yapılmadı*\n\n🗓️ *GÜN GÜN YAPILMAYAN / EKSİK DERSLER*\n${taskParentMissingLessonText(analysis)}\n\nℹ️ *GÖREV NEDEN %100 GÖRÜNMEYEBİLİR?*\nGörev tamamlama hesabı ders bazında yapılır. Matematikten 15 soru verildiyse öğrenci 25 soru çözse bile sistem göreve en fazla 15 soru sayar. Başka bir dersteki eksik, Matematikte çözülen fazla sorularla kapanmaz. Örneğin T.C. İnkılap Tarihinde 10 soru eksikse, Matematikte 10 fazla soru çözülmesi İnkılap görevini tamamlanmış olarak saymaz.\n\n⚠️ *ÖNEMLİ 1: Öğrenciler bugünün verisini yarın giremez. Veri bugün girilmezse sistem o günü yapılmadı olarak değerlendirir.*\n\n⚠️ *ÖNEMLİ 2: Yeni bir görevlendirme yapıldığında veliye sistem tarafından ayrıca mesaj gönderilir.*\n\n*Ferhat Karagöz*\nFenomena Eğitim Kurumları\nFen Bilimleri Öğretmeni\n*Ferhat Karagöz*`;
+  const hasAchievement=Number(analysis.stats?.total||0)>0;
+  const achievementLine=hasAchievement?`• Genel soru başarı oranı: *%${analysis.accuracy}*`:'• Genel soru başarı oranı: *Veri yok*';
+  return `Sayın Velimiz, merhaba. 👋
+
+*Öğrenci:* ${st.name}
+*Sınıf / No:* ${st.className||'-'} / ${st.no}
+*Değerlendirilen tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}
+
+📌 *GENEL GÖREV DURUMU*
+• Durum: *${taskParentGeneralStatus(analysis,ctx)}*
+• Görev tamamlama oranı: *%${analysis.completionPct}*
+${achievementLine}
+• Gün durumu: *${analysis.completedDays} tamamlandı / ${analysis.partialDays} eksik / ${analysis.missingDays} yapılmadı*
+
+🎯 *DERSLERE GÖRE BAŞARI ORANLARI*
+${taskParentSubjectAchievementText(analysis)}
+
+🏆 *EN BAŞARILI DERS*
+${taskParentBestLessonText(analysis)}${taskParentAttentionSection(analysis)}
+
+🗓️ *GÜN GÜN YAPILMAYAN / EKSİK DERSLER*
+${taskParentMissingLessonText(analysis)}
+
+ℹ️ *GÖREV NEDEN %100 GÖRÜNMEYEBİLİR?*
+Görev tamamlama hesabı ders bazında yapılır. Bir derste hedefin üzerinde çözülen sorular yalnızca o dersin hedefi kadar göreve sayılır; başka bir dersteki eksik yerine geçmez.
+
+⚠️ *ÖNEMLİ 1: Öğrenciler bugünün verisini yarın giremez. Veri bugün girilmezse sistem o günü yapılmadı olarak değerlendirir.*
+
+⚠️ *ÖNEMLİ 2: Yeni bir görevlendirme yapıldığında veliye sistem tarafından ayrıca mesaj gönderilir.*
+
+Fenomena Eğitim Kurumları
+Fen Bilimleri Öğretmeni
+*Ferhat Karagöz*`;
 }
 function taskReportContext(task,momentDate=new Date()){
   const moment=reportMomentInfo(momentDate);
@@ -4204,8 +4274,27 @@ function bindTaskWizard(){
   document.querySelectorAll('[data-wizard-jump]').forEach(b=>b.onclick=()=>{syncTaskWizardFromDom(); state.taskWizardStep=Number(b.dataset.wizardJump); renderTasks(document.getElementById('mainArea'));});
   document.querySelector('[data-wizard-next]')?.addEventListener('click',()=>{syncTaskWizardFromDom(); state.taskWizardStep=Math.min(4,(state.taskWizardStep||1)+1); renderTasks(document.getElementById('mainArea'));});
   document.querySelector('[data-wizard-prev]')?.addEventListener('click',()=>{syncTaskWizardFromDom(); state.taskWizardStep=Math.max(1,(state.taskWizardStep||1)-1); renderTasks(document.getElementById('mainArea'));});
-  document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{state.taskWizard.targetType=r.value; state.taskWizard.studentNos=state.taskWizard.studentNos||[]; renderTasks(document.getElementById('mainArea'));});
-  document.getElementById('taskClass')?.addEventListener('change',e=>{state.taskWizard.className=e.target.value; updatePreviewLive();});
+  document.querySelectorAll('input[name="targetMode"]').forEach(r=>r.onchange=()=>{
+    state.taskWizard.targetType=r.value;
+    state.taskWizard.studentNos=state.taskWizard.studentNos||[];
+    if(r.value==='class') initializeWizardClassRoster(state.taskWizard,true);
+    renderTasks(document.getElementById('mainArea'));
+  });
+  document.getElementById('taskClass')?.addEventListener('change',e=>{
+    state.taskWizard.className=e.target.value;
+    initializeWizardClassRoster(state.taskWizard,true);
+    renderTasks(document.getElementById('mainArea'));
+  });
+  document.querySelector('[data-class-roster-all]')?.addEventListener('click',()=>{
+    state.taskWizard.studentNos=wizardClassStudentNos(state.taskWizard.className);
+    state.taskWizard.rosterSelectionExplicit=true;
+    renderTasks(document.getElementById('mainArea'));
+  });
+  document.querySelector('[data-class-roster-clear]')?.addEventListener('click',()=>{
+    state.taskWizard.studentNos=[];
+    state.taskWizard.rosterSelectionExplicit=true;
+    renderTasks(document.getElementById('mainArea'));
+  });
   document.getElementById('taskStart')?.addEventListener('change',e=>{state.taskWizard.start=e.target.value; renderTasks(document.getElementById('mainArea'));});
   document.getElementById('taskDays')?.addEventListener('change',e=>{if(e.target.value==='manual'){openManualEndPicker(); return;} state.taskWizard.days=Number(e.target.value); state.taskWizard.plan=resizePlan(state.taskWizard.plan,state.taskWizard.days); renderTasks(document.getElementById('mainArea'));});
   document.getElementById('taskEndManual')?.addEventListener('change',e=>{if(setTaskWizardEndDate(e.target.value)) renderTasks(document.getElementById('mainArea'));});
@@ -4226,7 +4315,13 @@ function bindTaskWizard(){
   document.getElementById('cancelEdit')?.addEventListener('click',()=>resetWizardAfterSave());
   updatePreviewLive(); updateSelectedCount();
 }
-function updateSelectedCount(){const el=document.getElementById('selectedCount'); if(el) el.textContent=`Seçili öğrenci: ${(state.taskWizard?.studentNos||[]).length}`;}
+function updateSelectedCount(){
+  const el=document.getElementById('selectedCount'); if(!el) return;
+  const w=state.taskWizard||{};
+  const selected=(w.studentNos||[]).length;
+  const total=w.targetType==='class'?wizardClassStudentNos(w.className).length:null;
+  el.textContent=total===null?`Seçili öğrenci: ${selected}`:`Seçili öğrenci: ${selected} / ${total}`;
+}
 function bindStudentChecks(){document.querySelectorAll('.student-check').forEach(ch=>ch.onchange=()=>{const set=new Set((state.taskWizard.studentNos||[]).map(cleanId)); if(ch.checked) set.add(cleanId(ch.value)); else set.delete(cleanId(ch.value)); state.taskWizard.studentNos=[...set]; ch.closest('.student-option')?.classList.toggle('selected',ch.checked); updateSelectedCount(); updatePreviewLive();});}
 function updatePlanDayTotalsLive(){
   const w=state.taskWizard; if(!w) return;
@@ -4243,24 +4338,24 @@ function updatePlanDayTotalsLive(){
 }
 function updatePreviewLive(){
   const w=state.taskWizard; if(!w) return;
-  const task={...w,end:taskWizardEndDate(w)};
+  const task={...w,end:taskWizardEndDate(w),rosterSelectionExplicit:w.targetType==='class'||w.targetType==='students'};
   const existingTask=state.editingTaskKey?state.tasks.find(t=>t.key===state.editingTaskKey):null;
-  const preserveSnapshot=Boolean(existingTask && taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
-  const legacyEdit=Boolean(existingTask && !taskHasRosterSnapshot(existingTask) && sameTaskTarget(task,existingTask));
-  const count=preserveSnapshot?studentsForTask(existingTask).length:studentsForTask(task).length;
+  const selectedNos=studentsForTask(task);
+  const count=selectedNos.length;
+  const previousNos=existingTask?studentsForTask(existingTask):[];
+  const sameRoster=previousNos.length===selectedNos.length && previousNos.every(no=>selectedNos.includes(no));
   const total=Object.values(w.plan||{}).reduce((s,v)=>s+(Number(v)||0),0);
-  const rosterNote=legacyEdit
-    ? 'Bu eski görev mevcut güncel sınıf listesi mantığıyla çalışmaya devam edecek.'
-    : (preserveSnapshot
-      ? `Bu görevde kayıtlı ${count} kişilik sabit öğrenci listesi korunacak; sonradan gelen öğrenciler eklenmeyecek.`
-      : `Kaydettiğiniz anda bu ${count} kişilik öğrenci listesi sabitlenecek; daha sonra sınıfa gelen öğrenciler bu görevden sorumlu olmayacak.`);
+  const rosterNote=existingTask
+    ? (sameRoster?`Görevdeki ${count} kişilik öğrenci listesi korunacak.`:`Görev öğrenci listesi seçtiğiniz ${count} öğrenciyle güncellenecek.`)
+    : `Kaydettiğiniz anda seçtiğiniz ${count} kişilik öğrenci listesi göreve sabitlenecek.`;
   updatePlanDayTotalsLive();
-  const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfı şu anda ${count} öğrenciyi kapsıyor. Kayıtta liste sabitlenir.`;
+  const classTotal=w.targetType==='class'?wizardClassStudentNos(w.className).length:count;
+  const classCount=document.getElementById('classCount'); if(classCount) classCount.textContent=`${w.className||'-'} sınıfında ${classTotal} öğrenci var; bu görev için ${count} öğrenci seçili.`;
   const summary=document.getElementById('wizardTargetSummary'); if(summary) summary.textContent=`${targetLabel(task)} • ${count} öğrenci • ${fmtDate(w.start)} - ${fmtDate(task.end)} • ${w.days} gün`;
   const status=document.getElementById('firebaseStatus'); if(status) status.textContent=rosterNote;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p><b>Öğrenci listesi:</b> ${esc(rosterNote)}</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskGeneralReport(b.dataset.reportGeneralTask,b)); document.querySelectorAll('[data-task-parent-report]').forEach(b=>b.onclick=()=>openTaskParentReportModal(b.dataset.taskParentReport)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),rosterClassName:t.className,rosterSelectionExplicit:true,start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskGeneralReport(b.dataset.reportGeneralTask,b)); document.querySelectorAll('[data-task-parent-report]').forEach(b=>b.onclick=()=>openTaskParentReportModal(b.dataset.taskParentReport)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
 
 
 function lessonDesignerHtml(){
@@ -4458,7 +4553,7 @@ async function loadAdminOperations(){
       <h3 style="margin-top:14px">Veli Bildirimleri</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Kanal</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${notificationHtml||'<tr><td colspan="5">Veli bildirimi yok</td></tr>'}</tbody></table></div>
       <h3 style="margin-top:14px">Öğrenci Panel Mesajları</h3><div class="table-wrap"><table class="table"><thead><tr><th>Tarih</th><th>Öğrenci</th><th>Başlık</th><th>Öğretmen</th><th>İşlem</th></tr></thead><tbody>${messageHtml||'<tr><td colspan="5">Mesaj yok</td></tr>'}</tbody></table></div>`;
     document.querySelectorAll('[data-admin-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.adminDelTask));
-    document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:{...t.plan}}; state.taskWizardStep=1; state.activeTab='tasks'; queueUiScroll('wizardPanel','smooth'); render();});
+    document.querySelectorAll('[data-admin-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.adminEditTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),rosterClassName:t.className,rosterSelectionExplicit:true,start:t.start,days:t.days,plan:{...t.plan}}; state.taskWizardStep=1; state.activeTab='tasks'; queueUiScroll('wizardPanel','smooth'); render();});
     bindAdminRecordButtons(); bindBulkSelectors();
   }catch(e){box.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}
 }
