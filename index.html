@@ -3797,22 +3797,24 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
   };
 }
 function taskParentMissingLessonText(analysis){
-  const rows=(analysis.days||[]).map(day=>{
-    const incomplete=(day.lessonRows||[]).filter(row=>Number(row.done||0)<Number(row.target||0));
-    if(!incomplete.length) return '';
-    const lessons=incomplete.map(row=>`*${row.lesson}* (${Number(row.done||0)>0?'eksik':'yapılmadı'})`).join(', ');
-    return `• *${fmtDateWithDay(day.day)}:* ${lessons}`;
-  }).filter(Boolean);
+  const rows=[];
+  (analysis.days||[]).forEach(day=>{
+    const missing=(day.lessonRows||[]).filter(row=>Number(row.done||0)<=0 && Number(row.target||0)>0);
+    const partial=(day.lessonRows||[]).filter(row=>Number(row.done||0)>0 && Number(row.done||0)<Number(row.target||0));
+    const dateLabel=fmtDateWithDay(day.day);
+    if(missing.length) rows.push(`• *${dateLabel} Yapılmayanlar:* ${missing.map(row=>row.lesson).join(' - ')}`);
+    if(partial.length) rows.push(`• *${dateLabel} Eksik Yapılanlar:* ${partial.map(row=>row.lesson).join(' - ')}`);
+  });
   return rows.length?rows.join('\n'):'• Eksik veya yapılmayan ders bulunmuyor.';
 }
 function taskParentGeneralStatus(analysis,ctx){
   if(Number(analysis.targetTotal||0)<=0) return 'Görev verisi bulunmuyor';
   if(Number(analysis.completionPct||0)>=100) return ctx.end<ctx.plannedEnd?'Bugüne kadar tamamlandı':'Tamamlandı';
-  if(Number(analysis.stats?.total||0)<=0) return 'Yapılmadı';
+  if(Number(analysis.doneOnTaskDays||0)<=0) return 'Yapılmadı';
   return 'Eksik tamamlandı';
 }
 function taskParentSubjectRows(analysis){
-  return studentPdfSubjectRows(analysis).sort((a,b)=>String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+  return studentPdfSubjectRows(analysis).sort((a,b)=>a.pct-b.pct||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
 }
 function taskParentSubjectAchievementText(analysis){
   const rows=taskParentSubjectRows(analysis);
@@ -3822,29 +3824,63 @@ function taskParentBestLessonText(analysis){
   const rows=taskParentSubjectRows(analysis).sort((a,b)=>b.pct-a.pct||Number(b.total||0)-Number(a.total||0)||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
   return rows.length?`• *${rows[0].lesson}:* %${rows[0].pct}`:'• Ders bazlı başarı verisi bulunmuyor.';
 }
+function taskParentWeakLessonDetail(analysis,lesson){
+  const sameLesson=row=>String(row?.lesson||'').trim()===String(lesson||'').trim() && Number(row?.total||0)>0;
+  const useful=value=>String(value||'').trim() && String(value||'').trim()!=='Genel';
+  const subtopic=(analysis.stats?.subtopics||[])
+    .filter(row=>sameLesson(row) && (useful(row.topic)||useful(row.subtopic)))
+    .map(row=>({...row,pct:reportPct(row.correct,row.total)}))
+    .sort((a,b)=>a.pct-b.pct||Number(b.total||0)-Number(a.total||0))[0];
+  if(subtopic) return {topic:useful(subtopic.topic)?String(subtopic.topic).trim():'',subtopic:useful(subtopic.subtopic)?String(subtopic.subtopic).trim():''};
+  const topic=(analysis.stats?.topics||[])
+    .filter(row=>sameLesson(row) && useful(row.topic))
+    .map(row=>({...row,pct:reportPct(row.correct,row.total)}))
+    .sort((a,b)=>a.pct-b.pct||Number(b.total||0)-Number(a.total||0))[0];
+  return topic?{topic:String(topic.topic).trim(),subtopic:''}:{topic:'',subtopic:''};
+}
 function taskParentAttentionSection(analysis){
-  const weak=taskParentSubjectRows(analysis).filter(row=>row.pct<70).sort((a,b)=>a.pct-b.pct||String(a.lesson||'').localeCompare(String(b.lesson||''),'tr'));
+  const weak=taskParentSubjectRows(analysis).filter(row=>row.pct<70);
   if(!weak.length) return '';
-  return `
-
-⚠️ *DİKKAT EDİLMESİ GEREKEN DERSLER*
-${weak.map(row=>`• *${row.lesson}:* %${row.pct} başarı — %70'in altında`).join('\n')}`;
+  const lines=weak.map(row=>{
+    const detail=taskParentWeakLessonDetail(analysis,row.lesson);
+    const details=[];
+    if(detail.topic) details.push(`Konu: "${detail.topic}"`);
+    if(detail.subtopic) details.push(`Alt konu: "${detail.subtopic}"`);
+    const detailText=details.length?` ${details.join(' • ')}.`:'';
+    const followUp=details.length?'Bu ders ve konu üzerinden hemen tedbir alınması iyi olur.':'Bu ders üzerinden hemen tedbir alınması iyi olur.';
+    return `• *${row.lesson}:* %${row.pct} başarı görünüyor.${detailText} ${followUp}`;
+  });
+  return `\n\n⚠️ *DİKKAT EDİLMESİ GEREKEN DERSLER*\n${lines.join('\n')}`;
+}
+function taskParentDayStatusText(analysis){
+  const total=(analysis.days||[]).length;
+  if(!total) return 'Görev günü bulunmuyor.';
+  const completed=Number(analysis.completedDays||0);
+  const partial=Number(analysis.partialDays||0);
+  const missing=Number(analysis.missingDays||0);
+  const completedText=completed?`*${completed} günü* tamamlandı`:'tamamlanan gün olmadı';
+  const partialText=partial?`*${partial} gün* eksik yaptı`:'eksik yaptığı gün olmadı';
+  const missingText=missing?`*${missing} gün* görevlerini *yapmadı*`:'hiç yapmadığı gün olmadı';
+  return `${total} gün görev verildi. ${completedText} / ${partialText} / ${missingText}`;
 }
 function buildTaskParentWhatsAppReport(task,analysis,ctx){
   const st=analysis.student;
-  const hasAchievement=Number(analysis.stats?.total||0)>0;
+  const hasAchievement=Number(analysis.doneOnTaskDays||0)>0;
   const achievementLine=hasAchievement?`• Genel soru başarı oranı: *%${analysis.accuracy}*`:'• Genel soru başarı oranı: *Veri yok*';
+  const wrongEmpty=(analysis.days||[]).reduce((sum,day)=>sum+Number(day.wrong||0)+Number(day.empty||0),0);
   return `Sayın Velimiz, merhaba. 👋
 
 *Öğrenci:* ${st.name}
 *Sınıf / No:* ${st.className||'-'} / ${st.no}
-*Değerlendirilen tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}
+Öğrencimizin *${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}* tarih aralığındaki görev bilgilendirmesidir.
 
 📌 *GENEL GÖREV DURUMU*
-• Durum: *${taskParentGeneralStatus(analysis,ctx)}*
+• Toplam verilen soru sayısı: *${Number(analysis.targetTotal||0)}*
+• Toplam çözdüğü soru sayısı: *${Number(analysis.doneOnTaskDays||0)}*
+• Toplam yanlış-boş soru sayısı: *${wrongEmpty}*
 • Görev tamamlama oranı: *%${analysis.completionPct}*
 ${achievementLine}
-• Gün durumu: *${analysis.completedDays} tamamlandı / ${analysis.partialDays} eksik / ${analysis.missingDays} yapılmadı*
+• Gün durumu: ${taskParentDayStatusText(analysis)}
 
 🎯 *DERSLERE GÖRE BAŞARI ORANLARI*
 ${taskParentSubjectAchievementText(analysis)}
@@ -3858,13 +3894,15 @@ ${taskParentMissingLessonText(analysis)}
 ℹ️ *GÖREV NEDEN %100 GÖRÜNMEYEBİLİR?*
 Görev tamamlama hesabı ders bazında yapılır. Bir derste hedefin üzerinde çözülen sorular yalnızca o dersin hedefi kadar göreve sayılır; başka bir dersteki eksik yerine geçmez.
 
-⚠️ *ÖNEMLİ 1: Öğrenciler bugünün verisini yarın giremez. Veri bugün girilmezse sistem o günü yapılmadı olarak değerlendirir.*
+⚠️ *Uyarı 1: Öğrenciler bugünün verisini yarın giremez. Veri bugün girilmezse sistem o günü yapılmadı olarak değerlendirir.*
 
-⚠️ *ÖNEMLİ 2: Yeni bir görevlendirme yapıldığında veliye sistem tarafından ayrıca mesaj gönderilir.*
+⚠️ *Uyarı 2: Yeni bir görevlendirme yapıldığında veliye sistem tarafından ayrıca mesaj gönderilir.*
 
-Fenomena Eğitim Kurumları
+⚠️ *Uyarı 3: Öğrenci görevi olmadan da sisteme veri girişi yaparak ortalamalarını görebilir ve eksik kısımlar için bizlere dönüt sağlayabilir; ancak farklı zamanlarda girilen veriler, verilen görevlerin yapılmış sayılmasını sağlamaz.*
+
+*Fenomen Eğitim Kurumları*
 Fen Bilimleri Öğretmeni
-*Ferhat Karagöz*`;
+_Ferhat Karagöz_`;
 }
 function taskReportContext(task,momentDate=new Date()){
   const moment=reportMomentInfo(momentDate);
