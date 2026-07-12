@@ -1159,8 +1159,8 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .teacher-task-card .actions .task-report-btn{grid-column:1 / -1;font-weight:900;white-space:normal;line-height:1.2}
 .teacher-task-card .actions .general-report-btn{background:linear-gradient(135deg,#eef4ff,#dbeafe);border-color:#bfdbfe;color:#1d4ed8}
 .teacher-task-card .actions .general-report-btn:hover{background:#dbeafe;border-color:#93c5fd}
-.teacher-task-card .actions .student-report-btn{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#9a3412}
-.teacher-task-card .actions .student-report-btn:hover{background:#ffedd5;border-color:#fb923c}
+.teacher-task-card .actions .task-parent-message-btn{background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fdba74;color:#9a3412}
+.teacher-task-card .actions .task-parent-message-btn:hover{background:#ffedd5;border-color:#fb923c}
 .teacher-task-card .actions .task-report-btn:disabled{opacity:.7;cursor:wait;transform:none}
 .teacher-task-card .task-track-box{margin-top:0;padding:9px;border-radius:14px;max-height:140px;overflow:auto}
 .data-entry-package-list{display:grid;gap:12px}
@@ -1187,6 +1187,21 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .daily-info-list small{display:block;color:var(--muted);font-size:11px;font-weight:800;line-height:1.3;margin-top:2px}
 @media(max-width:620px){.teacher-task-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}.teacher-task-card{max-width:none}.data-record-row{grid-template-columns:1fr}.data-entry-package-head{display:grid;grid-template-columns:1fr}.data-entry-day h5{display:grid;grid-template-columns:1fr}.data-entry-date-filter{grid-template-columns:1fr 1fr}.data-entry-date-filter .field{grid-column:1 / -1}.data-entry-date-filter button{width:100%}}
 
+
+
+/* GÖREV VELİ WHATSAPP MESAJI MODALI */
+.task-parent-report-modal{display:grid;gap:14px}
+.task-parent-report-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 14px;border:1px solid #fed7aa;border-radius:18px;background:linear-gradient(135deg,#fff7ed,#fff)}
+.task-parent-report-summary strong{display:block;color:var(--ink);font-size:14px;font-weight:900;margin-bottom:4px}
+.task-parent-report-summary span{display:block;color:var(--muted);font-size:12px;font-weight:800;line-height:1.45}
+.task-parent-report-generate{display:flex;justify-content:flex-end}
+.task-parent-report-output{display:grid;gap:10px;padding-top:4px}
+.task-parent-report-message{width:100%;min-height:390px;resize:vertical;background:#f8fafc;border-color:var(--line);font-family:'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:600;line-height:1.58;white-space:pre-wrap}
+.task-parent-report-phone{padding:10px 12px;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--muted);font-size:12px;font-weight:900;line-height:1.4;overflow-wrap:anywhere}
+.task-parent-report-phone.ready{background:#dcfce7;border-color:#bbf7d0;color:#166534}
+.task-parent-report-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.task-parent-report-actions button{width:100%}
+@media(max-width:620px){.task-parent-report-summary{display:grid;grid-template-columns:1fr}.task-parent-report-generate button{width:100%}.task-parent-report-actions{grid-template-columns:1fr}.task-parent-report-message{min-height:330px;font-size:13px}}
 
 
 /* ÖĞRENCİ PDF RAPORU - VEKTÖREL PDF ÜRETİMİ */
@@ -1341,7 +1356,6 @@ function lessonNames(){return state.lessons.map(x=>x.name).filter(Boolean);}
 function getTeacherName(id){const t=state.teachers.find(x=>cleanId(x.id)===cleanId(id)); return t?.name || (cleanId(id)===cleanId(state.teacher?.id) ? state.teacher?.name : `Öğretmen ${id || '?'}`);}
 function normalizePhoneTR(raw){let d=String(raw||'').replace(/\D/g,''); if(!d) return ''; if(d.startsWith('0090')&&d.length>=14) d=d.slice(2,14); else if(d.startsWith('90')&&d.length>=12) d=d.slice(0,12); else if(d.startsWith('0')&&d.length===11) d='9'+d; else if(d.length===10) d='90'+d; return d;}
 function copyText(text){if(navigator.clipboard?.writeText) return navigator.clipboard.writeText(text); const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); return Promise.resolve();}
-function downloadUtf8Text(filename,text){const blob=new Blob(['\uFEFF',String(text||'')],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.style.display='none'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);}
 function isOkLike(v){const s=String(v ?? '').trim().toLowerCase(); return v===true || v===1 || ['true','1','ok','success','successful','başarılı','basarili'].includes(s);}
 async function fetchWithTimeout(url, options={}, timeoutMs=15000){
   const controller=new AbortController();
@@ -3365,7 +3379,7 @@ function planHtml(w){
   }
   return out;
 }
-/* Görev kartından indirilen genel PDF ve öğrenci metin raporları. */
+/* Görev kartı genel PDF, öğrenci PDF ve veli WhatsApp raporlama yapısı. */
 const PDF_REPORT_STATUS=Object.freeze({
   done:{text:'#166534',fill:'#ECFDF3'},
   partial:{text:'#5B21B6',fill:'#F3E8FF'},
@@ -3763,74 +3777,139 @@ function buildTaskGeneralPdfDocument(task,analyses,ctx){
     ]
   };
 }
-function buildTaskStudentReportBlock(a,index,total,ctx){
-  const st=a.student;
-  const positive=a.positives.length?a.positives.slice(0,3).map(x=>`• ${x}`).join('\n'):'• Bu dönem için olumlu değerlendirme yapacak kadar çalışma görünmüyor.';
-  const attention=a.attention.length?a.attention.slice(0,4).map(x=>`• ${x}`).join('\n'):'• Şu anda belirgin bir takip ihtiyacı görünmüyor.';
-  const dayText=a.days.map(d=>{
-    const lessonText=d.lessonRows.map(x=>`${x.lesson}: ${x.done}/${x.target} ${x.status==='done'?'✅':x.status==='partial'?'⚠️':'❌'}`).concat(d.extraLessons.map(x=>`${x.lesson}: ${x.total} ek soru`)).join(' • ');
-    const topicLines=d.topicRows.map(x=>{
-      const path=[x.lesson,x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||x.lesson;
-      return `  - ${path}: ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş`;
-    }).join('\n');
-    const resultLine=d.doneTotal?`• Sonuç: ${d.correct} doğru / ${d.wrong} yanlış / ${d.empty} boş • Başarı %${d.accuracy}`:'• Bu gün için çalışma görünmüyor.';
-    return `${taskReportStatusEmoji(d.statusKey)} *${fmtDateWithDay(d.day)} — ${taskReportStatusLabel(d.statusKey)}*\n• Görev: ${d.credited}/${d.targetTotal} soru tamamlandı • Toplam çözüm: ${d.doneTotal}\n${resultLine}\n• Dersler: ${lessonText||'Görev bulunmuyor.'}${topicLines?`\n• Konular:\n${topicLines}`:''}`;
-  }).join('\n\n')||'• Henüz gerçekleşen görev günü bulunmuyor.';
-  const lessonText=(a.stats.subjects||[]).length?a.stats.subjects.map(x=>`• *${x.lesson}:* ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş • Başarı %${reportPct(x.correct,x.total)}`).join('\n'):'• Derslere göre çalışma görünmüyor.';
-  const offTargetText=a.offTargetRecords.length?`\n\n➕ *Görev günleri dışında yapılan ek çalışma:* ${a.offTargetTotal} soru\n${[...new Set(a.offTargetRecords.map(r=>r.date))].sort().map(day=>taskReportGroupRecords(a.offTargetRecords.filter(r=>r.date===day)).map(x=>{const path=[x.lesson,x.topic,x.subtopic].filter(v=>String(v||'').trim() && String(v||'').trim()!=='Genel').join(' / ')||x.lesson; return `• ${fmtDate(day)} — ${path}: ${x.total} soru • ${x.correct} doğru / ${x.wrong} yanlış / ${x.empty} boş`;}).join('\n')).join('\n')}`:'';
-  const strongest=a.strongestTopic?`${a.strongestTopic.lesson} / ${a.strongestTopic.topic} — Başarı %${a.strongestTopic.pct}`:(a.strongestLesson?`${a.strongestLesson.lesson} — Başarı %${a.strongestLesson.pct}`:'Henüz karşılaştırma yapacak kadar soru çözülmemiş.');
-  const weakest=a.weakestTopic?`${a.weakestTopic.lesson} / ${a.weakestTopic.topic} — Başarı %${a.weakestTopic.pct}`:(a.weakestLesson?`${a.weakestLesson.lesson} — Başarı %${a.weakestLesson.pct}`:'Henüz karşılaştırma yapacak kadar soru çözülmemiş.');
-  const trendLine=a.trend.label?`\n• Çalışma gidişatı: *${a.trend.label.replace(/\.$/,'')}*`:'';
-  return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 *${index+1}/${total} — ${st.name}*\n🏷️ *Sınıf / No:* ${st.className||'-'} / ${st.no}\n\nSayın Velimiz, merhaba. 👋\n*${st.name}* öğrencimizin ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)} tarihleri arasındaki görev durumu aşağıdadır.\n\n📌 *KISA ÖZET*\n• Görev günleri: *${a.completedDays} tamamlandı / ${a.partialDays} eksik / ${a.missingDays} çalışma görünmüyor*\n• Görev durumu: *${a.credited}/${a.targetTotal} soru tamamlandı — %${a.completionPct}*\n• Toplam çözülen: *${a.stats.total} soru*\n• Doğru / Yanlış / Boş: *${a.stats.correct} / ${a.stats.wrong} / ${a.stats.empty}*\n• Genel başarı: *%${a.accuracy}*${trendLine}\n\n✅ *İYİ GİDENLER*\n${positive}\n\n📍 *ÜZERİNDE DURULMASI GEREKENLER*\n${attention}\n\n🌟 *En güçlü olduğu alan:* ${strongest}\n🛠️ *Tekrar etmesi faydalı olacak alan:* ${weakest}\n\n🗓️ *GÜN GÜN ÇALIŞMA DURUMU*\n\n${dayText}${offTargetText}\n\n📚 *DERSLERE GÖRE GENEL DURUM*\n${lessonText}\n\n📌 *Not:* Bu raporda sisteme işlenen çalışmalar yer almaktadır.\n\nBilginize sunar, iyi günler dileriz.\n*${state.settings.kurumAdi}*\n`;
+function taskParentMissingLessonText(analysis){
+  const rows=(analysis.days||[]).map(day=>{
+    const missing=(day.lessonRows||[]).filter(row=>Number(row.done||0)<Number(row.target||0));
+    if(!missing.length) return '';
+    const lessons=missing.map(row=>`*${row.lesson}:* ${Math.max(0,Number(row.target||0)-Number(row.done||0))} soru eksik`).join(', ');
+    return `• *${fmtDateWithDay(day.day)}:* ${lessons}`;
+  }).filter(Boolean);
+  return rows.length?rows.join('\n'):'• Eksik ders bulunmuyor.';
 }
-function buildTaskStudentReportText(task,analyses,ctx){
-  return `👥 *ÖĞRENCİ GÖREV RAPORLARI*\n\n🎯 *Görev:* ${targetLabel(task)}\n🗓️ *Tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n⏱️ *Rapor zamanı:* ${ctx.moment.text}\n👨‍🏫 *Öğretmen:* ${getTeacherName(task.teacherId)}\n📌 Her öğrenci ayrı bir bölümde yer almaktadır. İlgili bölüm doğrudan WhatsApp’a kopyalanabilir.\n\n${analyses.map((a,i)=>buildTaskStudentReportBlock(a,i,analyses.length,ctx)).join('\n\n')}\n`;
+function taskParentGeneralStatus(analysis,ctx){
+  if(Number(analysis.targetTotal||0)<=0) return 'Görev verisi bulunmuyor';
+  if(Number(analysis.completionPct||0)>=100) return ctx.end<ctx.plannedEnd?'Bugüne kadar tamamlandı':'Tamamlandı';
+  if(Number(analysis.stats?.total||0)<=0) return 'Yapılmadı';
+  return 'Eksik tamamlandı';
 }
-async function prepareTaskReportData(taskKey,momentDate=new Date()){
-  const task=state.tasks.find(x=>x.key===taskKey);
-  if(!task) throw new Error('Görev bulunamadı.');
+function buildTaskParentWhatsAppReport(task,analysis,ctx){
+  const st=analysis.student;
+  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${st.name}\n*Sınıf / No:* ${st.className||'-'} / ${st.no}\n*Değerlendirilen tarih aralığı:* ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}\n\n📌 *GENEL GÖREV DURUMU*\n• Durum: *${taskParentGeneralStatus(analysis,ctx)}*\n• ${ctx.end<ctx.plannedEnd?'Bugüne kadar verilen':'Verilen'} toplam soru: *${analysis.targetTotal}*\n• Öğrencinin çözdüğü toplam soru: *${analysis.stats.total}*\n• Göreve sayılan soru: *${analysis.credited}*\n• Görev tamamlama oranı: *%${analysis.completionPct}*\n• Gün durumu: *${analysis.completedDays} tamamlandı / ${analysis.partialDays} eksik / ${analysis.missingDays} yapılmadı*\n\n🗓️ *GÜN GÜN YAPILMAYAN / EKSİK DERSLER*\n${taskParentMissingLessonText(analysis)}\n\nℹ️ *GÖREV NEDEN %100 GÖRÜNMEYEBİLİR?*\nGörev tamamlama hesabı ders bazında yapılır. Matematikten 15 soru verildiyse öğrenci 25 soru çözse bile sistem göreve en fazla 15 soru sayar. Başka bir dersteki eksik, Matematikte çözülen fazla sorularla kapanmaz. Örneğin T.C. İnkılap Tarihinde 10 soru eksikse, Matematikte 10 fazla soru çözülmesi İnkılap görevini tamamlanmış olarak saymaz.\n\n⚠️ *ÖNEMLİ 1: Öğrenciler bugünün verisini yarın giremez. Veri bugün girilmezse sistem o günü yapılmadı olarak değerlendirir.*\n\n⚠️ *ÖNEMLİ 2: Yeni bir görevlendirme yapıldığında veliye sistem tarafından ayrıca mesaj gönderilir.*\n\n*Ferhat Karagöz*\nFenomena Eğitim Kurumları\nFen Bilimleri Öğretmeni\n*Ferhat Karagöz*`;
+}
+function taskReportContext(task,momentDate=new Date()){
   const moment=reportMomentInfo(momentDate);
   const plannedDays=taskDayKeys(task);
   const start=isoFromAny(task.start)||plannedDays[0]||'';
   const end=taskReportEffectiveEnd(task,momentDate);
   if(!start) throw new Error('Görevin başlangıç tarihi geçersiz.');
   if(start>end) throw new Error(`Bu görev henüz başlamadı. Başlangıç: ${fmtDate(start)}`);
-  const studentNos=studentsForTask(task).map(cleanId);
-  const students=studentNos.map(no=>state.students.find(s=>cleanId(s.no)===no)||{no,name:`Öğrenci ${no}`,className:task.className||''});
-  if(!students.length) throw new Error('Bu görev için raporlanacak öğrenci bulunamadı.');
   const dayContext=taskReportDayContext(task,start,end);
   const plannedEnd=isoFromAny(task.end)||plannedDays[plannedDays.length-1]||end;
-  const totalPlannedDays=taskDayKeys(task).filter(day=>day>=start && day<=plannedEnd).length;
-  const freshStats=await Promise.all(students.map(student=>loadStats(student.no,start,end,{force:true})));
-  const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],dayContext))
-    .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
-  const ctx={start,end,moment,dayContext,totalPlannedDays,isPast:plannedEnd<appDateISO(momentDate)};
+  const totalPlannedDays=plannedDays.filter(day=>day>=start && day<=plannedEnd).length;
+  const ctx={start,end,plannedEnd,moment,dayContext,totalPlannedDays,isPast:plannedEnd<appDateISO(momentDate)};
   const period=`${reportDateFilePart(start)}_${reportDateFilePart(end)}_${moment.fileTime}`;
+  return {ctx,period};
+}
+function taskReportStudentChoices(task){
+  return studentsForTask(task).map(no=>{
+    const cleanNo=cleanId(no);
+    const current=state.students.find(student=>cleanId(student.no)===cleanNo);
+    if(current) return current;
+    const snapshot=(task.assignedStudents||[]).find(student=>cleanId(student.no)===cleanNo);
+    return snapshot?{...snapshot,no:cleanNo,parentPhone:snapshot.parentPhone||''}:{no:cleanNo,name:`Öğrenci ${cleanNo}`,className:task.className||'',parentPhone:''};
+  }).filter(student=>cleanId(student.no)).sort((a,b)=>{
+    const aNo=Number(cleanId(a.no)),bNo=Number(cleanId(b.no));
+    return (Number.isFinite(aNo)&&Number.isFinite(bNo)?aNo-bNo:String(a.no||'').localeCompare(String(b.no||''),'tr',{numeric:true}))
+      || String(a.name||'').localeCompare(String(b.name||''),'tr');
+  });
+}
+async function prepareTaskReportStudentData(taskKey,studentNo,momentDate=new Date()){
+  const task=state.tasks.find(item=>item.key===taskKey);
+  if(!task) throw new Error('Görev bulunamadı.');
+  const no=cleanId(studentNo);
+  const student=taskReportStudentChoices(task).find(item=>cleanId(item.no)===no);
+  if(!student) throw new Error('Seçilen öğrenci bu görevde bulunmuyor.');
+  const {ctx,period}=taskReportContext(task,momentDate);
+  const stats=await loadStats(student.no,ctx.start,ctx.end,{force:true});
+  const analysis=buildTaskReportStudentAnalysis(task,student,stats,ctx.dayContext);
+  return {task,student,analysis,ctx,period};
+}
+function openTaskParentReportModal(taskKey){
+  const task=state.tasks.find(item=>item.key===taskKey);
+  if(!task){setToast('Görev bulunamadı.','error');return;}
+  const students=taskReportStudentChoices(task);
+  if(!students.length){setToast('Bu görevde öğrenci bulunamadı.','error');return;}
+  const options=students.map(student=>`<option value="${esc(student.no)}">${esc(student.no)} - ${esc(student.name)}${student.className?` (${esc(student.className)})`:''}</option>`).join('');
+  showModal(`<div class="task-parent-report-modal"><div class="modal-head"><div><h3>Veli WhatsApp Mesajı</h3><p class="muted tiny">Öğrenciyi seçip görev verisini oluşturun.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div><div class="task-parent-report-summary"><div><strong>${esc(targetLabel(task))}</strong><span>${fmtDate(task.start)} - ${fmtDate(task.end)} • ${taskQuestionTotal(task)} soru</span></div><span>${students.length} öğrenci</span></div><div class="field"><label>Öğrenci seçin</label><select id="taskParentStudentSelect"><option value="">Öğrenci seçiniz</option>${options}</select></div><div class="task-parent-report-generate"><button type="button" class="primary" id="taskParentGenerate">Veri Oluştur</button></div><div class="task-parent-report-output hidden" id="taskParentReportOutput"><textarea class="task-parent-report-message" id="taskParentReportMessage" readonly></textarea><div class="task-parent-report-phone" id="taskParentReportPhone"></div><div class="task-parent-report-actions"><button type="button" class="ghost" id="taskParentReportCopy">Metni Kopyala</button><button type="button" class="primary" id="taskParentReportWhatsApp">WhatsApp Aç</button></div></div></div>`);
+  const select=document.getElementById('taskParentStudentSelect');
+  const generateButton=document.getElementById('taskParentGenerate');
+  const output=document.getElementById('taskParentReportOutput');
+  const textarea=document.getElementById('taskParentReportMessage');
+  const phoneBox=document.getElementById('taskParentReportPhone');
+  const copyButton=document.getElementById('taskParentReportCopy');
+  const whatsappButton=document.getElementById('taskParentReportWhatsApp');
+  let generatedMessage='';
+  let selectedStudent=null;
+  select?.addEventListener('change',()=>{generatedMessage='';selectedStudent=null;output?.classList.add('hidden');if(textarea) textarea.value='';});
+  generateButton?.addEventListener('click',async()=>{
+    const no=cleanId(select?.value);
+    if(!no){setToast('Öğrenci seçin.','error');return;}
+    const oldText=generateButton.innerHTML;
+    generateButton.disabled=true;
+    if(select) select.disabled=true;
+    generateButton.innerHTML='<span class="loader"></span>Veri hazırlanıyor';
+    try{
+      const result=await prepareTaskReportStudentData(taskKey,no);
+      selectedStudent=result.student;
+      generatedMessage=buildTaskParentWhatsAppReport(result.task,result.analysis,result.ctx);
+      if(textarea) textarea.value=generatedMessage;
+      const phone=normalizePhoneTR(selectedStudent.parentPhone);
+      if(phoneBox){phoneBox.textContent=phone?`Veli telefonu: +${phone}`:'Veli telefonu bulunmuyor. Metin kopyalanabilir.';phoneBox.classList.toggle('ready',Boolean(phone));}
+      if(whatsappButton) whatsappButton.disabled=!phone;
+      output?.classList.remove('hidden');
+    }catch(error){setToast('Veri oluşturulamadı: '+(error?.message||error),'error');}
+    finally{generateButton.disabled=false;if(select) select.disabled=false;generateButton.innerHTML=oldText;}
+  });
+  copyButton?.addEventListener('click',async()=>{
+    if(!generatedMessage){setToast('Önce veri oluşturun.','error');return;}
+    await copyText(generatedMessage);
+    setToast('WhatsApp mesajı kopyalandı.','ok');
+  });
+  whatsappButton?.addEventListener('click',()=>{
+    if(!generatedMessage || !selectedStudent){setToast('Önce veri oluşturun.','error');return;}
+    const phone=normalizePhoneTR(selectedStudent.parentPhone);
+    if(!phone){setToast('Veli telefonu bulunmuyor.','error');return;}
+    window.open(`https://wa.me/${phone}?text=${enc(generatedMessage)}`,'_blank','noopener');
+  });
+}
+async function prepareTaskReportData(taskKey,momentDate=new Date()){
+  const task=state.tasks.find(item=>item.key===taskKey);
+  if(!task) throw new Error('Görev bulunamadı.');
+  const {ctx,period}=taskReportContext(task,momentDate);
+  const students=taskReportStudentChoices(task);
+  if(!students.length) throw new Error('Bu görev için raporlanacak öğrenci bulunamadı.');
+  const freshStats=await Promise.all(students.map(student=>loadStats(student.no,ctx.start,ctx.end,{force:true})));
+  const analyses=students.map((student,index)=>buildTaskReportStudentAnalysis(task,student,freshStats[index],ctx.dayContext))
+    .sort((a,b)=>String(a.student.className||'').localeCompare(String(b.student.className||''),'tr',{numeric:true})||String(a.student.name||'').localeCompare(String(b.student.name||''),'tr'));
   return {task,analyses,ctx,period};
 }
 
-async function downloadTaskReport(taskKey,reportType,button){
-  const isGeneral=reportType==='general';
-  const reportName=isGeneral?'Genel PDF raporu':'Öğrenci raporu';
+async function downloadTaskGeneralReport(taskKey,button){
   const oldText=button?.innerHTML;
-  if(button){button.disabled=true; button.innerHTML='<span class="loader"></span>Hazırlanıyor';}
-  setToast(`${reportName} hazırlanıyor...`);
+  if(button){button.disabled=true;button.innerHTML='<span class="loader"></span>Hazırlanıyor';}
+  setToast('Genel PDF raporu hazırlanıyor...');
   try{
+    if(!window.pdfMake?.createPdf) throw new Error('PDF kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');
     const {task,analyses,ctx,period}=await prepareTaskReportData(taskKey);
-    if(isGeneral){
-      if(!window.pdfMake?.createPdf) throw new Error('PDF kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');
-      const docDefinition=buildTaskGeneralPdfDocument(task,analyses,ctx);
-      await downloadPdfMakeBlob(docDefinition,`GENEL_GOREV_ANALIZ_RAPORU_${period}.pdf`);
-    }else{
-      downloadUtf8Text(`OGRENCI_GOREV_RAPORLARI_${period}.txt`,buildTaskStudentReportText(task,analyses,ctx));
-    }
-    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(ctx.start)}-${fmtDate(ctx.end)} aralığında ${reportName.toLocaleLowerCase('tr-TR')} indirildi.`);
-    setToast(`${reportName} indirildi.`,'ok');
-  }catch(e){
-    console.error('Görev raporu hatası:',e);
-    setToast('Rapor hazırlanamadı: '+(e?.message||e),'error');
+    const docDefinition=buildTaskGeneralPdfDocument(task,analyses,ctx);
+    await downloadPdfMakeBlob(docDefinition,`GENEL_GOREV_ANALIZ_RAPORU_${period}.pdf`);
+    await logAction('Görev raporu',`${targetLabel(task)} için ${fmtDate(ctx.start)}-${fmtDate(ctx.end)} aralığında genel PDF raporu indirildi.`);
+    setToast('Genel PDF raporu indirildi.','ok');
+  }catch(error){
+    console.error('Görev raporu hatası:',error);
+    setToast('Rapor hazırlanamadı: '+(error?.message||error),'error');
   }finally{
-    if(button){button.disabled=false; button.innerHTML=oldText||(isGeneral?'📊 Genel PDF Raporu İndir':'👥 Öğrenci Raporunu İndir');}
+    if(button){button.disabled=false;button.innerHTML=oldText||'📊 Genel PDF Raporu İndir';}
   }
 }
 function studentPdfShortDate(day){
@@ -4099,7 +4178,7 @@ async function downloadTaskStudentPdfReport(taskKey,button){
 
 function teacherTaskCardHtml(t,isPast=false){
   const rosterBadge=taskHasRosterSnapshot(t)?`<span class="badge blue">🔒 ${studentsForTask(t).length} kişilik sabit liste</span>`:'<span class="badge orange">Eski görev • güncel liste</span>';
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span>${rosterBadge}</div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn student-report-btn" data-report-students-task="${esc(t.key)}">👥 Öğrenci Raporunu İndir</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span>${rosterBadge}</div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn task-parent-message-btn" data-task-parent-report="${esc(t.key)}">💬 Veli WhatsApp Mesajı</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
   const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
@@ -4181,7 +4260,7 @@ function updatePreviewLive(){
   const status=document.getElementById('firebaseStatus'); if(status) status.textContent=rosterNote;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p><b>Öğrenci listesi:</b> ${esc(rosterNote)}</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportGeneralTask,'general',b)); document.querySelectorAll('[data-report-students-task]').forEach(b=>b.onclick=()=>downloadTaskReport(b.dataset.reportStudentsTask,'students',b)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
+function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskGeneralReport(b.dataset.reportGeneralTask,b)); document.querySelectorAll('[data-task-parent-report]').forEach(b=>b.onclick=()=>openTaskParentReportModal(b.dataset.taskParentReport)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
 
 
 function lessonDesignerHtml(){
