@@ -1218,6 +1218,36 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
   border-color:#4ade80;
 }
 
+
+
+/* ÖĞRENCİ VERİ KAYDI DÜZENLEME MODALI */
+.data-edit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0 14px;padding:12px 14px;border:1px solid #bfdbfe;border-radius:20px;background:linear-gradient(135deg,#eff6ff,#fff);box-shadow:var(--shadow-xs)}
+.data-edit-toolbar p{margin:0;color:#475569;font-size:12px;font-weight:800;line-height:1.45}
+.study-edit-list{display:grid;gap:14px}
+.study-edit-card{border:1px solid var(--line);border-radius:20px;padding:14px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--shadow-xs)}
+.study-edit-card.readonly{background:#f8fafc;border-style:dashed}
+.study-edit-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.study-edit-card-head strong{display:block;color:var(--ink);font-size:15px;font-weight:900}
+.study-edit-card-head small{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:800}
+.study-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.study-edit-grid .study-edit-wide{grid-column:1 / -1}
+.study-number-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;grid-column:1 / -1}
+.study-edit-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.study-edit-validation{grid-column:1 / -1;min-height:20px;padding:8px 10px;border-radius:12px;background:#f8fafc;color:#475569;font-size:12px;font-weight:900}
+.study-edit-validation.bad{background:#fff1f2;color:#991b1b}
+.study-edit-validation.ok{background:#ecfdf3;color:#166534}
+
+/* ÖĞRENCİ BİLDİRİMİ - TARİH ARALIKLI PDF */
+.student-report-panel{display:grid;gap:14px}
+.student-report-range{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;border:1px solid #fed7aa;border-radius:20px;background:linear-gradient(180deg,#fff,#fffaf6)}
+.student-report-info{border:1px solid #dbeafe;border-radius:18px;background:#eff6ff;padding:13px;color:#1e3a8a;font-size:13px;font-weight:800;line-height:1.55}
+.student-report-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.student-report-preview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.student-report-preview .mini-report-stat{border:1px solid var(--line);border-radius:17px;background:#fff;padding:12px;box-shadow:var(--shadow-xs)}
+.student-report-preview small{display:block;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.student-report-preview b{display:block;margin-top:4px;color:var(--ink);font-size:20px;font-weight:900}
+@media(max-width:700px){.study-edit-grid{grid-template-columns:1fr}.study-number-grid{grid-template-columns:1fr 1fr}.study-edit-grid .study-edit-wide{grid-column:auto}.student-report-range{grid-template-columns:1fr}.student-report-preview{grid-template-columns:1fr 1fr}.student-report-actions button,.study-edit-actions button{width:100%}}
+
 </style>
 </head>
 <body>
@@ -1306,7 +1336,7 @@ const state = {
   studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
   dailyFollowUi:{studentNo:'all', status:'all'}, dailyFollowDate:'today',
   returnToStudentList:false,
-  studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü', studentDataEntryDate:'',
+  studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü', studentDataEntryDate:'', studentReportRange:null,
   adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', studentTaskPackage:null, studentTaskPackageDay:{}, pendingStudentTaskScroll:null, lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
 };
 
@@ -2113,7 +2143,7 @@ async function logAction(type,detail){try{await postJson('verianalizi001/ogretme
 
 /* Çalışma kayıtlarını tek merkezde normalize edip analiz eden ortak yapı. */
 function emptyStudyStats(){return {total:0,correct:0,wrong:0,empty:0,entryCount:0,activeDays:0,subjects:[],topics:[],subtopics:[],records:[]};}
-function normalizeStudyRecord(rec){
+function normalizeStudyRecord(rec,recordKey=''){
   if(!rec || typeof rec!=='object') return null;
   const dateRaw=rec.dateKey||rec.tarih||rec.date||rec.tarihSaat||rec.createdAt||'';
   const date=isoFromAny(dateRaw);
@@ -2125,7 +2155,7 @@ function normalizeStudyRecord(rec){
   const wrong=Math.max(0,Number(rec.yanlis??rec.wrong??0)||0);
   const empty=Math.max(0,Number(rec.bos??rec.empty??0)||0);
   const correct=Math.max(0,Number(rec.dogru??rec.correct??Math.max(0,total-wrong-empty))||0);
-  return {date,lesson:String(lesson||'Genel').trim()||'Genel',topic:String(topic||'Genel').trim()||'Genel',subtopic:String(subtopic||'Genel').trim()||'Genel',total,correct,wrong,empty,raw:rec};
+  return {recordKey:String(recordKey||''),date,lesson:String(lesson||'Genel').trim()||'Genel',topic:String(topic||'Genel').trim()||'Genel',subtopic:String(subtopic||'Genel').trim()||'Genel',total,correct,wrong,empty,raw:rec};
 }
 function summarizeStudyRecords(records){
   let total=0,correct=0,wrong=0,empty=0; const active=new Set();
@@ -2148,8 +2178,8 @@ function buildStatsFromStudyRecords(root,start,end,options={}){
   const endTime=String(options.endTime||'');
   const endMinutes=minutesFromTimeText(endTime);
   const records=[];
-  for(const rec of Object.values(root||{})){
-    const normalized=normalizeStudyRecord(rec);
+  for(const [recordKey,rec] of Object.entries(root||{})){
+    const normalized=normalizeStudyRecord(rec,recordKey);
     if(!normalized || !dateInRange(normalized.date,start,end)) continue;
     if(endMinutes!==null && normalized.date===endDate){
       const displayTime=recordTimeText(normalized);
@@ -2172,6 +2202,134 @@ async function loadStats(studentNo,start,end,options={}){
   }catch(e){return emptyStudyStats();}
 }
 async function countEntries(start,end){try{const root=await getJson('verianalizi001/calismaKayitlari')||{}; let c=0; for(const obj of Object.values(root)){for(const rec of Object.values(obj||{})){const d=rec?.dateKey||rec?.tarih||rec?.date||rec?.tarihSaat||rec?.createdAt||''; if(dateInRange(d,start,end)) c++;}} return c;}catch(e){return 0;}}
+function currentTeacherOwnsStudentTaskOnDay(student,day){
+  if(state.teacher?.isAdmin) return true;
+  const teacherId=cleanId(state.teacher?.id);
+  const studentNo=cleanId(student?.no);
+  const date=isoFromAny(day);
+  if(!teacherId || !studentNo || !date) return false;
+  return (state.tasks||[]).some(task=>{
+    const status=String(task.status||'aktif').toLocaleLowerCase('tr-TR');
+    return cleanId(task.teacherId)===teacherId && !status.includes('sil') && dateInRange(date,task.start||date,task.end||date) && studentsForTask(task).includes(studentNo);
+  });
+}
+function canEditStudyRecord(student,record,newDate=''){
+  if(state.teacher?.isAdmin) return true;
+  const sourceDate=isoFromAny(record?.date);
+  const targetDate=isoFromAny(newDate||sourceDate);
+  return currentTeacherOwnsStudentTaskOnDay(student,sourceDate) && currentTeacherOwnsStudentTaskOnDay(student,targetDate);
+}
+function studyRecordFirebasePath(studentNo,recordKey){
+  const no=cleanId(studentNo),key=String(recordKey||'').trim();
+  if(!no || !key || /[.#$\[\]\/]/.test(key)) throw new Error('Çalışma kaydı anahtarı geçersiz.');
+  return `verianalizi001/calismaKayitlari/${no}/${key}`;
+}
+function studyRecordDateTimeForUpdate(raw,date){
+  const time=[raw?.localTime,raw?.saat,raw?.girisSaati,raw?.entryTime,raw?.time,raw?.tarihSaat].map(localTimeFromTextValue).find(Boolean);
+  return time?`${fmtDate(date)} ${time}`:fmtDate(date);
+}
+function buildUpdatedStudyRecord(record,values){
+  const raw={...(record?.raw||{})};
+  const date=isoFromAny(values.date);
+  const updated={...raw,
+    dateKey:date,tarih:date,ders:values.lesson,anaKonu:values.topic,altKonu:values.subtopic,
+    toplam:values.total,toplamSoru:values.total,dogru:values.correct,yanlis:values.wrong,bos:values.empty,
+    guncellemeZamani:nowText(),duzenleyenOgretmenID:state.teacher?.id||'',duzenleyenOgretmenAdi:state.teacher?.name||''
+  };
+  if(Object.prototype.hasOwnProperty.call(raw,'date')) updated.date=date;
+  if(Object.prototype.hasOwnProperty.call(raw,'lesson')) updated.lesson=values.lesson;
+  if(Object.prototype.hasOwnProperty.call(raw,'course')) updated.course=values.lesson;
+  if(Object.prototype.hasOwnProperty.call(raw,'topic')) updated.topic=values.topic;
+  if(Object.prototype.hasOwnProperty.call(raw,'mainTopic')) updated.mainTopic=values.topic;
+  if(Object.prototype.hasOwnProperty.call(raw,'subtopic')) updated.subtopic=values.subtopic;
+  if(Object.prototype.hasOwnProperty.call(raw,'subTopic')) updated.subTopic=values.subtopic;
+  if(Object.prototype.hasOwnProperty.call(raw,'total')) updated.total=values.total;
+  if(Object.prototype.hasOwnProperty.call(raw,'soruSayisi')) updated.soruSayisi=values.total;
+  if(Object.prototype.hasOwnProperty.call(raw,'correct')) updated.correct=values.correct;
+  if(Object.prototype.hasOwnProperty.call(raw,'wrong')) updated.wrong=values.wrong;
+  if(Object.prototype.hasOwnProperty.call(raw,'empty')) updated.empty=values.empty;
+  if(Object.prototype.hasOwnProperty.call(raw,'tarihSaat')) updated.tarihSaat=studyRecordDateTimeForUpdate(raw,date);
+  return updated;
+}
+function readStudyEditForm(card){
+  const num=name=>Number(card.querySelector(`[data-study-field="${name}"]`)?.value);
+  return {
+    date:card.querySelector('[data-study-field="date"]')?.value||'',
+    lesson:String(card.querySelector('[data-study-field="lesson"]')?.value||'').trim(),
+    topic:String(card.querySelector('[data-study-field="topic"]')?.value||'').trim(),
+    subtopic:String(card.querySelector('[data-study-field="subtopic"]')?.value||'').trim(),
+    total:num('total'),correct:num('correct'),wrong:num('wrong'),empty:num('empty')
+  };
+}
+function validateStudyEditValues(values){
+  if(!isoFromAny(values.date)) return 'Geçerli bir tarih seçin.';
+  if(values.date>todayISO()) return 'Gelecek tarihli çalışma kaydı oluşturulamaz.';
+  if(!values.lesson) return 'Ders alanı boş bırakılamaz.';
+  const nums=[values.total,values.correct,values.wrong,values.empty];
+  if(nums.some(n=>!Number.isInteger(n)||n<0)) return 'Soru sayıları sıfır veya pozitif tam sayı olmalıdır.';
+  if(values.correct+values.wrong+values.empty!==values.total) return `Doğru + yanlış + boş toplamı ${values.total} soruya eşit olmalıdır.`;
+  return '';
+}
+function studyRecordEditCardHtml(student,record,index){
+  const allowed=canEditStudyRecord(student,record);
+  const disabled=allowed?'':'disabled';
+  return `<div class="study-edit-card ${allowed?'':'readonly'}" data-study-edit-card data-record-key="${esc(record.recordKey)}">
+    <div class="study-edit-card-head"><div><strong>${index+1}. kayıt • ${esc(record.lesson)}</strong><small>${fmtDate(record.date)}${recordTimeText(record)?' • '+esc(recordTimeText(record)):''} • Firebase kayıt anahtarı korunur</small></div><span class="badge ${allowed?'green':'orange'}">${allowed?'Düzenleme yetkisi var':'Salt okunur'}</span></div>
+    <div class="study-edit-grid">
+      <div class="field"><label>Tarih</label><input type="date" data-study-field="date" value="${esc(record.date)}" max="${esc(todayISO())}" ${disabled}></div>
+      <div class="field"><label>Ders</label><input data-study-field="lesson" value="${esc(record.lesson)}" ${disabled}></div>
+      <div class="field study-edit-wide"><label>Ana konu</label><input data-study-field="topic" value="${esc(record.topic)}" ${disabled}></div>
+      <div class="field study-edit-wide"><label>Alt konu</label><input data-study-field="subtopic" value="${esc(record.subtopic)}" ${disabled}></div>
+      <div class="study-number-grid">
+        <div class="field"><label>Toplam</label><input type="number" min="0" step="1" data-study-field="total" value="${record.total}" ${disabled}></div>
+        <div class="field"><label>Doğru</label><input type="number" min="0" step="1" data-study-field="correct" value="${record.correct}" ${disabled}></div>
+        <div class="field"><label>Yanlış</label><input type="number" min="0" step="1" data-study-field="wrong" value="${record.wrong}" ${disabled}></div>
+        <div class="field"><label>Boş</label><input type="number" min="0" step="1" data-study-field="empty" value="${record.empty}" ${disabled}></div>
+      </div>
+      <div class="study-edit-validation ${allowed?'':'bad'}" data-study-validation>${allowed?'Toplam kontrolü kaydetme sırasında zorunlu olarak yapılır.':'Bu gün için görevi veren öğretmen siz değilsiniz.'}</div>
+    </div>
+    ${allowed?`<div class="study-edit-actions"><button type="button" class="danger-btn" data-delete-study-record>Bu Kaydı Sil</button><button type="button" class="primary" data-save-study-record>Değişiklikleri Kaydet</button></div>`:''}
+  </div>`;
+}
+function openStudyRecordsEditModal(student,records,selectedDay){
+  const list=(records||[]).filter(r=>r.recordKey);
+  showModal(`<div class="modal-head"><div><h3>Günlük Veri Girişlerini Düzenle</h3><p class="muted tiny">${esc(student.name)} • ${fmtDate(selectedDay)} • Kayıtlar yalnızca tek tek güncellenir veya silinir.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div>${list.length?`<div class="study-edit-list">${list.map((r,i)=>studyRecordEditCardHtml(student,r,i)).join('')}</div>`:'<div class="empty">Bu gün için düzenlenebilir çalışma kaydı bulunmuyor.</div>'}`);
+  document.querySelectorAll('[data-study-edit-card]').forEach(card=>{
+    const key=card.dataset.recordKey;
+    const record=list.find(r=>r.recordKey===key);
+    const validation=card.querySelector('[data-study-validation]');
+    card.querySelectorAll('[data-study-field]').forEach(input=>input.addEventListener('input',()=>{
+      if(!validation || !record) return;
+      const values=readStudyEditForm(card),error=validateStudyEditValues(values);
+      const permission=canEditStudyRecord(student,record,values.date);
+      validation.textContent=!permission?'Seçilen yeni tarih için bu öğrenciye ait görev verme yetkiniz bulunmuyor.':(error||'Değerler geçerli; kayıt kaydedilebilir.');
+      validation.className=`study-edit-validation ${(!permission||error)?'bad':'ok'}`;
+    }));
+    card.querySelector('[data-save-study-record]')?.addEventListener('click',async()=>{
+      try{
+        if(!record) throw new Error('Kayıt bulunamadı.');
+        const values=readStudyEditForm(card),error=validateStudyEditValues(values);
+        if(error) throw new Error(error);
+        if(!canEditStudyRecord(student,record,values.date)) throw new Error('Bu kaydı veya seçilen yeni tarihi düzenleme yetkiniz yok.');
+        const path=studyRecordFirebasePath(student.no,record.recordKey);
+        await putJson(path,buildUpdatedStudyRecord(record,values));
+        state.statsCache={};
+        await logAction('Öğrenci veri girişi düzenleme',`${student.name} (${student.no}) öğrencisinin ${fmtDate(record.date)} tarihli ${record.lesson} kaydı güncellendi. Yeni tarih: ${fmtDate(values.date)}. Kayıt: ${record.recordKey}`);
+        closeModal();setToast('Öğrenci veri girişi güncellendi.','ok');render();
+      }catch(error){setToast('Kayıt güncellenemedi: '+(error?.message||error),'error');}
+    });
+    card.querySelector('[data-delete-study-record]')?.addEventListener('click',async()=>{
+      try{
+        if(!record || !canEditStudyRecord(student,record)) throw new Error('Bu kaydı silme yetkiniz yok.');
+        if(!confirm(`${fmtDate(record.date)} tarihli ${record.lesson} kaydı silinsin mi? Bu işlem geri alınamaz.`)) return;
+        await deleteJson(studyRecordFirebasePath(student.no,record.recordKey));
+        state.statsCache={};
+        await logAction('Öğrenci veri girişi silme',`${student.name} (${student.no}) öğrencisinin ${fmtDate(record.date)} tarihli ${record.lesson} kaydı silindi. Kayıt: ${record.recordKey}`);
+        closeModal();setToast('Öğrenci veri girişi silindi.','ok');render();
+      }catch(error){setToast('Kayıt silinemedi: '+(error?.message||error),'error');}
+    });
+  });
+}
 function taskIsActiveForStudentOnDay(task,student,day){
   if(!task || !student) return false;
   const status=String(task.status||'aktif').toLocaleLowerCase('tr-TR');
@@ -2737,9 +2895,14 @@ async function renderStudentDetail(main,st){
     const selectedDay=selectedStudentDataEntryDate();
     contentStats=await loadStats(st.no,selectedDay,selectedDay);
   }
+  if(tab==='studentreport'){
+    const reportRange=selectedStudentReportRange();
+    tasks=studentRangeTasks(st,reportRange.start,reportRange.end);
+    contentStats=await loadStats(st.no,reportRange.start,reportRange.end);
+  }
   const success=accuracyPct(stats);
   const level=success>=85?'Çok iyi':success>=75?'İyi':success>=60?'Takip edilmeli':success>0?'Eksik':'Veri yok';
-  const rangeCard=(tab==='tasks'||tab==='data')?'':`<div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>`;
+  const rangeCard=(tab==='tasks'||tab==='data'||tab==='studentreport')?'':`<div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>`;
   main.innerHTML=`<div class="student-detail-shell">
     <div class="student-head-card">
       <div class="row"><button class="ghost btn-back-smart" id="backStudents">← Geri</button><span class="badge">${esc(st.className||'-')}</span><span class="badge">No ${esc(st.no)}</span></div>
@@ -2764,9 +2927,10 @@ async function renderStudentDetail(main,st){
     state.returnToStudentList=origin==='students';
     render();
   };
-  if(tab!=='tasks' && tab!=='data') bindRangeSelector();
+  if(tab!=='tasks' && tab!=='data' && tab!=='studentreport') bindRangeSelector();
   bindStudentDetailTabs();
   if(tab==='data') bindDataEntryAnalysis(st,contentStats,tasks);
+  if(tab==='studentreport') bindStudentNotificationReport(st,contentStats,tasks);
   if(tab==='tasks'){
     document.querySelectorAll('[data-task-package]').forEach(b=>b.onclick=()=>{
       const key=b.dataset.taskPackage;
@@ -2797,7 +2961,7 @@ async function renderStudentDetail(main,st){
   runPendingStudentTaskScroll();
 }
 function studentDetailTabsHtml(active){
-  const tabs=[['summary','Özet'],['data','Veri Girişi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['messages','Panel Mesajı']];
+  const tabs=[['summary','Özet'],['data','Veri Girişi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['studentreport','Öğrenci Bildirimi'],['messages','Panel Mesajı']];
   return `<div class="detail-tabs">${tabs.map(([id,label])=>`<button type="button" class="detail-tab ${active===id?'active':''}" data-student-tab="${id}">${label}</button>`).join('')}</div>`;
 }
 function bindStudentDetailTabs(){
@@ -2807,6 +2971,7 @@ function studentDetailTabContent(tab,st,stats,tasks,messages,range){
   if(tab==='data') return studentDataEntryHtml(st,stats,tasks);
   if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
   if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki çalışma verilerine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
+  if(tab==='studentreport') return studentNotificationReportHtml(st,stats,tasks);
   if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
   return studentSummaryHtml(st,stats,tasks,range);
 }
@@ -3155,7 +3320,9 @@ function studentDataEntryHtml(st,stats,tasks){
   const filterHtml=dataEntryDateFilterHtml(selectedDay);
   const listHtml=analyses.length?analyses.map(dataEntryPackageHtml).join(''): `<div class="empty">${esc(fmtDate(selectedDay))} için görev paketi veya veri girişi görünmüyor.</div>`;
   const extraOnlyHtml=(!analyses.length && dayRecords.length)?`<div class="data-entry-package"><div class="data-entry-package-head"><div><span class="package-index">Hedef dışı kayıt</span><h4>Seçili gün veri girişleri</h4><p class="muted tiny">${esc(fmtDate(selectedDay))} tarihinde paket hedefi olmadan girilen kayıtlar</p></div><span class="badge">${dayRecords.reduce((s,r)=>s+Number(r.total||0),0)} soru</span></div><div class="data-record-list">${dayRecords.map(r=>`<div class="data-record-row"><div><b>${esc(r.lesson)} • ${esc(recordTopicText(r))}</b><small>${fmtDate(r.date)}${recordTimeText(r)?' • '+esc(recordTimeText(r)):''}</small></div><span class="badge">${esc(r.total)} soru • %${esc(itemAccuracy(r))}</span></div>`).join('')}</div></div>`:'';
-  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Bu bölüm seçilen tek güne göre çalışır. Normal öğrenci detayındaki tarih aralığından bağımsızdır; mesaj da yalnızca seçilen günün paket/veri durumuna göre oluşur.</p>${filterHtml}${statsHtml([['Paket',analyses.length,'Seçili gün'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Seçili gün']])}<div class="data-entry-package-list" style="margin-top:14px">${extraOnlyHtml || listHtml}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin seçilen gün için yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
+  const editableCount=dayRecords.filter(r=>r.recordKey && canEditStudyRecord(st,r)).length;
+  const editToolbar=`<div class="data-edit-toolbar"><div><b>${dayRecords.length} veri girişi</b><p>${state.teacher?.isAdmin?'Admin yetkisiyle tüm kayıtlar düzenlenebilir.':`${editableCount} kayıt, görevi veren öğretmen yetkisiyle düzenlenebilir.`}</p></div><button type="button" class="secondary" data-open-study-editor ${dayRecords.length?'':'disabled'}>✏️ Günün Kayıtlarını Düzenle</button></div>`;
+  return `<div class="card"><h3>Veri Girişi Analizi</h3><p class="muted tiny">Bu bölüm seçilen tek güne göre çalışır. Normal öğrenci detayındaki tarih aralığından bağımsızdır; mesaj da yalnızca seçilen günün paket/veri durumuna göre oluşur.</p>${filterHtml}${editToolbar}${statsHtml([['Paket',analyses.length,'Seçili gün'],['Hedef',totalTarget,'Soru'],['Yapılan',totalDone,'Soru'],['Tamamlama',`%${pct}`,'Seçili gün']])}<div class="data-entry-package-list" style="margin-top:14px">${extraOnlyHtml || listHtml}</div><div class="data-entry-message-panel"><h4>Veliye Günlük WhatsApp Bilgisi</h4><p class="muted tiny">Öğrencinin seçilen gün için yaptığı ve yapmadığı dersler paket hedeflerine göre mesaj haline getirilir.</p><div class="row"><button class="primary" data-data-message="generate">Mesajı Oluştur</button><button class="ghost hidden" data-data-message="copy">Metni Kopyala</button><button class="primary hidden" data-data-message="whatsapp">WhatsApp Aç</button></div><div id="dataEntryMessageBox" style="margin-top:12px"></div><div id="dataEntryConfirmBox" style="margin-top:12px"></div></div></div>`;
 }
 function buildDailyDataEntryParentMessage(st,stats,tasks,day=todayISO()){
   const activeTasks=(tasks||[]).filter(t=>taskIsActiveForStudentOnDay(t,st,day));
@@ -3222,6 +3389,11 @@ function bindDataEntryAnalysis(st,stats,tasks){
   document.querySelectorAll('[data-data-entry-date]').forEach(btn=>{
     btn.addEventListener('click',()=>setStudentDataEntryDate(btn.dataset.dataEntryDate));
   });
+  document.querySelector('[data-open-study-editor]')?.addEventListener('click',()=>{
+    const selectedDay=selectedStudentDataEntryDate();
+    const records=(stats?.records||[]).filter(r=>r.date===selectedDay);
+    openStudyRecordsEditModal(st,records,selectedDay);
+  });
   const panel=document.querySelector('.data-entry-message-panel');
   if(!panel) return;
   let generated='';
@@ -3255,6 +3427,152 @@ function bindDataEntryAnalysis(st,stats,tasks){
       }
     }catch(err){setToast(err.message,'error');}
   });
+}
+
+function selectedStudentReportRange(){
+  const fallback=last30Range();
+  let start=isoFromAny(state.studentReportRange?.start)||fallback.start;
+  let end=isoFromAny(state.studentReportRange?.end)||fallback.end;
+  const today=todayISO();
+  if(end>today) end=today;
+  if(start>end) start=end;
+  state.studentReportRange={start,end,title:'Öğrenci raporu'};
+  return state.studentReportRange;
+}
+function setStudentReportRange(start,end){
+  const today=todayISO();
+  start=isoFromAny(start);end=isoFromAny(end);
+  if(!start||!end) throw new Error('Başlangıç ve bitiş tarihlerini seçin.');
+  if(end>today) throw new Error('Bitiş tarihi bugünden ileri olamaz.');
+  if(start>end) throw new Error('Başlangıç tarihi bitiş tarihinden sonra olamaz.');
+  state.studentReportRange={start,end,title:'Öğrenci raporu'};
+}
+function studentNotificationReportHtml(st,stats,tasks){
+  const range=selectedStudentReportRange();
+  return `<div class="card student-report-panel"><div><h3>Öğrenci Bildirimi</h3><p class="muted tiny">Seçilen öğrenci için iki tarih arasındaki tüm çalışma girişleri ve bu aralıkta verilmiş bütün görevler tek PDF raporunda gösterilir. Görev sayısında sınır uygulanmaz.</p></div>
+    <div class="student-report-range"><div class="field"><label>Başlangıç tarihi</label><input type="date" id="studentReportStart" value="${esc(range.start)}" max="${esc(todayISO())}"></div><div class="field"><label>Bitiş tarihi</label><input type="date" id="studentReportEnd" value="${esc(range.end)}" max="${esc(todayISO())}"></div></div>
+    <div class="student-report-preview"><div class="mini-report-stat"><small>Öğrenci</small><b style="font-size:15px">${esc(st.name)}</b></div><div class="mini-report-stat"><small>Çalışma</small><b>${stats?.total||0}</b></div><div class="mini-report-stat"><small>Görev</small><b>${tasks?.length||0}</b></div><div class="mini-report-stat"><small>Başarı</small><b>%${accuracyPct(stats)}</b></div></div>
+    <div class="student-report-info">PDF; ders sonuçlarını, doğru-yanlış-boş dağılımını, güçlü ve geliştirilmesi gereken alanları, verilen görevleri, tamamlanan/eksik/yapılmayan görev günlerini ve görev dışı yapılan çalışmaları içerir.</div>
+    <div class="student-report-actions"><button type="button" class="primary" id="downloadStudentRangeReport">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
+}
+function studentRangeTasks(student,start,end){
+  return (state.tasks||[]).filter(task=>{
+    const status=String(task.status||'aktif').toLocaleLowerCase('tr-TR');
+    return !status.includes('sil') && studentsForTask(task).includes(cleanId(student.no)) && rangesOverlap(task.start,task.end,start,end) && taskDayKeys(task,{start,end}).length;
+  }).sort((a,b)=>String(a.start||'').localeCompare(String(b.start||''))||String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
+}
+function studentRangeTaskTargetTotal(task,start,end){
+  return taskDayKeys(task,{start,end}).reduce((sum,day)=>sum+aggregateTaskItemsByLesson(taskItemsForDay(task,day)).reduce((s,x)=>s+Number(x.target||0),0),0);
+}
+function buildStudentRangeReportAnalysis(student,stats,tasks,start,end){
+  const records=stats?.records||[];
+  const recordsByDate=new Map();
+  records.forEach(r=>{if(!recordsByDate.has(r.date)) recordsByDate.set(r.date,[]);recordsByDate.get(r.date).push(r);});
+  const targetMap=new Map();
+  (tasks||[]).forEach(task=>taskDayKeys(task,{start,end}).forEach(day=>{
+    const targetRows=aggregateTaskItemsByLesson(taskItemsForDay(task,day));
+    if(!targetRows.length) return;
+    if(!targetMap.has(day)) targetMap.set(day,{});
+    const lessonMap=targetMap.get(day);
+    targetRows.forEach(x=>{
+      if(!lessonMap[x.lesson]) lessonMap[x.lesson]={lesson:x.lesson,target:0};
+      lessonMap[x.lesson].target+=Number(x.target||0);
+    });
+  }));
+  const allDays=[...new Set([...targetMap.keys(),...recordsByDate.keys()])].filter(day=>dateInRange(day,start,end)).sort();
+  const days=allDays.map(day=>{
+    const dayRecords=recordsByDate.get(day)||[];
+    const targets=Object.values(targetMap.get(day)||{}).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
+    const doneByLesson=recordDoneByLesson(dayRecords);
+    const targetLessons=new Set(targets.map(x=>x.lesson));
+    const lessonRows=targets.map(x=>{const done=Number(doneByLesson[x.lesson]||0),target=Number(x.target||0),credit=creditedTaskDone(done,target);return{lesson:x.lesson,target,done,credit,diff:done-target,status:done>=target?'done':done>0?'partial':'missing'};});
+    const extraLessons=Object.entries(doneByLesson).filter(([lesson,total])=>!targetLessons.has(lesson)&&Number(total)>0).map(([lesson,total])=>({lesson,total:Number(total)}));
+    const targetTotal=lessonRows.reduce((s,x)=>s+x.target,0),doneTotal=dayRecords.reduce((s,r)=>s+Number(r.total||0),0),credited=lessonRows.reduce((s,x)=>s+x.credit,0);
+    const correct=dayRecords.reduce((s,r)=>s+Number(r.correct||0),0),wrong=dayRecords.reduce((s,r)=>s+Number(r.wrong||0),0),empty=dayRecords.reduce((s,r)=>s+Number(r.empty||0),0);
+    const statusKey=targetTotal>0?(lessonRows.every(x=>x.done>=x.target)?'done':doneTotal>0?'partial':'missing'):(doneTotal>0?'extra':'neutral');
+    return {day,targets,lessonRows,extraLessons,targetTotal,doneTotal,credited,correct,wrong,empty,accuracy:reportPct(correct,doneTotal),completionPct:reportPct(credited,targetTotal),statusKey,records:dayRecords,topicRows:taskReportGroupRecords(dayRecords)};
+  });
+  const taskDays=days.filter(x=>x.targetTotal>0),completedDays=taskDays.filter(x=>x.statusKey==='done').length,partialDays=taskDays.filter(x=>x.statusKey==='partial').length,missingDays=taskDays.filter(x=>x.statusKey==='missing').length;
+  const targetTotal=taskDays.reduce((s,x)=>s+x.targetTotal,0),credited=taskDays.reduce((s,x)=>s+x.credited,0),extraStudyDays=days.filter(x=>x.statusKey==='extra').length;
+  return {student,stats,tasks,days,taskDays,targetTotal,credited,completionPct:reportPct(credited,targetTotal),completedDays,partialDays,missingDays,extraStudyDays,accuracy:reportPct(stats?.correct,stats?.total),range:{start,end}};
+}
+function studentRangePdfTaskTable(a){
+  const tasks=a.tasks||[];
+  if(!tasks.length) return {table:{widths:['*'],body:[[{text:'Seçilen tarih aralığında öğrenciye verilmiş görev bulunmuyor.',fontSize:8,color:'#64748B',margin:[7,6,7,6],fillColor:'#F8FAFC'}]]},layout:'noBorders'};
+  const body=[[{text:'Tarih',style:'pdfTableHead'},{text:'Görev / hedef',style:'pdfTableHead'},{text:'Veren öğretmen',style:'pdfTableHead'},{text:'Toplam',style:'pdfTableHead',alignment:'center'}]];
+  tasks.forEach((task,i)=>body.push([
+    {text:`${studentPdfShortDate(task.start<a.range.start?a.range.start:task.start)} - ${studentPdfShortDate(task.end>a.range.end?a.range.end:task.end)}`,fontSize:7.5,bold:true,fillColor:i%2?'#FFFFFF':'#F8FAFC'},
+    {text:task.packageTitle||task.paketBaslik||targetLabel(task),fontSize:7.6,color:'#334155',fillColor:i%2?'#FFFFFF':'#F8FAFC'},
+    {text:getTeacherName(task.teacherId),fontSize:7.5,color:'#475569',fillColor:i%2?'#FFFFFF':'#F8FAFC'},
+    {text:String(studentRangeTaskTargetTotal(task,a.range.start,a.range.end)),fontSize:7.7,bold:true,alignment:'center',fillColor:i%2?'#FFFFFF':'#F8FAFC'}
+  ]));
+  return {table:{headerRows:1,dontBreakRows:true,widths:[66,'*',90,38],body},layout:{hLineWidth:()=>.5,vLineWidth:()=>.5,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',paddingLeft:()=>4,paddingRight:()=>4,paddingTop:()=>3,paddingBottom:()=>3}};
+}
+function studentRangePdfGeneralStatusTable(a){
+  const taskDays=a.taskDays||[];
+  const completed=taskDays.filter(x=>x.statusKey==='done'),partial=taskDays.filter(x=>x.statusKey==='partial'),missing=taskDays.filter(x=>x.statusKey==='missing'),extra=(a.days||[]).filter(x=>x.statusKey==='extra');
+  const dayText=rows=>rows.length?studentPdfCompactNames(rows,x=>studentPdfDayLabel(x),10):'Yok';
+  const rows=[
+    {label:'Tamamlanan görev günleri',value:`${completed.length} gün`,detail:dayText(completed),...PDF_REPORT_STATUS.done},
+    {label:'Eksik yapılan görev günleri',value:`${partial.length} gün`,detail:dayText(partial),...PDF_REPORT_STATUS.partial},
+    {label:'Yapılmayan görev günleri',value:`${missing.length} gün`,detail:dayText(missing),...PDF_REPORT_STATUS.missing},
+    {label:'Görev dışı çalışma günleri',value:`${extra.length} gün`,detail:dayText(extra),...PDF_REPORT_STATUS.info}
+  ];
+  return {table:{widths:[122,74,'*'],body:rows.map(row=>[{text:row.label,fontSize:7.8,bold:true,color:row.text,fillColor:row.fill,margin:[6,4,6,4]},{text:row.value,fontSize:8,bold:true,alignment:'center',color:row.text,fillColor:row.fill,margin:[4,4,4,4]},{text:row.detail,fontSize:7.8,color:'#334155',fillColor:'#FFFFFF',margin:[6,4,6,4]}])},layout:{hLineWidth:()=>.55,vLineWidth:()=>.55,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}};
+}
+function studentRangePdfSummaryText(a){
+  const stats=a.stats||{};
+  const taskPart=a.taskDays.length?`${a.taskDays.length} görev gününün ${a.completedDays} günü tamamlandı; ${a.partialDays} gün eksik kaldı, ${a.missingDays} günde görev yapılmadı.`:'Bu aralıkta verilmiş görev bulunmuyor.';
+  const studyPart=Number(stats.total||0)?` Toplam ${stats.total} soru çözüldü: ${stats.correct||0} doğru, ${stats.wrong||0} yanlış, ${stats.empty||0} boş. Aktif çalışma günü ${stats.activeDays||0}.`:' Bu tarih aralığında çalışma girişi bulunmuyor.';
+  return taskPart+studyPart;
+}
+function studentRangePdfPageContent(a){
+  const st=a.student||{},completionColor=a.targetTotal?(a.completionPct>=70?'#166534':'#991B1B'):'#64748B',accuracyColor=a.accuracy>=70?'#166534':'#991B1B';
+  return {stack:[
+    {table:{widths:['*','auto'],body:[[
+      {stack:[{text:'FENOMEN EĞİTİM KURUMLARI',fontSize:14,bold:true,color:'#FFFFFF'},{text:'ÖĞRENCİ ÇALIŞMA VE GÖREV RAPORU',fontSize:8,bold:true,color:'#FFEDD5',characterSpacing:1,margin:[0,2,0,0]}],fillColor:'#9A3412',margin:[11,9,11,9]},
+      {stack:[{text:'SEÇİLİ ÖĞRENCİ',fontSize:8.5,bold:true,color:'#FFFFFF',alignment:'right'},{text:`${fmtDate(a.range.start)} - ${fmtDate(a.range.end)}`,fontSize:7.6,color:'#FFEDD5',alignment:'right',margin:[0,3,0,0]}],fillColor:'#E66012',margin:[10,9,10,9]}
+    ]]},layout:'noBorders'},
+    {table:{widths:['*','auto'],body:[[{stack:[{text:st.name||'Öğrenci',fontSize:18,bold:true,color:'#172033'},{text:`${st.className||'-'} Sınıfı - No: ${st.no||'-'}`,fontSize:8.5,color:'#64748B',margin:[0,3,0,0]}],margin:[0,9,0,4]},{text:'Tüm görevler ve çalışmalar',fontSize:8.5,bold:true,color:'#9A3412',alignment:'right',margin:[10,13,0,0]}]]},layout:'noBorders'},
+    studentPdfSectionTitle('ÇALIŞMA VE GÖREV ÖZETİ'),
+    {table:{widths:['*','*','*','*'],body:[[
+      studentPdfMetricCell('GÖREV TAMAMLAMA',a.targetTotal?`%${a.completionPct}`:'-',a.targetTotal?`${a.credited}/${a.targetTotal} soru`:'Görev hedefi yok','#FFF7ED',completionColor),
+      studentPdfMetricCell('ÇÖZÜLEN SORU',a.stats?.total||0,'Tüm çalışma girişleri','#FFFFFF','#172033'),
+      studentPdfMetricCell('BAŞARI ORANI',`%${a.accuracy}`,`${a.stats?.correct||0} D / ${a.stats?.wrong||0} Y / ${a.stats?.empty||0} B`,'#F8FAFC',accuracyColor),
+      studentPdfMetricCell('AKTİF ÇALIŞMA GÜNÜ',a.stats?.activeDays||0,`${a.tasks?.length||0} görev kaydı`,'#FFFFFF','#172033')
+    ]]},layout:{hLineWidth:()=>.7,vLineWidth:()=>.7,hLineColor:()=> '#DDE3EC',vLineColor:()=> '#DDE3EC',paddingLeft:()=>0,paddingRight:()=>0,paddingTop:()=>0,paddingBottom:()=>0}},
+    {table:{widths:['*'],body:[[{text:studentRangePdfSummaryText(a),fontSize:8.6,bold:true,color:'#334155',fillColor:'#F1F5F9',margin:[8,6,8,6]}]]},layout:'noBorders',margin:[0,5,0,0]},
+    studentPdfSectionTitle('TARİH ARALIĞINDA VERİLEN GÖREVLER'),studentRangePdfTaskTable(a),
+    studentPdfSectionTitle('DERSLERE GÖRE SONUÇ'),studentPdfSubjectTable(a),
+    studentPdfSectionTitle('ÇALIŞILMASI GEREKEN ALANLAR'),studentPdfWeakAreaBox(a),
+    studentPdfSectionTitle('GENEL DURUM'),studentRangePdfGeneralStatusTable(a),
+    studentPdfSectionTitle('GÜN GÜN TÜM ÇALIŞMALAR VE GÖREVLER'),studentPdfDayTable(a)
+  ]};
+}
+function buildStudentRangePdfDocument(a){
+  return {pageSize:'A4',pageMargins:[22,18,22,24],info:{title:'Fenomen Eğitim Kurumları Öğrenci Çalışma ve Görev Raporu',author:'Fenomen Eğitim Kurumları',subject:`${fmtDate(a.range.start)} - ${fmtDate(a.range.end)} öğrenci raporu`},background:(currentPage,pageSize)=>({canvas:[{type:'rect',x:0,y:0,w:pageSize.width,h:pageSize.height,color:'#F5F7FB'},{type:'rect',x:0,y:0,w:pageSize.width,h:6,color:'#E66012'}]}),footer:(currentPage,pageCount)=>({margin:[22,0,22,8],columns:[{text:'Fenomen Eğitim Kurumları',font:'Roboto',fontSize:7.4,bold:true,color:'#9A3412'},{text:`Sayfa ${currentPage} / ${pageCount}`,font:'Roboto',fontSize:7.4,color:'#64748B',alignment:'right'}]}),defaultStyle:{font:'Roboto',fontSize:8.6,color:'#263244',lineHeight:1.15},styles:{pdfTableHead:{font:'Roboto',fontSize:7.5,bold:true,color:'#475569',fillColor:'#EEF2F7'}},content:[studentRangePdfPageContent(a)]};
+}
+async function downloadStudentRangePdfReport(student,button){
+  const start=document.getElementById('studentReportStart')?.value,end=document.getElementById('studentReportEnd')?.value;
+  setStudentReportRange(start,end);
+  const range=selectedStudentReportRange(),oldText=button?.innerHTML;
+  if(button){button.disabled=true;button.innerHTML='<span class="loader"></span>PDF hazırlanıyor';}
+  setToast('Öğrenci tarih aralıklı PDF raporu hazırlanıyor.');
+  try{
+    if(!window.pdfMake?.createPdf) throw new Error('PDF kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');
+    const [stats,tasks]=await Promise.all([loadStats(student.no,range.start,range.end,{force:true}),Promise.resolve(studentRangeTasks(student,range.start,range.end))]);
+    const analysis=buildStudentRangeReportAnalysis(student,stats,tasks,range.start,range.end);
+    await downloadPdfMakeBlob(buildStudentRangePdfDocument(analysis),`OGRENCI_CALISMA_RAPORU_${reportFilePart(student.name)}_${reportDateFilePart(range.start)}_${reportDateFilePart(range.end)}.pdf`);
+    await logAction('Öğrenci tarih aralıklı PDF raporu',`${student.name} (${student.no}) için ${fmtDate(range.start)}-${fmtDate(range.end)} aralığındaki tüm çalışma ve görevleri içeren PDF indirildi.`);
+    setToast('Öğrenci PDF raporu indirildi.','ok');
+  }catch(error){console.error('Öğrenci tarih aralıklı PDF hatası:',error);setToast('PDF hazırlanamadı: '+(error?.message||error),'error');}
+  finally{if(button){button.disabled=false;button.innerHTML=oldText||'📄 Öğrenci Raporunu PDF İndir';}}
+}
+function bindStudentNotificationReport(st){
+  document.getElementById('downloadStudentRangeReport')?.addEventListener('click',e=>downloadStudentRangePdfReport(st,e.currentTarget));
+  ['studentReportStart','studentReportEnd'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>{
+    try{setStudentReportRange(document.getElementById('studentReportStart').value,document.getElementById('studentReportEnd').value);queueUiScroll('studentContent','smooth');render();}catch(error){setToast(error.message,'error');}
+  }));
 }
 
 function studentPanelMessageHtml(st,stats,range){return `<p class="muted tiny">Mesaj öğrenci panelinde öğretmen adıyla birlikte görünür.</p><div class="chipbar"><button class="chip" data-msg-level="excellent">Çok pozitif</button><button class="chip" data-msg-level="positive">Pozitif</button><button class="chip" data-msg-level="normal">Normal</button><button class="chip" data-msg-level="high">Önemli uyarı</button></div><div class="field" style="margin-top:10px"><label>Başlık</label><input id="studentMsgTitle" class="input" value="Öğretmen Bilgilendirmesi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="studentMsgText">${esc(buildStudentMsg('normal',st,stats,range))}</textarea></div><button id="sendStudentMsg" class="primary" style="margin-top:10px">Öğrenci Paneline Gönder</button>`;}
