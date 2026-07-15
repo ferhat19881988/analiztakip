@@ -2291,9 +2291,37 @@ function studyRecordEditCardHtml(student,record,index){
     ${allowed?`<div class="study-edit-actions"><button type="button" class="danger-btn" data-delete-study-record>Bu Kaydı Sil</button><button type="button" class="primary" data-save-study-record>Değişiklikleri Kaydet</button></div>`:''}
   </div>`;
 }
-function openStudyRecordsEditModal(student,records,selectedDay){
+async function refreshStudyRecordsEditModal(student,selectedDay,options={}){
+  const stats=await loadStats(student.no,selectedDay,selectedDay,{force:true});
+  openStudyRecordsEditModal(student,stats.records,selectedDay,options);
+}
+function captureStudyRecordDrafts(excludedRecordKey=''){
+  const drafts={};
+  document.querySelectorAll('#modalRoot [data-study-edit-card]').forEach(card=>{
+    const key=card.dataset.recordKey;
+    if(!key || key===excludedRecordKey) return;
+    drafts[key]=readStudyEditForm(card);
+  });
+  return drafts;
+}
+function restoreStudyRecordDrafts(drafts={}){
+  document.querySelectorAll('#modalRoot [data-study-edit-card]').forEach(card=>{
+    const values=drafts[card.dataset.recordKey];
+    if(!values) return;
+    Object.entries(values).forEach(([name,value])=>{
+      const input=card.querySelector(`[data-study-field="${name}"]`);
+      if(input) input.value=value??'';
+    });
+    card.querySelector('[data-study-field]')?.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+}
+function openStudyRecordsEditModal(student,records,selectedDay,options={}){
   const list=(records||[]).filter(r=>r.recordKey);
-  showModal(`<div class="modal-head"><div><h3>Günlük Veri Girişlerini Düzenle</h3><p class="muted tiny">${esc(student.name)} • ${fmtDate(selectedDay)} • Kayıtlar yalnızca tek tek güncellenir veya silinir.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div>${list.length?`<div class="study-edit-list">${list.map((r,i)=>studyRecordEditCardHtml(student,r,i)).join('')}</div>`:'<div class="empty">Bu gün için düzenlenebilir çalışma kaydı bulunmuyor.</div>'}`);
+  const notice=String(options.notice||'').trim();
+  const scrollTop=Math.max(0,Number(options.scrollTop)||0);
+  showModal(`<div class="modal-head"><div><h3>Günlük Veri Girişlerini Düzenle</h3><p class="muted tiny">${esc(student.name)} • ${fmtDate(selectedDay)} • Kayıtlar yalnızca tek tek güncellenir veya silinir.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div>${notice?`<div class="alert show ok">${esc(notice)}</div>`:''}${list.length?`<div class="study-edit-list">${list.map((r,i)=>studyRecordEditCardHtml(student,r,i)).join('')}</div>`:'<div class="empty">Bu gün için düzenlenebilir çalışma kaydı bulunmuyor.</div>'}`,{closeOnBackdrop:false});
+  const modalCard=document.querySelector('#modalRoot .modal-card');
+  if(modalCard && scrollTop) requestAnimationFrame(()=>{modalCard.scrollTop=scrollTop;});
   document.querySelectorAll('[data-study-edit-card]').forEach(card=>{
     const key=card.dataset.recordKey;
     const record=list.find(r=>r.recordKey===key);
@@ -2305,30 +2333,43 @@ function openStudyRecordsEditModal(student,records,selectedDay){
       validation.textContent=!permission?'Seçilen yeni tarih için bu öğrenciye ait görev verme yetkiniz bulunmuyor.':(error||'Değerler geçerli; kayıt kaydedilebilir.');
       validation.className=`study-edit-validation ${(!permission||error)?'bad':'ok'}`;
     }));
-    card.querySelector('[data-save-study-record]')?.addEventListener('click',async()=>{
+    const saveButton=card.querySelector('[data-save-study-record]');
+    saveButton?.addEventListener('click',async()=>{
       try{
+        saveButton.disabled=true;
         if(!record) throw new Error('Kayıt bulunamadı.');
         const values=readStudyEditForm(card),error=validateStudyEditValues(values);
         if(error) throw new Error(error);
         if(!canEditStudyRecord(student,record,values.date)) throw new Error('Bu kaydı veya seçilen yeni tarihi düzenleme yetkiniz yok.');
+        const currentScrollTop=document.querySelector('#modalRoot .modal-card')?.scrollTop||0;
+        const drafts=captureStudyRecordDrafts(record.recordKey);
         const path=studyRecordFirebasePath(student.no,record.recordKey);
         await putJson(path,buildUpdatedStudyRecord(record,values));
         state.statsCache={};
         await logAction('Öğrenci veri girişi düzenleme',`${student.name} (${student.no}) öğrencisinin ${fmtDate(record.date)} tarihli ${record.lesson} kaydı güncellendi. Yeni tarih: ${fmtDate(values.date)}. Kayıt: ${record.recordKey}`);
-        closeModal();setToast('Öğrenci veri girişi güncellendi.','ok');render();
-      }catch(error){setToast('Kayıt güncellenemedi: '+(error?.message||error),'error');}
+        await refreshStudyRecordsEditModal(student,selectedDay,{scrollTop:currentScrollTop,drafts,notice:'Kayıt güncellendi. Diğer değişikliklere devam edebilirsiniz.'});
+        setToast('Öğrenci veri girişi güncellendi.','ok');
+        render({preserveScroll:true});
+      }catch(error){saveButton.disabled=false;setToast('Kayıt güncellenemedi: '+(error?.message||error),'error');}
     });
-    card.querySelector('[data-delete-study-record]')?.addEventListener('click',async()=>{
+    const deleteButton=card.querySelector('[data-delete-study-record]');
+    deleteButton?.addEventListener('click',async()=>{
       try{
         if(!record || !canEditStudyRecord(student,record)) throw new Error('Bu kaydı silme yetkiniz yok.');
         if(!confirm(`${fmtDate(record.date)} tarihli ${record.lesson} kaydı silinsin mi? Bu işlem geri alınamaz.`)) return;
+        deleteButton.disabled=true;
+        const currentScrollTop=document.querySelector('#modalRoot .modal-card')?.scrollTop||0;
+        const drafts=captureStudyRecordDrafts(record.recordKey);
         await deleteJson(studyRecordFirebasePath(student.no,record.recordKey));
         state.statsCache={};
         await logAction('Öğrenci veri girişi silme',`${student.name} (${student.no}) öğrencisinin ${fmtDate(record.date)} tarihli ${record.lesson} kaydı silindi. Kayıt: ${record.recordKey}`);
-        closeModal();setToast('Öğrenci veri girişi silindi.','ok');render();
-      }catch(error){setToast('Kayıt silinemedi: '+(error?.message||error),'error');}
+        await refreshStudyRecordsEditModal(student,selectedDay,{scrollTop:currentScrollTop,drafts,notice:'Kayıt silindi. Diğer kayıtlarla çalışmaya devam edebilirsiniz.'});
+        setToast('Öğrenci veri girişi silindi.','ok');
+        render({preserveScroll:true});
+      }catch(error){deleteButton.disabled=false;setToast('Kayıt silinemedi: '+(error?.message||error),'error');}
     });
   });
+  restoreStudyRecordDrafts(options.drafts||{});
 }
 function taskIsActiveForStudentOnDay(task,student,day){
   if(!task || !student) return false;
@@ -4850,11 +4891,11 @@ function registerAdminRecord(title,path,data){
   state.adminOpsMap[id]={title,path,data};
   return id;
 }
-function showModal(html){
+function showModal(html,options={}){
   let root=document.getElementById('modalRoot');
   if(!root){root=document.createElement('div');root.id='modalRoot';document.body.appendChild(root);}
   root.innerHTML=`<div class="modal-backdrop" data-close-modal><div class="modal-card" onclick="event.stopPropagation()">${html}</div></div>`;
-  root.querySelector('[data-close-modal]')?.addEventListener('click',closeModal);
+  if(options.closeOnBackdrop!==false) root.querySelector('[data-close-modal]')?.addEventListener('click',closeModal);
   root.querySelectorAll('[data-modal-close]').forEach(b=>b.onclick=closeModal);
 }
 function closeModal(){const root=document.getElementById('modalRoot'); if(root) root.innerHTML='';}
