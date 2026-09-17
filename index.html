@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#e66012" />
-  <title>Fenomen Öğretmen Paneli</title>
+  <title>Fenomen Öğretmen Paneli • v1.0.1</title>
   <link rel="icon" href="https://i.ibb.co/cS9PSRpq/Logo-Fenomen.jpg" />
   <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -1248,6 +1248,31 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 .student-report-preview b{display:block;margin-top:4px;color:var(--ink);font-size:20px;font-weight:900}
 @media(max-width:700px){.study-edit-grid{grid-template-columns:1fr}.study-number-grid{grid-template-columns:1fr 1fr}.study-edit-grid .study-edit-wide{grid-column:auto}.student-report-range{grid-template-columns:1fr}.student-report-preview{grid-template-columns:1fr 1fr}.student-report-actions button,.study-edit-actions button{width:100%}}
 
+
+
+/* =========================================================
+   ÖĞRETMEN PANELİ 1.0.1 🔥 — MODERN TAKİP MERKEZİ
+   Eski öğrenci sekmeleri yerine tek dashboard; görev takip
+   merkezi ve sade günlük takip görünümü.
+   ========================================================= */
+.app-version-badge{display:inline-flex;align-items:center;margin-left:7px;padding:4px 8px;border-radius:999px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:10px;font-weight:900;vertical-align:middle}
+.student-dashboard{display:grid;gap:14px}.student-dashboard-hero{padding:20px;border-radius:28px;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.18),transparent 28%),linear-gradient(135deg,#2b1408 0%,#7c2d12 50%,#e66012 100%);color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}.student-dashboard-hero h2{margin:8px 0 5px;color:#fff;font-size:clamp(25px,3vw,36px);font-weight:900;letter-spacing:-.05em}.student-dashboard-hero p{margin:0;color:rgba(255,255,255,.78);font-weight:700}.student-dashboard-hero .badge{background:rgba(255,255,255,.14)!important;color:#fff!important;border-color:rgba(255,255,255,.24)!important}.dashboard-hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.dashboard-hero-actions .ghost{background:rgba(255,255,255,.96);color:#7c2d12!important;border-color:rgba(255,255,255,.8)}
+.student-dashboard-controls{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(320px,1.2fr);gap:14px;align-items:end}.dashboard-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;border:1px solid var(--line);border-radius:18px;background:#f8fafc}.dashboard-mode-switch button{min-height:42px;border-radius:13px;background:transparent;color:#64748b;font-weight:900}.dashboard-mode-switch button.active{background:#fff;color:#9a3412;box-shadow:var(--shadow-xs);border:1px solid #fed7aa}.dashboard-range-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}.dashboard-program-select{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}.dashboard-context-note{margin:10px 0 0;padding:10px 12px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:800;line-height:1.45}
+.dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.dashboard-metric{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:22px;background:#fff;padding:17px;box-shadow:var(--shadow-xs)}.dashboard-metric::after{content:"";position:absolute;width:76px;height:76px;border-radius:50%;right:-24px;top:-24px;background:rgba(230,96,18,.08)}.dashboard-metric small{display:block;color:#64748b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.dashboard-metric strong{display:block;margin-top:7px;color:#0f172a;font-size:28px;font-weight:900;letter-spacing:-.055em}.dashboard-metric span{display:block;margin-top:4px;color:#64748b;font-size:12px;font-weight:700}.dashboard-metric.good{border-color:#bbf7d0;background:linear-gradient(180deg,#f4fff8,#fff)}.dashboard-metric.warn{border-color:#fed7aa;background:linear-gradient(180deg,#fffaf2,#fff)}.dashboard-metric.info{border-color:#bfdbfe;background:linear-gradient(180deg,#f5f9ff,#fff)}
+.dashboard-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:14px;align-items:start}.dashboard-card{border:1px solid var(--line);border-radius:24px;background:#fff;padding:18px;box-shadow:var(--shadow-xs)}.dashboard-card h3{margin:0 0 4px;color:#0f172a;font-size:18px;font-weight:900}.dashboard-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.dashboard-card-head p{margin:4px 0 0;color:#64748b;font-size:12px;font-weight:700;line-height:1.45}.dashboard-progress{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:9px}.dashboard-progress span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#e66012,#f59e0b,#16a34a)}
+.dashboard-lesson-list,.dashboard-day-list,.dashboard-record-list{display:grid;gap:9px}.dashboard-lesson-row{display:grid;grid-template-columns:minmax(130px,.7fr) minmax(180px,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:18px;background:#fbfdff}.dashboard-lesson-row b{display:block;color:#0f172a;font-size:13px}.dashboard-lesson-row small{display:block;color:#64748b;font-weight:700;margin-top:3px}.dashboard-lesson-numbers{text-align:right;font-size:12px;font-weight:900;color:#334155}.dashboard-day-row{display:grid;grid-template-columns:minmax(125px,.7fr) minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 13px;border:1px solid var(--line);border-radius:17px;background:#fff}.dashboard-day-row.today{border-color:#fdba74;background:#fffaf6}.dashboard-day-row b{color:#0f172a;font-size:13px}.dashboard-day-row small{display:block;color:#64748b;font-weight:700;margin-top:3px}.dashboard-day-actions{display:flex;gap:6px;align-items:center}.dashboard-day-actions button{min-height:34px;padding:7px 9px;border-radius:12px;font-size:11px}.dashboard-record-row{display:grid;grid-template-columns:minmax(110px,.6fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #edf2f7}.dashboard-record-row:last-child{border-bottom:0}.dashboard-record-row b{font-size:13px;color:#0f172a}.dashboard-record-row span{font-size:12px;color:#64748b;font-weight:700}.dashboard-record-row strong{font-size:13px;color:#334155}.dashboard-empty{padding:16px;border:1px dashed #cbd5e1;border-radius:18px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:700;text-align:center}.dashboard-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dashboard-quick-actions button{width:100%}.dashboard-program-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px}.dashboard-program-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:13px;box-shadow:var(--shadow-xs)}.dashboard-program-card b{display:block;color:#0f172a}.dashboard-program-card span{display:block;margin-top:4px;color:#64748b;font-size:12px;font-weight:700}.dashboard-program-card strong{display:block;margin-top:8px;color:#9a3412;font-size:20px}
+
+/* Günlük takip: uzun kartlar yerine tek bakışta tablo/kart */
+.follow-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:22px;background:#fff}.follow-table{width:100%;border-collapse:collapse;min-width:880px}.follow-table th,.follow-table td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.follow-table th{background:#f8fafc;color:#64748b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.follow-table td{font-size:13px;color:#334155;font-weight:700}.follow-table tr:last-child td{border-bottom:0}.follow-student-cell{display:flex;align-items:center;gap:10px}.follow-student-cell .avatar{width:40px;height:40px;min-width:40px;border-radius:14px}.follow-program-title{display:block;color:#0f172a;font-weight:900}.follow-program-sub{display:block;color:#94a3b8;font-size:11px;margin-top:3px}.follow-pct{font-size:17px;font-weight:900;color:#0f172a}.follow-actions{display:flex;gap:6px}.follow-actions button{min-height:36px;padding:8px 10px;border-radius:12px;font-size:11px}.follow-toolbar{display:grid;grid-template-columns:1fr 220px auto;gap:10px;align-items:end;margin:12px 0}.follow-mobile-list{display:none}
+
+/* Sınıf / öğrenci görev takip merkezi */
+.teacher-task-card{cursor:default}.teacher-task-card .task-open-track{grid-column:1/-1;background:linear-gradient(135deg,#7c2d12,#e66012);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(124,45,18,.16)}.task-tracker-shell{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px;min-height:560px}.task-tracker-students{border:1px solid var(--line);border-radius:20px;background:#f8fafc;padding:10px;display:flex;flex-direction:column;gap:7px;max-height:68vh;overflow:auto}.task-tracker-student{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;text-align:left;border:1px solid var(--line);background:#fff;border-radius:15px;padding:10px;transition:.15s ease}.task-tracker-student:hover{border-color:#fdba74;transform:translateY(-1px)}.task-tracker-student.active{border-color:#fb923c;background:#fff7ed;box-shadow:0 10px 24px rgba(230,96,18,.12)}.task-tracker-student .avatar{width:38px;height:38px;min-width:38px;border-radius:13px}.task-tracker-student b{display:block;color:#0f172a;font-size:12px}.task-tracker-student small{display:block;color:#64748b;font-size:10px;font-weight:800;margin-top:2px}.task-tracker-student strong{font-size:13px;color:#9a3412}.task-tracker-detail{min-width:0}.task-tracker-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.task-tracker-top h3{margin:0;color:#0f172a}.task-tracker-top p{margin:4px 0 0;color:#64748b;font-size:12px;font-weight:700}.task-tracker-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}.task-tracker-metric{border:1px solid var(--line);border-radius:17px;background:#fff;padding:12px}.task-tracker-metric small{display:block;color:#64748b;font-size:10px;font-weight:900;text-transform:uppercase}.task-tracker-metric b{display:block;margin-top:5px;color:#0f172a;font-size:21px}.task-tracker-message{margin-top:12px;padding:14px;border:1px solid #fed7aa;border-radius:20px;background:#fffaf6}.task-tracker-message textarea{min-height:180px;background:#fff}.task-tracker-message-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.modal-card.task-tracker-modal-card{width:min(1180px,96vw);max-width:1180px;max-height:92vh;overflow:auto}
+
+@media(max-width:900px){.student-dashboard-controls,.dashboard-layout{grid-template-columns:1fr}.dashboard-metrics{grid-template-columns:1fr 1fr}.follow-toolbar{grid-template-columns:1fr 1fr}.follow-toolbar .primary{grid-column:1/-1}.task-tracker-shell{grid-template-columns:1fr;min-height:0}.task-tracker-students{max-height:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));overflow:visible}.task-tracker-metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.dashboard-metrics{grid-template-columns:1fr 1fr}.dashboard-range-grid,.dashboard-program-select{grid-template-columns:1fr}.dashboard-lesson-row,.dashboard-day-row{grid-template-columns:1fr}.dashboard-lesson-numbers{text-align:left}.dashboard-day-actions{justify-content:flex-start}.dashboard-quick-actions{grid-template-columns:1fr}.follow-table-wrap{display:none}.follow-mobile-list{display:grid;gap:10px}.follow-mobile-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:14px;box-shadow:var(--shadow-xs)}.follow-mobile-head{display:flex;align-items:center;gap:10px}.follow-mobile-head .spacer b{display:block;color:#0f172a}.follow-mobile-head .spacer span{display:block;color:#64748b;font-size:11px;margin-top:3px}.follow-mobile-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}.follow-mobile-metrics div{border:1px solid var(--line);border-radius:14px;padding:9px;background:#f8fafc}.follow-mobile-metrics small{display:block;color:#64748b;font-size:10px;font-weight:900}.follow-mobile-metrics b{display:block;margin-top:3px;color:#0f172a}.follow-actions{display:grid;grid-template-columns:1fr 1fr}.task-tracker-students{display:flex;flex-direction:row;overflow-x:auto;padding-bottom:8px}.task-tracker-student{min-width:210px}.task-tracker-top{display:block}.task-tracker-top .actions{margin-top:10px}.dashboard-program-cards{grid-template-columns:1fr}.dashboard-record-row{grid-template-columns:1fr auto}.dashboard-record-row span{grid-column:1/-1}}
+@media(max-width:420px){.dashboard-metrics,.task-tracker-metrics{grid-template-columns:1fr}.dashboard-mode-switch{grid-template-columns:1fr}.follow-toolbar{grid-template-columns:1fr}.follow-toolbar .primary{grid-column:auto}.follow-actions{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1259,6 +1284,9 @@ main,#mainArea,.student-detail-shell,.student-detail-shell *{min-width:0}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 'use strict';
+
+// Fenomen Öğretmen Paneli • Sürüm 1.0.0 🔥
+const APP_VERSION='1.0.1 🔥';
 
 const SHEET_ID = '1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw';
 const DB_BASE = 'https://odevfeno-default-rtdb.europe-west1.firebasedatabase.app';
@@ -1336,7 +1364,9 @@ const state = {
   studentListUi:{search:'', classFilter:'Tümü', scrollY:0, lastStudentNo:''},
   dailyFollowUi:{studentNo:'all', status:'all'}, dailyFollowDate:'today',
   returnToStudentList:false,
-  studentDetailTab:'summary', analysisLesson:'Tümü', analysisTopic:'Tümü', studentDataEntryDate:'', studentReportRange:null,
+  studentDashboardMode:'program', studentDashboardPackageId:'', studentDashboardRange:null, studentDashboardShowAllDays:false,
+  taskTrackingTaskKey:'', taskTrackingStudentNo:'',
+  analysisLesson:'Tümü', analysisTopic:'Tümü', studentDataEntryDate:'', studentReportRange:null,
   adminTab:'overview', adminOpsTab:'teachers', parentChannel:'WhatsApp', studentTaskDay:'all', studentTaskPackage:null, studentTaskPackageDay:{}, pendingStudentTaskScroll:null, lessonDesignerTab:0, statsCache:{}, refreshTimer:null, systemSettings:{firebaseEnabled:true,sheetsEnabled:true,smsEnabled:true,smsSignature:'Fenomen',autoRefreshSeconds:45,sheetId:SHEET_ID,dbBase:DB_BASE,firebaseConfig:{...FIREBASE_CONFIG}}
 };
 
@@ -2732,7 +2762,7 @@ function renderLogin(){
   document.getElementById('loginBtn').onclick=()=>loginTeacherById(document.getElementById('loginId').value);
   document.getElementById('loginId')?.addEventListener('keydown',e=>{if(e.key==='Enter') document.getElementById('loginBtn').click();});
 }
-function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''}</p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
+function topbarHtml(){return `<header class="topbar"><div class="topbar-inner"><div class="logo"><img src="${esc(state.settings.logoUrl||DEFAULT_LOGO)}" onerror="this.src='${DEFAULT_LOGO}'" alt="Logo"></div><div class="brand"><h1>${esc(state.settings.kurumAdi)}</h1><p>${esc(state.teacher.name)} ${state.teacher.isAdmin?'<span class="pill">Admin</span>':''} <span class="app-version-badge">v${esc(APP_VERSION)}</span></p></div><button class="ghost" data-action="logout">Çıkış</button></div></header>`;}
 function bottomNavHtml(){const items=[['dashboard','▦','Panel'],['students','👥','Öğrenciler'],['tasks','🗓️','Görevler']]; if(state.teacher.isAdmin) items.push(['admin','⚙️','Admin']); return `<nav class="bottom-nav"><div class="nav-inner" style="grid-template-columns:repeat(${items.length},minmax(0,1fr))">${items.map(([id,ico,txt])=>`<button class="nav-item ${state.activeTab===id&&!state.selectedStudent?'active':''}" data-tab="${id}"><b>${ico}</b><span>${txt}</span></button>`).join('')}</div></nav>`;}
 function bindGlobal(){document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{state.selectedStudent=null; state.studentDetailOrigin=b.dataset.tab==='dashboard'?'dashboard':'students'; state.activeTab=b.dataset.tab; queueUiScroll('main','smooth'); render();}); document.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{stopAutoRefresh(); forgetTeacherId(); state.teacher=null; state.selectedStudent=null; state.studentDetailOrigin='students'; state.taskWizard=null; state.taskWizardStep=1; state.adminOpsMap={}; renderLogin();});}
 function section(title,sub){return `<div class="section-title"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;}
@@ -2761,28 +2791,12 @@ function dailyFollowFilterCounts(items){
   return counts;
 }
 function openStudentDetail(studentNo){
-  const clean=cleanId(studentNo);
-  const st=state.students.find(s=>cleanId(s.no)===clean);
-  if(!st){setToast('Öğrenci bulunamadı. Listeyi yenileyip tekrar deneyin.','error'); return;}
-  const searchEl=document.getElementById('studentSearch');
-  const classEl=document.getElementById('classFilter');
-  if(searchEl || classEl){
-    state.studentListUi={
-      ...(state.studentListUi||{}),
-      search:searchEl?.value || state.studentListUi?.search || '',
-      classFilter:classEl?.value || state.studentListUi?.classFilter || 'Tümü',
-      scrollY:window.scrollY,
-      lastStudentNo:st.no
-    };
-  }else{
-    state.studentListUi={...(state.studentListUi||{}),lastStudentNo:st.no};
-  }
-  state.studentDetailOrigin=['dashboard','students'].includes(state.activeTab)?state.activeTab:'students';
-  state.selectedStudent=st;
-  state.studentDetailTab='summary';
-  state.studentDataEntryDate=todayISO();
-  queueUiScroll('studentTop','smooth');
-  render();
+  const clean=cleanId(studentNo); const st=state.students.find(s=>cleanId(s.no)===clean);
+  if(!st){setToast('Öğrenci bulunamadı. Listeyi yenileyip tekrar deneyin.','error');return;}
+  const searchEl=document.getElementById('studentSearch'),classEl=document.getElementById('classFilter');
+  if(searchEl||classEl) state.studentListUi={...(state.studentListUi||{}),search:searchEl?.value||state.studentListUi?.search||'',classFilter:classEl?.value||state.studentListUi?.classFilter||'Tümü',scrollY:window.scrollY,lastStudentNo:st.no};
+  else state.studentListUi={...(state.studentListUi||{}),lastStudentNo:st.no};
+  state.studentDetailOrigin=['dashboard','students','tasks'].includes(state.activeTab)?state.activeTab:'students'; state.selectedStudent=st; state.studentDashboardMode='program'; state.studentDashboardPackageId=''; state.studentDashboardShowAllDays=false; queueUiScroll('studentTop','smooth'); render();
 }
 function dailyFilteredItems(daily){
   const ui=state.dailyFollowUi||{studentNo:'all',status:'all'};
@@ -2820,77 +2834,96 @@ function dailyTaskListHtml(rows,emptyText,type){
   if(!rows.length) return `<div class="daily-empty-line">${esc(emptyText)}</div>`;
   return `<div class="daily-task-pill-list ${cls}">${rows.slice(0,5).map(x=>`<span>${esc(x.lesson)}: ${esc(x.done)}/${esc(x.target)}</span>`).join('')}${rows.length>5?`<small>+${rows.length-5} görev</small>`:''}</div>`;
 }
-function dailyStudentCardHtml(item){
-  const st=item.student;
-  const hasTask=item.totalTarget>0;
-  const pct=hasTask ? item.completionPct : null;
-  const filterStatus=dailyFilterStatus(item);
-  const hasEntry=Number(item.stats?.entryCount||0)>0;
-  const status=!hasTask?(hasEntry?'entry-only':'neutral'):(filterStatus==='completed'?'good':(filterStatus==='zero'?'warning':'progress'));
-  const statusText=!hasTask?(hasEntry?'Görev yok • giriş yaptı':'Seçili gün görev yok'):(filterStatus==='completed'?'Görev tamamlandı':(filterStatus==='zero'?'Hiç yapmadı':'Görev tamamlanmadı'));
-  const entryText=hasEntry?`${item.stats.entryCount} giriş • ${item.stats.total} soru`:'Giriş yok';
-  const targetText=hasTask?`${item.totalDone} çözdü / ${item.totalTarget} hedef`:'Atanmış hedef yok';
-  const pctText=hasTask?`%${pct}`:'—';
-  const warningHtml=filterStatus==='zero'?'<div class="daily-warning-note">Seçili gün görevlendirmesi için hiç çalışma girişi görünmüyor.</div>':(filterStatus==='incomplete'?'<div class="daily-warning-note">Görev başladı ancak %100 tamamlanmadı. Eksik kalan dersler takip edilmeli.</div>':'');
-  const noEntryClass=hasEntry?'':' no-entry';
-  return `<article class="daily-student-card ${status}${noEntryClass}">
-    <div class="daily-student-head">
-      <div class="avatar">${esc((st.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div>
-      <div>
-        <h3>${esc(st.name)}</h3>
-        <p>No ${esc(st.no)} • ${esc(st.className)}</p>
-      </div>
-      <span class="daily-status-pill ${status}">${esc(statusText)}</span>
-    </div>
-    <div class="daily-metric-row">
-      <div><small>Seçili Gün Girişi</small><strong>${esc(entryText)}</strong></div>
-      <div><small>Görev Durumu</small><strong>${esc(targetText)}</strong></div>
-      <div><small>Tamamlama</small><strong>${esc(pctText)}</strong></div>
-    </div>
-    ${warningHtml}
-    <div class="daily-card-section"><b>Seçili gün çalışma özeti</b>${dailyEntrySummaryHtml(item.stats)}</div>
-    <div class="daily-card-section"><b>Yerine getirilen görevler</b>${hasTask?dailyTaskListHtml(item.completedLessons,'Henüz tamamlanan görev yok.','done'):'<div class="daily-empty-line">Seçili gün atanmış görev yok.</div>'}</div>
-    <div class="daily-card-section"><b>Eksik kalan görevler</b>${hasTask?dailyTaskListHtml(item.missingLessons,'Eksik görev görünmüyor.','missing'):'<div class="daily-empty-line">Seçili gün atanmış görev yok.</div>'}</div>
-    <button class="secondary w-100" data-open-student="${esc(st.no)}">Detay</button>
-  </article>`;
+function preferredStudentPackage(student,tasks=state.tasks){
+  const no=cleanId(student?.no);
+  const own=(tasks||[]).filter(t=>t.status!=='silindi' && studentsForTask(t).map(cleanId).includes(no));
+  const packages=buildStudentTaskPackages(own,null);
+  if(!packages.length) return {packages:[],selected:null};
+  const today=todayISO();
+  const active=packages.filter(p=>(!p.start||p.start<=today)&&(!p.end||p.end>=today)).sort((a,b)=>packageSortStamp(b).localeCompare(packageSortStamp(a)))[0];
+  if(active) return {packages,selected:active};
+  const past=packages.filter(p=>p.end&&p.end<today).sort((a,b)=>String(b.end||b.start||'').localeCompare(String(a.end||a.start||''))||packageSortStamp(b).localeCompare(packageSortStamp(a)))[0];
+  return {packages,selected:past||null};
+}
+async function analyzeStudentTargetDays(student,dayContexts,range,options={}){
+  const stats=await loadStats(student.no,range.start,range.end,{force:true});
+  const records=stats.records||[];
+  const byDay=new Map();
+  records.forEach(r=>{if(!byDay.has(r.date)) byDay.set(r.date,[]); byDay.get(r.date).push(r);});
+  const lessonMap=new Map();
+  const contexts=(dayContexts||[]).slice();
+  if(options.includeFreeDays){
+    const known=new Set(contexts.map(ctx=>ctx.day));
+    [...byDay.keys()].filter(day=>dateInRange(day,range.start,range.end)&&!known.has(day)).forEach(day=>contexts.push({day,targets:[]}));
+  }
+  const rows=contexts.sort((a,b)=>a.day.localeCompare(b.day)).map(ctx=>{
+    const dayRecords=byDay.get(ctx.day)||[];
+    const doneMap=recordDoneByLesson(dayRecords,ctx.day,ctx.day);
+    const targets=ctx.targets||[];
+    const targetLessons=new Set(targets.map(x=>String(x.lesson||'')));
+    let targetTotal=0,credited=0,targetLessonDone=0;
+    const lessonRows=targets.map(t=>{
+      const lesson=String(t.lesson||'Ders'),target=Number(t.target||0),done=Number(doneMap[lesson]||0),credit=creditedTaskDone(done,target);
+      targetTotal+=target; credited+=credit; targetLessonDone+=done;
+      const agg=lessonMap.get(lesson)||{lesson,target:0,done:0,credited:0}; agg.target+=target; agg.done+=done; agg.credited+=credit; lessonMap.set(lesson,agg);
+      return {lesson,target,done,credited:credit,remaining:Math.max(0,target-credit),status:target>0&&done>=target?'done':done>0?'partial':'missing'};
+    });
+    const totalDone=dayRecords.reduce((sum,r)=>sum+Number(r.total||0),0);
+    const extra=Math.max(0,totalDone-credited);
+    const status=targetTotal<=0?(totalDone>0?'free':'none'):(credited>=targetTotal?'done':totalDone>0?'partial':'missing');
+    return {day,targets,lessonRows,targetTotal,totalDone,credited,extra,completionPct:targetTotal?Math.min(100,Math.round(credited/targetTotal*100)):null,status,records:dayRecords,targetLessons};
+  });
+  const targetDaySet=new Set(rows.filter(r=>r.targetTotal>0).map(r=>r.day));
+  const targetTotal=rows.reduce((s,r)=>s+r.targetTotal,0),credited=rows.reduce((s,r)=>s+r.credited,0);
+  const totalDone=records.reduce((s,r)=>s+Number(r.total||0),0);
+  const extraWithinProgram=rows.filter(r=>r.targetTotal>0).reduce((s,r)=>s+r.extra,0);
+  const freeStudyTotal=records.filter(r=>!targetDaySet.has(r.date)).reduce((s,r)=>s+Number(r.total||0),0);
+  const accuracy=accuracyPct(stats);
+  const subjectAccuracy=new Map((stats.subjects||[]).map(x=>[String(x.lesson||''),itemAccuracy(x)]));
+  const lessons=[...lessonMap.values()].map(x=>({...x,remaining:Math.max(0,x.target-x.credited),pct:x.target?Math.min(100,Math.round(x.credited/x.target*100)):0,accuracy:subjectAccuracy.get(x.lesson)??null})).sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr'));
+  return {student,stats,rows,lessons,range,targetTotal,credited,totalDone,extraWithinProgram,freeStudyTotal,extraQuestions:Math.max(0,totalDone-credited),completionPct:targetTotal?Math.min(100,Math.round(credited/targetTotal*100)):0,accuracy};
+}
+async function analyzeStudentPackage(student,pkg,rangeOverride=null){
+  const range=rangeOverride||{start:pkg.start||pkg.days[0],end:pkg.end||pkg.days[pkg.days.length-1]};
+  const days=(pkg.days||[]).filter(day=>dateInRange(day,range.start,range.end));
+  const contexts=days.map(day=>({day,targets:packageDayLessonTargets(pkg,day)}));
+  const analysis=await analyzeStudentTargetDays(student,contexts,range,{includeFreeDays:true});
+  return {...analysis,pkg};
+}
+async function enrichDailyFollowItem(item){
+  const pref=preferredStudentPackage(item.student);
+  if(!pref.selected) return {...item,program:null,programAnalysis:null};
+  const programAnalysis=await analyzeStudentPackage(item.student,pref.selected);
+  return {...item,program:pref.selected,programAnalysis};
+}
+function followRowHtml(item){
+  const st=item.student,pkg=item.program,pa=item.programAnalysis;
+  const todayPct=item.totalTarget>0?`%${item.completionPct}`:(Number(item.stats?.total||0)>0?'Serbest':'—');
+  const overall=pa?.targetTotal?`%${pa.completionPct}`:'—';
+  const programTitle=pkg?packageTargetLabel(pkg):'Program yok';
+  const programSub=pkg?`${fmtDate(pkg.start)} - ${fmtDate(pkg.end)}`:'Öğrencinin eski/aktif programı bulunamadı';
+  const study=Number(item.stats?.total||0)>0?`${item.stats.total} soru`:'Giriş yok';
+  return `<tr data-follow-row data-follow-name="${esc(`${st.name} ${st.no} ${st.className}`.toLocaleLowerCase('tr-TR'))}" data-follow-class="${esc(st.className||'')}"><td><div class="follow-student-cell"><div class="avatar">${esc((st.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div><div><b>${esc(st.name)}</b><div class="muted tiny">No ${esc(st.no)} • ${esc(st.className)}</div></div></div></td><td><span class="follow-program-title">${esc(programTitle)}</span><span class="follow-program-sub">${esc(programSub)}</span></td><td><span class="follow-pct">${esc(todayPct)}</span></td><td><span class="follow-pct">${esc(overall)}</span></td><td>${esc(study)}</td><td><div class="follow-actions"><button class="secondary" data-open-student="${esc(st.no)}">Öğrenci</button><button class="ghost" data-open-program-student="${esc(st.no)}" data-package-id="${esc(pkg?.id||'')}" ${pkg?'':'disabled'}>Program Detayı</button></div></td></tr>`;
+}
+function followMobileHtml(item){
+  const st=item.student,pkg=item.program,pa=item.programAnalysis;
+  const todayPct=item.totalTarget>0?`%${item.completionPct}`:(Number(item.stats?.total||0)>0?'Serbest çalışma':'—');
+  return `<article class="follow-mobile-card" data-follow-row data-follow-name="${esc(`${st.name} ${st.no} ${st.className}`.toLocaleLowerCase('tr-TR'))}" data-follow-class="${esc(st.className||'')}"><div class="follow-mobile-head"><div class="avatar">${esc((st.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div><div class="spacer"><b>${esc(st.name)}</b><span>No ${esc(st.no)} • ${esc(st.className)}</span></div></div><div class="follow-mobile-metrics"><div><small>Bugün</small><b>${esc(todayPct)}</b></div><div><small>Program Geneli</small><b>${pa?.targetTotal?`%${pa.completionPct}`:'—'}</b></div></div><div class="muted tiny" style="margin-bottom:10px"><b>${esc(pkg?packageTargetLabel(pkg):'Program yok')}</b>${pkg?` • ${fmtDate(pkg.start)} - ${fmtDate(pkg.end)}`:''}</div><div class="follow-actions"><button class="secondary" data-open-student="${esc(st.no)}">Öğrenci</button><button class="ghost" data-open-program-student="${esc(st.no)}" data-package-id="${esc(pkg?.id||'')}" ${pkg?'':'disabled'}>Program Detayı</button></div></article>`;
 }
 async function renderDashboard(main){
   const classes=[...new Set(state.students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
   const selectedDay=(state.dailyFollowDate==='yesterday')?addDaysISO(todayISO(),-1):todayISO();
   const selectedLabel=state.dailyFollowDate==='yesterday'?'1 Gün Önce':'Bugün';
-  main.innerHTML=`${section('Kontrol Paneli','Günlük öğrenci takip özetleri')}<div class="grid"><div class="card"><span class="loader"></span> Günlük öğrenci kartları hazırlanıyor...</div></div>`;
+  main.innerHTML=`${section('Kontrol Paneli','Takip sınıflarındaki öğrencilerin sade ve karşılaştırılabilir görünümü')}<div class="card"><span class="loader"></span> Öğrenci takip tablosu hazırlanıyor...</div>`;
   const [dayEntries,dailyFollow]=await Promise.all([countEntries(selectedDay,selectedDay),loadDailyFollowSummaries(selectedDay)]);
-  if(['below50','above50'].includes(state.dailyFollowUi?.status)) state.dailyFollowUi={...(state.dailyFollowUi||{}),status:'all'};
-  const initialDailyItems=dailyFilteredItems(dailyFollow);
+  const enriched=dailyFollow.configured?await Promise.all((dailyFollow.items||[]).map(enrichDailyFollowItem)):[];
   const dateSwitchHtml=`<div class="daily-date-switch"><button type="button" data-daily-date="yesterday" class="${state.dailyFollowDate==='yesterday'?'active':''}">1 Gün Önce</button><button type="button" data-daily-date="today" class="${state.dailyFollowDate!=='yesterday'?'active':''}">Bugün</button></div>`;
-  main.innerHTML=`${section('Kontrol Paneli','Takip sınıfındaki öğrencilerin günlük giriş, görev ve eksik durumları')}${statsHtml([['Öğrenci',state.students.length,'Toplam kayıt'],[selectedLabel,dayEntries,'Çalışma girişi'],['Takip Sınıfı',state.followClasses.length,'Benim sınıflarım'],['Günlük Kart',dailyFollow.configured?dailyFollow.items.length:'Kapalı','Öğrenci özeti']])}<div class="card teacher-follow-box" style="margin-top:14px"><h3>Benim Takip Edeceğim Sınıflar</h3><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:12px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim sadece ${esc(state.teacher.name)} için geçerlidir.</span></div></div><section class="daily-follow-panel card" style="margin-top:14px"><div class="daily-panel-head"><div><h3>Günlük Öğrenci Takibi</h3><p>Tarih: <b>${fmtDate(selectedDay)}</b>. Bugün ve 1 gün önce arasında geçiş yapabilirsiniz; kartlar seçili güne göre hesaplanır.</p></div><div>${dateSwitchHtml}<span class="badge orange">${esc(selectedLabel)}</span></div></div>${dailyFollowOverviewHtml(dailyFollow,selectedLabel)}${dailyFollowFilterHtml(dailyFollow)}${dailyFollow.configured?`<div id="dailyFollowGrid" class="daily-follow-grid">${initialDailyItems.map(dailyStudentCardHtml).join('')||'<div class="empty">Seçilen filtreye uygun öğrenci bulunamadı.</div>'}</div>`:''}</section>`;
-  const updateDailyCards=()=>{
-    const select=document.getElementById('dailyStudentFilter');
-    state.dailyFollowUi={studentNo:select?.value||'all',status:state.dailyFollowUi?.status||'all'};
-    document.querySelectorAll('[data-daily-status-filter]').forEach(btn=>btn.classList.toggle('active',btn.dataset.dailyStatusFilter===state.dailyFollowUi.status));
-    const list=dailyFilteredItems(dailyFollow);
-    const grid=document.getElementById('dailyFollowGrid');
-    if(grid) grid.innerHTML=list.map(dailyStudentCardHtml).join('')||'<div class="empty">Seçilen filtreye uygun öğrenci bulunamadı.</div>';
-    const count=document.getElementById('dailyFilterCount');
-    if(count) count.textContent=`${list.length} öğrenci gösteriliyor.`;
-  };
-  document.getElementById('dailyStudentFilter')?.addEventListener('change',updateDailyCards);
-  document.querySelector('.daily-follow-panel')?.addEventListener('click',e=>{
-    const dateBtn=e.target.closest('[data-daily-date]');
-    if(dateBtn){state.dailyFollowDate=dateBtn.dataset.dailyDate==='yesterday'?'yesterday':'today'; render(); return;}
-    const filterBtn=e.target.closest('[data-daily-status-filter]');
-    if(filterBtn){state.dailyFollowUi={...(state.dailyFollowUi||{}),status:filterBtn.dataset.dailyStatusFilter||'all'}; updateDailyCards(); return;}
-    const openBtn=e.target.closest('[data-open-student]');
-    if(openBtn){openStudentDetail(openBtn.dataset.openStudent); return;}
-  });
-  updateDailyCards();
+  main.innerHTML=`${section('Kontrol Paneli','Takip sınıflarındaki öğrencilerin sade ve karşılaştırılabilir görünümü')}${statsHtml([['Öğrenci',enriched.length,'Takip listesi'],[selectedLabel,dayEntries,'Çalışma girişi'],['Takip Sınıfı',state.followClasses.length,'Benim sınıflarım'],['Tamamlayan',dailyFollow.summary?.completed||0,'Günlük hedef %100']])}<div class="card teacher-follow-box" style="margin-top:14px"><div class="section-head" style="margin-bottom:10px"><div><h3>Takip Ettiğim Sınıflar</h3><p>Sadece takip etmek istediğiniz sınıfları işaretleyin.</p></div></div><div class="chipbar">${classes.map(c=>`<label class="chip ${state.followClasses.includes(c)?'active':''}"><input type="checkbox" class="teacher-follow-class" value="${esc(c)}" ${state.followClasses.includes(c)?'checked':''} hidden> ${esc(c)}</label>`).join('')||'<div class="empty">Sınıf verisi yok.</div>'}</div><div class="row" style="margin-top:10px"><button id="saveTeacherFollow" class="primary">Takip Ayarımı Kaydet</button><span class="muted tiny">Bu seçim yalnızca ${esc(state.teacher.name)} için geçerlidir.</span></div></div><section class="card" style="margin-top:14px"><div class="section-head"><div><h3>Günlük Öğrenci Takibi</h3><p>${fmtDate(selectedDay)} • Öğrenci, son/aktif programı, günlük ve program geneli aynı satırda.</p></div>${dateSwitchHtml}</div>${dailyFollow.configured?`<div class="follow-toolbar"><div class="field"><label>Öğrenci ara</label><input id="followSearch" class="input" placeholder="Ad, numara veya sınıf"></div><div class="field"><label>Sınıf</label><select id="followClass"><option value="Tümü">Tümü</option>${state.followClasses.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div><button type="button" class="ghost" id="clearFollowFilter">Filtreyi Temizle</button></div><div class="follow-table-wrap"><table class="follow-table"><thead><tr><th>Öğrenci</th><th>Son / Aktif Program</th><th>${esc(selectedLabel)}</th><th>Program Geneli</th><th>Çalışma</th><th>İşlem</th></tr></thead><tbody>${enriched.map(followRowHtml).join('')||'<tr><td colspan="6">Öğrenci bulunamadı.</td></tr>'}</tbody></table></div><div class="follow-mobile-list">${enriched.map(followMobileHtml).join('')}</div>`:'<div class="empty">Takip edilecek sınıf seçilmedi. Yukarıdan sınıf seçip kaydedin.</div>'}</section>`;
+  const applyFilter=()=>{const q=String(document.getElementById('followSearch')?.value||'').toLocaleLowerCase('tr-TR').trim(); const cls=document.getElementById('followClass')?.value||'Tümü'; document.querySelectorAll('[data-follow-row]').forEach(row=>{const okQ=!q||String(row.dataset.followName||'').includes(q),okC=cls==='Tümü'||row.dataset.followClass===cls; row.classList.toggle('hidden',!(okQ&&okC));});};
+  document.getElementById('followSearch')?.addEventListener('input',applyFilter); document.getElementById('followClass')?.addEventListener('change',applyFilter); document.getElementById('clearFollowFilter')?.addEventListener('click',()=>{if(document.getElementById('followSearch'))document.getElementById('followSearch').value='';if(document.getElementById('followClass'))document.getElementById('followClass').value='Tümü';applyFilter();});
+  main.addEventListener('click',e=>{const dateBtn=e.target.closest('[data-daily-date]'); if(dateBtn){state.dailyFollowDate=dateBtn.dataset.dailyDate==='yesterday'?'yesterday':'today';render();return;} const open=e.target.closest('[data-open-student]'); if(open){openStudentDetail(open.dataset.openStudent);return;} const program=e.target.closest('[data-open-program-student]'); if(program&&!program.disabled){openStudentProgramDetail(program.dataset.openProgramStudent,program.dataset.packageId,'dashboard');return;}});
   document.querySelectorAll('.teacher-follow-class').forEach(ch=>ch.onchange=()=>ch.closest('.chip')?.classList.toggle('active',ch.checked));
-  document.getElementById('saveTeacherFollow')?.addEventListener('click',async()=>{
-    state.followClasses=[...document.querySelectorAll('.teacher-follow-class:checked')].map(x=>x.value);
-    await saveJson(`verianalizi001/ogretmenTakipSiniflari/${state.teacher.id}`,state.followClasses);
-    setToast('Takip sınıfları kaydedildi.','ok');
-    await refreshData();
-  });
+  document.getElementById('saveTeacherFollow')?.addEventListener('click',async()=>{state.followClasses=[...document.querySelectorAll('.teacher-follow-class:checked')].map(x=>x.value);await saveFollowSettings();setToast('Takip sınıfları kaydedildi.','ok');render();});
 }
 function renderStudents(main){
   const classes=['Tümü',...new Set(state.students.map(s=>s.className).filter(Boolean).sort((a,b)=>a.localeCompare(b,'tr')) )];
@@ -2917,104 +2950,88 @@ function renderStudents(main){
     setTimeout(()=>window.scrollTo({top:y,behavior:'auto'}),0);
   }
 }
+function dashboardDefaultRange(){const end=todayISO(),start=addDaysISO(end,-29);return {start,end};}
+function dashboardProgramOptions(packages,selectedId){
+  const placeholder=!selectedId?'<option value="" selected>Aktif / geçmiş program yok — program seçebilirsiniz</option>':'';
+  return placeholder+(packages||[]).map(pkg=>{const life=packageLifeStatus(pkg);return `<option value="${esc(pkg.id)}" ${pkg.id===selectedId?'selected':''}>${esc(life.label)} • ${esc(packageTargetLabel(pkg))} • ${fmtDate(pkg.start)}-${fmtDate(pkg.end)}</option>`;}).join('');
+}
+function dashboardMetricHtml(title,value,sub,cls=''){return `<div class="dashboard-metric ${cls}"><small>${esc(title)}</small><strong>${esc(value)}</strong><span>${esc(sub)}</span></div>`;}
+function dashboardLessonRowsHtml(analysis){
+  if(!(analysis.lessons||[]).length) return '<div class="dashboard-empty">Bu görünümde program hedefi olan ders bulunmuyor.</div>';
+  return `<div class="dashboard-lesson-list">${analysis.lessons.map(row=>`<div class="dashboard-lesson-row"><div><b>${esc(row.lesson)}</b><small>${row.accuracy===null?'Başarı verisi yok':`Soru başarısı %${row.accuracy}`}</small></div><div><div class="dashboard-progress"><span style="width:${row.pct}%"></span></div><small>Hedef ${row.target} • Göreve sayılan ${row.credited} • Kalan ${row.remaining}</small></div><div class="dashboard-lesson-numbers">${row.done}/${row.target}<small>%${row.pct}</small></div></div>`).join('')}</div>`;
+}
+function dashboardDayRowsHtml(analysis,student){
+  const rows=analysis.rows||[]; if(!rows.length) return '<div class="dashboard-empty">Program günü bulunmuyor.</div>';
+  const visible=state.studentDashboardShowAllDays?rows:rows.slice(-7);
+  return `<div class="dashboard-day-list">${visible.map(row=>{const label=row.status==='done'?'Tamamlandı':row.status==='partial'?'Eksik':row.status==='missing'?'Yapılmadı':row.status==='free'?'Serbest çalışma':'Kayıt yok';const cls=row.status==='done'?'done':row.status==='missing'?'missing':'pending';return `<div class="dashboard-day-row ${row.day===todayISO()?'today':''}"><div><b>${fmtDate(row.day)} ${dayName(row.day)?'• '+dayName(row.day):''}</b><small>${row.targetTotal?`Hedef ${row.targetTotal} • Yapılan ${row.totalDone}`:`Program hedefi yok • ${row.totalDone} soru`}</small></div><div><div class="dashboard-progress"><span style="width:${row.completionPct??0}%"></span></div><small>${row.targetTotal?`Göreve sayılan ${row.credited}/${row.targetTotal} • Ekstra ${row.extra}`:'Serbest çalışma'}</small></div><div class="dashboard-day-actions"><span class="task-status-pill ${cls}">${esc(label)}</span>${row.records?.length?`<button type="button" class="ghost" data-dashboard-edit-day="${esc(row.day)}">Kayıtlar</button>`:''}</div></div>`;}).join('')}</div>${rows.length>7?`<button type="button" class="ghost w-100" style="margin-top:9px" data-dashboard-toggle-days>${state.studentDashboardShowAllDays?'Son 7 günü göster':'Tüm program günlerini göster'}</button>`:''}`;
+}
+function dashboardRecentRecordsHtml(analysis){
+  const records=(analysis.stats?.records||[]).slice().sort((a,b)=>recordSortValue(b)-recordSortValue(a)).slice(0,8);
+  if(!records.length) return '<div class="dashboard-empty">Seçili görünümde çalışma kaydı yok.</div>';
+  return `<div class="dashboard-record-list">${records.map(r=>`<div class="dashboard-record-row"><b>${fmtDate(r.date)}</b><span>${esc(r.lesson)}${r.topic?` • ${esc(r.topic)}`:''}</span><strong>${r.total} soru • %${itemAccuracy(r)}</strong></div>`).join('')}</div>`;
+}
+function dashboardParentMessage(student,analysis,label){
+  const lessonText=(analysis.lessons||[]).length?(analysis.lessons||[]).map(x=>`• *${x.lesson}:* ${x.credited}/${x.target} görev • yapılan ${x.done} soru`).join('\n'):'• Program hedefi bulunmuyor.';
+  const free=Number(analysis.freeStudyTotal||0),extra=Number(analysis.extraWithinProgram||0);
+  return `Sayın Velimiz, merhaba. 👋\n\n*Öğrenci:* ${student.name}\n*Sınıf:* ${student.className||'-'}\n*Takip:* ${label}\n\n📊 *ÇALIŞMA DURUMU*\n• Program hedefi: *${analysis.targetTotal} soru*\n• Göreve sayılan: *${analysis.credited} soru*\n• Görev tamamlama: *%${analysis.completionPct}*\n• Toplam çözülen: *${analysis.totalDone} soru*\n• Soru başarı oranı: *%${analysis.accuracy}*\n${extra?`• Program günü ekstra çalışma: *${extra} soru*\n`:''}${free?`• Programsız günlerde serbest çalışma: *${free} soru*\n`:''}\n📚 *DERS DURUMU*\n${lessonText}\n\nBilginize sunar, iyi günler dileriz.\n*${state.settings.kurumAdi}*\n*${state.teacher.name}*`;
+}
+function openDashboardParentModal(student,analysis,label){
+  const message=dashboardParentMessage(student,analysis,label);
+  showModal(`<div class="modal-head"><div><h3>Veli Bilgilendirmesi</h3><p class="muted tiny">Dashboard verilerinden hazırlandı. Göndermeden önce metni düzenleyebilirsiniz.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div><textarea id="dashboardParentMessage" style="min-height:320px">${esc(message)}</textarea><div class="row" style="margin-top:10px"><button type="button" class="ghost" id="dashboardParentCopy">Metni Kopyala</button><button type="button" class="primary" id="dashboardParentWhatsApp">WhatsApp Aç</button></div><div id="confirmBox" style="margin-top:10px"></div>`);
+  document.getElementById('dashboardParentCopy').onclick=async()=>{await copyText(document.getElementById('dashboardParentMessage').value);setToast('Veli mesajı kopyalandı.','ok');};
+  document.getElementById('dashboardParentWhatsApp').onclick=()=>{const text=document.getElementById('dashboardParentMessage').value;const phone=normalizePhoneTR(student.parentPhone);if(!phone){setToast('Veli telefonu bulunmuyor. Metni kopyalayabilirsiniz.','error');return;}window.open(`https://wa.me/${phone}?text=${enc(text)}`,'_blank');state.draftConfirm={student,channel:'WhatsApp Dashboard',message:text};renderConfirmBox();};
+}
+function openStudentPanelQuickMessage(student){
+  showModal(`<div class="modal-head"><div><h3>Öğrenciye Panel Mesajı</h3><p class="muted tiny">${esc(student.name)} öğrencisinin panelinde görünecek.</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div><div class="field"><label>Başlık</label><input id="quickStudentMsgTitle" class="input" value="Çalışma Takibi"></div><div class="field" style="margin-top:10px"><label>Mesaj</label><textarea id="quickStudentMsgBody" placeholder="Öğrenciye iletilecek mesaj"></textarea></div><button type="button" class="primary w-100" id="quickStudentMsgSend" style="margin-top:10px">Öğrenci Paneline Gönder</button>`);
+  document.getElementById('quickStudentMsgSend').onclick=async()=>{const title=document.getElementById('quickStudentMsgTitle').value.trim(),body=document.getElementById('quickStudentMsgBody').value.trim();if(!body){setToast('Mesaj metni boş olamaz.','error');return;}await sendStudentPanelMessage(student,title||'Bilgilendirme',body);setToast('Öğrenci paneli mesajı gönderildi.','ok');closeModal();};
+}
+function openStudentProgramDetail(studentNo,packageId='',origin='students'){
+  const st=state.students.find(s=>cleanId(s.no)===cleanId(studentNo)); if(!st){setToast('Öğrenci bulunamadı.','error');return;}
+  state.studentDetailOrigin=origin; state.selectedStudent=st; state.studentDashboardMode='program'; state.studentDashboardPackageId=packageId||''; state.studentDashboardShowAllDays=false; queueUiScroll('studentTop','smooth'); render();
+}
+async function dashboardRangeAnalysis(student,tasks,range){
+  const days=[...new Set((tasks||[]).flatMap(t=>taskDayKeys(t,range)))].sort();
+  const contexts=days.map(day=>({day,targets:aggregateTaskItemsByLesson((tasks||[]).flatMap(t=>taskItemsForDay(t,day)))}));
+  const analysis=await analyzeStudentTargetDays(student,contexts,range,{includeFreeDays:true});
+  const packages=buildStudentTaskPackages(tasks,range);
+  const programCards=[];
+  for(const pkg of packages){
+    const pkgStart=pkg.start||pkg.days?.[0]||range.start;
+    const pkgEnd=pkg.end||pkg.days?.[pkg.days.length-1]||range.end;
+    const clipped={start:pkgStart>range.start?pkgStart:range.start,end:pkgEnd<range.end?pkgEnd:range.end};
+    if(clipped.start>clipped.end) continue;
+    const a=await analyzeStudentPackage(student,pkg,clipped);
+    if(a.rows.length||a.totalDone) programCards.push({pkg,analysis:a});
+  }
+  return {...analysis,programCards};
+}
 async function renderStudentDetail(main,st){
-  const range=state.range||weekRange();
-  const tab=state.studentDetailTab||'summary';
-  main.innerHTML=`${section(st.name,`No ${st.no} • ${st.className}`)}<div class="card"><span class="loader"></span> Öğrenci detayları hazırlanıyor...</div>`;
-  const allStudentTasks=state.tasks.filter(t=>t.status!=='silindi' && studentsForTask(t).includes(st.no));
-  const rangeTasks=allStudentTasks.filter(t=>rangesOverlap(t.start,t.end,range.start,range.end));
-  const [stats,messages]=await Promise.all([loadStats(st.no,range.start,range.end),loadStudentMessages(st.no)]);
-  let contentStats=stats;
-  let tasks=rangeTasks;
-  if(tab==='tasks'){
-    tasks=allStudentTasks;
-    const taskRange=taskCollectionRange(tasks);
-    if(taskRange) contentStats=await loadStats(st.no,taskRange.start,taskRange.end);
-  }
-  if(tab==='data'){
-    tasks=allStudentTasks;
-    const selectedDay=selectedStudentDataEntryDate();
-    contentStats=await loadStats(st.no,selectedDay,selectedDay);
-  }
-  if(tab==='studentreport'){
-    const reportRange=selectedStudentReportRange();
-    tasks=studentRangeTasks(st,reportRange.start,reportRange.end);
-    contentStats=await loadStats(st.no,reportRange.start,reportRange.end);
-  }
-  const success=accuracyPct(stats);
-  const level=success>=85?'Çok iyi':success>=75?'İyi':success>=60?'Takip edilmeli':success>0?'Eksik':'Veri yok';
-  const rangeCard=(tab==='tasks'||tab==='data'||tab==='studentreport')?'':`<div class="card"><div class="compact-grid"><div><h3 style="margin:0 0 8px">Tarih Aralığı</h3>${rangeSelectorHtml()}</div><div><h3 style="margin:0 0 8px">Kısa Durum</h3>${quickStudentInsightHtml(stats)}</div></div></div>`;
-  main.innerHTML=`<div class="student-detail-shell">
-    <div class="student-head-card">
-      <div class="row"><button class="ghost btn-back-smart" id="backStudents">← Geri</button><span class="badge">${esc(st.className||'-')}</span><span class="badge">No ${esc(st.no)}</span></div>
-      <h2>${esc(st.name)}</h2>
-      <p>Veli bilgilendirme, veri girişi analizi, konu takibi ve görev takibi</p>
-      <div class="metric-strip">
-        <div class="mini-metric"><small>Toplam</small><strong>${stats.total}</strong></div>
-        <div class="mini-metric"><small>Başarı</small><strong>${success}%</strong></div>
-        <div class="mini-metric"><small>Seviye</small><strong>${level}</strong></div>
-        <div class="mini-metric"><small>Aktif Gün</small><strong>${stats.activeDays}</strong></div>
-        <div class="mini-metric"><small>Görev</small><strong>${(tab==='tasks'||tab==='data')?tasks.length:rangeTasks.length}</strong></div>
-      </div>
-    </div>
-    ${rangeCard}
-    ${studentDetailTabsHtml(tab)}
-    <div id="studentDetailContent">${studentDetailTabContent(tab,st,contentStats,tasks,messages,tab==='tasks'?null:range)}</div>
-  </div>`;
-  document.getElementById('backStudents').onclick=()=>{
-    const origin=state.studentDetailOrigin==='dashboard'?'dashboard':'students';
-    state.selectedStudent=null;
-    state.activeTab=origin;
-    state.returnToStudentList=origin==='students';
-    render();
-  };
-  if(tab!=='tasks' && tab!=='data' && tab!=='studentreport') bindRangeSelector();
-  bindStudentDetailTabs();
-  if(tab==='data') bindDataEntryAnalysis(st,contentStats,tasks);
-  if(tab==='studentreport') bindStudentNotificationReport(st,contentStats,tasks);
-  if(tab==='tasks'){
-    document.querySelectorAll('[data-task-package]').forEach(b=>b.onclick=()=>{
-      const key=b.dataset.taskPackage;
-      if(state.studentTaskPackage===key){
-        state.studentTaskPackage='';
-        state.pendingStudentTaskScroll={target:'packageGrid'};
-        render();
-        return;
-      }
-      state.studentTaskPackage=key;
-      state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:(state.studentTaskPackageDay||{})[key] || b.dataset.firstDay || ''};
-      state.pendingStudentTaskScroll={target:'packageDetail'};
-      render();
-    });
-    document.querySelectorAll('[data-package-day]').forEach(b=>b.onclick=()=>{
-      const key=b.dataset.packageKey;
-      state.studentTaskPackage=key;
-      state.studentTaskPackageDay={...(state.studentTaskPackageDay||{}),[key]:b.dataset.packageDay};
-      state.pendingStudentTaskScroll={target:'dayPanel'};
-      render();
-    });
-    document.querySelectorAll('[data-task-day]').forEach(b=>b.onclick=()=>{state.studentTaskDay=b.dataset.taskDay; render();});
-    bindAssignmentParentNotify(st,tasks);
-    runPendingStudentTaskScroll();
-  }
-  if(tab==='parent') bindPreview(st,stats,range);
-  if(tab==='messages') bindStudentMessage(st,stats,range);
-  runPendingStudentTaskScroll();
-}
-function studentDetailTabsHtml(active){
-  const tabs=[['summary','Özet'],['data','Veri Girişi'],['tasks','Görevlendirme'],['parent','Veli Bildirimi'],['studentreport','Öğrenci Bildirimi'],['messages','Panel Mesajı']];
-  return `<div class="detail-tabs">${tabs.map(([id,label])=>`<button type="button" class="detail-tab ${active===id?'active':''}" data-student-tab="${id}">${label}</button>`).join('')}</div>`;
-}
-function bindStudentDetailTabs(){
-  document.querySelectorAll('[data-student-tab]').forEach(b=>b.onclick=()=>{state.studentDetailTab=b.dataset.studentTab; queueUiScroll('studentContent','smooth'); render();});
-}
-function studentDetailTabContent(tab,st,stats,tasks,messages,range){
-  if(tab==='data') return studentDataEntryHtml(st,stats,tasks);
-  if(tab==='tasks') return `<div class="card"><h3>Görevlendirmeleri</h3>${studentTasksHtml(tasks,st,stats,range)}</div>`;
-  if(tab==='parent') return `<div class="card"><h3>Veli Bildirimi</h3><p class="muted tiny">Mesaj metni seçili tarih aralığındaki çalışma verilerine göre hazırlanır.</p><div class="field"><label>Öğretmen notu</label><textarea id="teacherNote" placeholder="İsterseniz mesaj içine eklenecek kısa değerlendirme yazın."></textarea></div><div id="previewBox" style="margin-top:12px"></div><div class="button-grid channel-actions parent-action-grid" style="margin-top:12px"><button class="primary" data-send-channel="WhatsApp">WhatsApp Aç</button><button class="primary" data-send-channel="SMS">SMS API Gönder</button><button class="secondary" data-send-channel="SMS_DEVICE">SMS Gönder</button><button class="primary" data-send-channel="E-posta">E-posta Aç</button><button class="ghost" data-send-channel="Kopyala">Metni Kopyala</button></div><p class="muted tiny" style="margin-top:8px">Üstte seçilen kanal aktif olur; altta yalnızca seçili gönderim tuşu ve kopyalama tuşu görünür.</p><div id="confirmBox" style="margin-top:12px"></div></div>`;
-  if(tab==='studentreport') return studentNotificationReportHtml(st,stats,tasks);
-  if(tab==='messages') return `<div class="card"><h3>Öğrenci Paneli Mesajı</h3>${studentPanelMessageHtml(st,stats,range)}</div><div class="card" style="margin-top:14px"><h3>Öğrenciye Gönderilen Mesajlar</h3>${messages.length?messages.map(m=>`<div class="thin-item"><div class="row"><b>${esc(m.baslik||'Mesaj')}</b><span class="badge green">${esc(m.ogretmenAdi||getTeacherName(m.ogretmenID))}</span><span class="muted tiny">${esc(m.tarihSaat||'')}</span></div><div class="muted" style="white-space:pre-wrap">${esc(m.mesaj||'')}</div></div>`).join(''):'<div class="empty">Bu öğrenciye henüz panel mesajı gönderilmemiş.</div>'}</div>`;
-  return studentSummaryHtml(st,stats,tasks,range);
+  main.innerHTML=`${section(st.name,`No ${st.no} • ${st.className}`)}<div class="card"><span class="loader"></span> Öğrenci dashboard'u hazırlanıyor...</div>`;
+  const allStudentTasks=state.tasks.filter(t=>t.status!=='silindi' && studentsForTask(t).map(cleanId).includes(cleanId(st.no)));
+  const pref=preferredStudentPackage(st,allStudentTasks); const packages=pref.packages;
+  if(!state.studentDashboardRange) state.studentDashboardRange=dashboardDefaultRange();
+  if(state.studentDashboardPackageId && !packages.some(p=>p.id===state.studentDashboardPackageId)) state.studentDashboardPackageId='';
+  if(!state.studentDashboardPackageId && pref.selected) state.studentDashboardPackageId=pref.selected.id;
+  const mode=state.studentDashboardMode||'program'; let selectedPkg=packages.find(p=>p.id===state.studentDashboardPackageId)||pref.selected||null; let analysis,label,contextNote='';
+  if(mode==='range'){
+    let range={...state.studentDashboardRange}; if(range.start>range.end) range={start:range.end,end:range.start}; state.studentDashboardRange=range;
+    const rangeTasks=allStudentTasks.filter(t=>rangesOverlap(t.start,t.end,range.start,range.end)); analysis=await dashboardRangeAnalysis(st,rangeTasks,range); label=`${fmtDate(range.start)} - ${fmtDate(range.end)}`; contextNote=`Tarih aralığı analizi: ${analysis.programCards?.length||0} program bulundu. Program olmayan günlerdeki çalışmalar ayrıca hesaplandı.`;
+  }else if(selectedPkg){analysis=await analyzeStudentPackage(st,selectedPkg); label=`${packageTargetLabel(selectedPkg)} • ${fmtDate(selectedPkg.start)} - ${fmtDate(selectedPkg.end)}`; contextNote=`${packageLifeStatus(selectedPkg).label} program gösteriliyor. İsterseniz program seçiciden başka bir programa geçebilir veya tarih aralığı analizi açabilirsiniz.`;
+  }else{const range=dashboardDefaultRange();analysis=await analyzeStudentTargetDays(st,[],range,{includeFreeDays:true});label='Aktif / geçmiş program bulunamadı';contextNote=packages.length?'Aktif veya geçmiş program bulunamadı. Planlı programlar program seçicisinde mevcut; son 30 günlük serbest çalışmalar gösteriliyor.':'Aktif veya geçmiş program bulunamadı. Son 30 günlük serbest çalışmalar gösteriliyor.';}
+  const todayRow=(analysis.rows||[]).find(r=>r.day===todayISO()); const latestRow=(analysis.rows||[]).slice().reverse()[0]; const focusRow=todayRow||latestRow;
+  const programCards=mode==='range'?(analysis.programCards||[]):[];
+  main.innerHTML=`<div class="student-dashboard" id="studentTop"><section class="student-dashboard-hero"><div class="dashboard-hero-actions"><button class="ghost" id="backStudents">← Geri</button><span class="badge">${esc(st.className||'-')}</span><span class="badge">No ${esc(st.no)}</span></div><h2>${esc(st.name)}</h2><p>Tek ekranda program, çalışma, ilerleme ve veli bilgilendirmesi.</p></section><section class="dashboard-card"><div class="student-dashboard-controls"><div><label>Görünüm</label><div class="dashboard-mode-switch"><button type="button" data-dashboard-mode="program" class="${mode==='program'?'active':''}">Program Bazlı</button><button type="button" data-dashboard-mode="range" class="${mode==='range'?'active':''}">Tarih Aralığı</button></div></div><div>${mode==='program'?`<label>Program</label><div class="dashboard-program-select"><select id="studentProgramSelect" ${packages.length?'':'disabled'}>${dashboardProgramOptions(packages,selectedPkg?.id||'')||'<option>Program bulunamadı</option>'}</select><button type="button" class="ghost" id="refreshStudentDashboard">Yenile</button></div>`:`<label>Tarih Aralığı</label><div class="dashboard-range-grid"><input id="dashboardRangeStart" type="date" value="${esc(state.studentDashboardRange.start)}"><input id="dashboardRangeEnd" type="date" value="${esc(state.studentDashboardRange.end)}"><button type="button" class="primary" id="applyDashboardRange">Analiz Et</button></div>`}</div></div><div class="dashboard-context-note">${esc(contextNote)}</div></section><div class="dashboard-metrics">${dashboardMetricHtml('Program Tamamlama',analysis.targetTotal?`%${analysis.completionPct}`:'—',analysis.targetTotal?`${analysis.credited}/${analysis.targetTotal} göreve sayıldı`:'Program hedefi yok',analysis.completionPct>=80?'good':analysis.targetTotal?'warn':'')}${dashboardMetricHtml('Toplam Çözülen',analysis.totalDone,`${analysis.stats?.entryCount||0} çalışma girişi`,'info')}${dashboardMetricHtml('Ekstra Çalışma',analysis.extraWithinProgram||0,'Program günlerinde hedef üstü / hedef dışı')}${dashboardMetricHtml('Serbest Çalışma',analysis.freeStudyTotal||0,'Program olmayan günlerde çözülen')}</div><div class="dashboard-layout"><div class="grid" style="gap:14px"><section class="dashboard-card"><div class="dashboard-card-head"><div><h3>Derslere Göre Program Durumu</h3><p>Gerçek çözülen soru ile göreve sayılan soru ayrı gösterilir.</p></div><span class="badge orange">Başarı %${analysis.accuracy}</span></div>${dashboardLessonRowsHtml(analysis)}</section><section class="dashboard-card"><div class="dashboard-card-head"><div><h3>Gün Gün İlerleme</h3><p>Program günü, yapılan, eksik ve ekstra çalışma.</p></div>${focusRow?`<span class="badge">${fmtDate(focusRow.day)} • ${focusRow.targetTotal?`%${focusRow.completionPct}`:`${focusRow.totalDone} soru`}</span>`:''}</div>${dashboardDayRowsHtml(analysis,st)}</section>${mode==='range'&&programCards.length?`<section class="dashboard-card"><div class="dashboard-card-head"><div><h3>Bu Aralıktaki Programlar</h3><p>Seçilen tarihlerle kesişen programların ayrı durumları.</p></div></div><div class="dashboard-program-cards">${programCards.map(x=>`<div class="dashboard-program-card"><b>${esc(packageTargetLabel(x.pkg))}</b><span>${fmtDate(x.pkg.start)} - ${fmtDate(x.pkg.end)}</span><strong>${x.analysis.targetTotal?`%${x.analysis.completionPct}`:'—'}</strong><span>${x.analysis.credited}/${x.analysis.targetTotal} göreve sayıldı • ${x.analysis.totalDone} soru çözüldü</span></div>`).join('')}</div></section>`:''}</div><aside class="grid" style="gap:14px"><section class="dashboard-card"><div class="dashboard-card-head"><div><h3>Hızlı İşlemler</h3><p>İhtiyaç duyulan işlemler tek yerde.</p></div></div><div class="dashboard-quick-actions"><button type="button" class="primary" id="dashboardParentNotify">Veliye Bilgi Ver</button><button type="button" class="secondary" id="dashboardStudentMessage">Öğrenciye Mesaj</button>${selectedPkg?`<button type="button" class="ghost" data-open-task-from-package="${esc(selectedPkg.id)}">Programı Görevlerde Aç</button>`:''}<button type="button" class="ghost" id="dashboardRefresh">Verileri Yenile</button></div></section><section class="dashboard-card"><div class="dashboard-card-head"><div><h3>Son Çalışmalar</h3><p>${esc(label)}</p></div></div>${dashboardRecentRecordsHtml(analysis)}</section></aside></div></div>`;
+  document.getElementById('backStudents').onclick=()=>{const origin=['dashboard','students','tasks'].includes(state.studentDetailOrigin)?state.studentDetailOrigin:'students';state.selectedStudent=null;state.activeTab=origin==='tasks'?'tasks':origin;state.returnToStudentList=origin==='students';render();};
+  document.querySelectorAll('[data-dashboard-mode]').forEach(b=>b.onclick=()=>{state.studentDashboardMode=b.dataset.dashboardMode;state.studentDashboardShowAllDays=false;render();});
+  document.getElementById('studentProgramSelect')?.addEventListener('change',e=>{state.studentDashboardPackageId=e.target.value;state.studentDashboardShowAllDays=false;render();});
+  const applyRange=()=>{const a=document.getElementById('dashboardRangeStart')?.value,b=document.getElementById('dashboardRangeEnd')?.value;if(!a||!b){setToast('Başlangıç ve bitiş tarihini seçin.','error');return;}state.studentDashboardRange={start:a,end:b};state.studentDashboardMode='range';state.studentDashboardShowAllDays=false;render();};
+  document.getElementById('applyDashboardRange')?.addEventListener('click',applyRange);
+  document.querySelectorAll('[data-dashboard-toggle-days]').forEach(b=>b.onclick=()=>{state.studentDashboardShowAllDays=!state.studentDashboardShowAllDays;render();});
+  document.querySelectorAll('[data-dashboard-edit-day]').forEach(b=>b.onclick=async()=>{const day=b.dataset.dashboardEditDay;const stats=await loadStats(st.no,day,day,{force:true});openStudyRecordsEditModal(st,stats.records,day);});
+  document.getElementById('dashboardParentNotify')?.addEventListener('click',()=>openDashboardParentModal(st,analysis,label));
+  document.getElementById('dashboardStudentMessage')?.addEventListener('click',()=>openStudentPanelQuickMessage(st));
+  const refresh=()=>{state.statsCache={};render();}; document.getElementById('dashboardRefresh')?.addEventListener('click',refresh);document.getElementById('refreshStudentDashboard')?.addEventListener('click',refresh);
+  document.querySelector('[data-open-task-from-package]')?.addEventListener('click',()=>{const pkgId=selectedPkg?.id;const task=selectedPkg?.tasks?.[0];state.selectedStudent=null;state.activeTab='tasks';render();if(task)setTimeout(()=>openTaskTrackingModal(task.key,st.no),120);});
 }
 function quickStudentInsightHtml(stats){
   const pct=accuracyPct(stats);
@@ -4649,15 +4666,37 @@ async function downloadTaskStudentPdfReport(taskKey,button){
 
 function teacherTaskCardHtml(t,isPast=false){
   const rosterBadge=taskHasRosterSnapshot(t)?`<span class="badge blue">🔒 ${studentsForTask(t).length} kişilik sabit liste</span>`:'<span class="badge orange">Eski görev • güncel liste</span>';
-  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span>${rosterBadge}</div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn task-parent-message-btn" data-task-parent-report="${esc(t.key)}">💬 Veli WhatsApp Mesajı</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
+  return `<div class="teacher-task-card ${isPast?'past':''}"><div><h4>${esc(targetLabel(t))}</h4><div class="task-card-meta"><span class="badge ${isPast?'':'green'}">${fmtDate(t.start)}-${fmtDate(t.end)}</span><span class="badge">${taskQuestionTotal(t)} soru</span>${rosterBadge}</div><div class="muted tiny">Veren: ${esc(getTeacherName(t.teacherId))}</div></div><div class="actions"><button class="task-open-track" data-track-task="${esc(t.key)}">Öğrencileri ve İlerlemeyi Aç</button><button class="secondary" data-edit-task="${esc(t.key)}">Düzenle</button><button class="danger-btn" data-del-task="${esc(t.key)}">Sil</button><button class="task-report-btn general-report-btn" data-report-general-task="${esc(t.key)}">📊 Genel PDF Raporu İndir</button><button class="task-report-btn task-parent-message-btn" data-task-parent-report="${esc(t.key)}">💬 Veli WhatsApp Mesajı</button><button class="task-report-btn student-pdf-report-btn" data-report-students-pdf-task="${esc(t.key)}">📄 Öğrenci Raporunu PDF İndir</button></div></div>`;
 }
 function teacherTasksHtml(){
-  const own=state.tasks.filter(t=>state.teacher.isAdmin || cleanId(t.teacherId)===cleanId(state.teacher.id));
-  if(!own.length) return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>';
-  const today=todayISO();
-  const current=own.filter(t=>!t.end || t.end>=today).slice(0,60);
-  const past=own.filter(t=>t.end && t.end<today).slice(0,80);
+  const own=state.tasks.filter(t=>state.teacher.isAdmin||cleanId(t.teacherId)===cleanId(state.teacher.id)); if(!own.length)return '<div class="empty">Henüz kayıtlı görevlendirme yok.</div>';
+  const today=todayISO(); const current=own.filter(t=>!t.end||t.end>=today).slice(0,60),past=own.filter(t=>t.end&&t.end<today).slice(0,80);
   return `<div class="teacher-task-section"><div><h4 style="margin:0 0 8px;color:var(--ink)">Güncel Verdiğim Görevler</h4>${current.length?`<div class="teacher-task-grid">${current.map(t=>teacherTaskCardHtml(t,false)).join('')}</div>`:'<div class="empty">Güncel görev yok.</div>'}</div><div><h4 style="margin:10px 0 8px;color:var(--ink)">Geçmiş Görevler</h4>${past.length?`<div class="teacher-task-grid">${past.map(t=>teacherTaskCardHtml(t,true)).join('')}</div>`:'<div class="empty">Geçmiş görev yok.</div>'}</div></div>`;
+}
+function taskTrackerLessonRows(analysis){
+  const map=new Map(); (analysis.days||[]).forEach(day=>(day.lessonRows||[]).forEach(r=>{const x=map.get(r.lesson)||{lesson:r.lesson,target:0,done:0,credit:0};x.target+=r.target;x.done+=r.done;x.credit+=r.credit;map.set(r.lesson,x);}));
+  const rows=[...map.values()].sort((a,b)=>a.lesson.localeCompare(b.lesson,'tr')); if(!rows.length)return '<div class="dashboard-empty">Ders hedefi bulunmuyor.</div>';
+  return `<div class="dashboard-lesson-list">${rows.map(r=>{const pct=r.target?Math.min(100,Math.round(r.credit/r.target*100)):0;return `<div class="dashboard-lesson-row"><div><b>${esc(r.lesson)}</b><small>${r.done>r.target?`${r.done-r.target} ekstra soru`:r.done<r.target?`${r.target-r.credit} soru kaldı`:'Hedef tamamlandı'}</small></div><div><div class="dashboard-progress"><span style="width:${pct}%"></span></div><small>${r.credit}/${r.target} göreve sayıldı</small></div><div class="dashboard-lesson-numbers">${r.done}/${r.target}<small>%${pct}</small></div></div>`;}).join('')}</div>`;
+}
+function taskTrackerDetailHtml(result){
+  const {student,analysis,ctx,task}=result; const message=buildTaskParentWhatsAppReport(task,analysis,ctx);
+  return `<div class="task-tracker-top"><div><h3>${esc(student.name)}</h3><p>No ${esc(student.no)} • ${esc(student.className||'-')} • ${fmtDate(ctx.start)} - ${fmtDate(ctx.end)}</p></div><div class="actions"><button type="button" class="secondary" data-task-student-dashboard="${esc(student.no)}">Öğrenci Dashboard</button></div></div><div class="task-tracker-metrics"><div class="task-tracker-metric"><small>Tamamlama</small><b>%${analysis.completionPct}</b></div><div class="task-tracker-metric"><small>Hedef</small><b>${analysis.targetTotal}</b></div><div class="task-tracker-metric"><small>Göreve Sayılan</small><b>${analysis.credited}</b></div><div class="task-tracker-metric"><small>Toplam Çözülen</small><b>${analysis.doneOnTaskDays}</b></div></div><div class="dashboard-card" style="padding:14px"><div class="dashboard-card-head"><div><h3>Ders Bazlı Durum</h3><p>Hedef, gerçek çözüm ve göreve sayılan miktar.</p></div><span class="badge orange">Başarı %${analysis.accuracy}</span></div>${taskTrackerLessonRows(analysis)}</div><div class="dashboard-card" style="padding:14px;margin-top:10px"><div class="dashboard-card-head"><div><h3>Günlük İlerleme</h3><p>${analysis.completedDays} tamam • ${analysis.partialDays} eksik • ${analysis.missingDays} yapılmadı</p></div></div><div class="dashboard-day-list">${(analysis.days||[]).map(d=>`<div class="dashboard-day-row"><div><b>${fmtDate(d.day)} ${dayName(d.day)?'• '+dayName(d.day):''}</b><small>Hedef ${d.targetTotal} • Yapılan ${d.doneTotal}</small></div><div><div class="dashboard-progress"><span style="width:${d.completionPct}%"></span></div><small>${d.credited}/${d.targetTotal} göreve sayıldı</small></div><span class="task-status-pill ${d.statusKey==='done'?'done':d.statusKey==='missing'?'missing':'pending'}">${esc(taskReportStatusLabel(d.statusKey))}</span></div>`).join('')}</div></div><div class="task-tracker-message"><h3 style="margin:0 0 5px">Veli Bilgilendirmesi</h3><p class="muted tiny">Metin otomatik hazırlandı; göndermeden önce düzenleyebilirsiniz.</p><textarea data-task-tracker-message>${esc(message)}</textarea><div class="task-tracker-message-actions"><button type="button" class="ghost" data-task-tracker-copy>Metni Kopyala</button><button type="button" class="primary" data-task-tracker-whatsapp>WhatsApp Aç</button></div><div id="confirmBox" style="margin-top:8px"></div></div>`;
+}
+async function openTaskTrackingModal(taskKey,preferredStudentNo=''){
+  const task=state.tasks.find(t=>t.key===taskKey); if(!task){setToast('Görev bulunamadı.','error');return;}
+  const students=taskReportStudentChoices(task); if(!students.length){setToast('Bu görevde öğrenci bulunamadı.','error');return;}
+  showModal(`<div class="modal-head"><div><h3>Görev Takip Merkezi</h3><p class="muted tiny">${esc(targetLabel(task))} • ${fmtDate(task.start)} - ${fmtDate(task.end)} • ${taskQuestionTotal(task)} soru</p></div><button type="button" class="ghost" data-modal-close>Kapat</button></div><div id="taskTrackerLoading" class="empty"><span class="loader"></span> Öğrenci ilerlemeleri hazırlanıyor...</div>`,{closeOnBackdrop:false});
+  document.querySelector('#modalRoot .modal-card')?.classList.add('task-tracker-modal-card');
+  try{
+    const results=await Promise.all(students.map(st=>prepareTaskReportStudentData(taskKey,st.no).catch(()=>null))); const valid=results.filter(Boolean); if(!valid.length)throw new Error('Öğrenci analizleri hazırlanamadı.');
+    let selected=valid.find(x=>cleanId(x.student.no)===cleanId(preferredStudentNo))||valid[0]; state.taskTrackingTaskKey=taskKey; state.taskTrackingStudentNo=selected.student.no;
+    const draw=()=>{const root=document.getElementById('taskTrackerLoading'); if(!root)return; root.className=''; root.innerHTML=`<div class="task-tracker-shell"><aside class="task-tracker-students">${valid.map(r=>`<button type="button" class="task-tracker-student ${cleanId(r.student.no)===cleanId(selected.student.no)?'active':''}" data-task-track-student="${esc(r.student.no)}"><div class="avatar">${esc((r.student.name||'?').charAt(0).toLocaleUpperCase('tr-TR'))}</div><div><b>${esc(r.student.name)}</b><small>No ${esc(r.student.no)} • ${esc(r.student.className||'-')}</small></div><strong>%${r.analysis.completionPct}</strong></button>`).join('')}</aside><section class="task-tracker-detail">${taskTrackerDetailHtml(selected)}</section></div>`;
+      root.querySelectorAll('[data-task-track-student]').forEach(b=>b.onclick=()=>{selected=valid.find(r=>cleanId(r.student.no)===cleanId(b.dataset.taskTrackStudent))||selected;state.taskTrackingStudentNo=selected.student.no;draw();});
+      root.querySelector('[data-task-student-dashboard]')?.addEventListener('click',()=>{closeModal();const pkg=buildStudentTaskPackages([task],null)[0];openStudentProgramDetail(selected.student.no,pkg?.id||'','tasks');});
+      root.querySelector('[data-task-tracker-copy]')?.addEventListener('click',async()=>{await copyText(root.querySelector('[data-task-tracker-message]').value);setToast('Veli mesajı kopyalandı.','ok');});
+      root.querySelector('[data-task-tracker-whatsapp]')?.addEventListener('click',()=>{const text=root.querySelector('[data-task-tracker-message]').value,phone=normalizePhoneTR(selected.student.parentPhone);if(!phone){setToast('Veli telefonu bulunmuyor. Metni kopyalayabilirsiniz.','error');return;}window.open(`https://wa.me/${phone}?text=${enc(text)}`,'_blank');state.draftConfirm={student:selected.student,channel:'WhatsApp Görev',message:text};renderConfirmBox();});
+    }; draw();
+  }catch(e){const root=document.getElementById('taskTrackerLoading');if(root)root.innerHTML=`<div class="empty danger">${esc(e.message)}</div>`;}
 }
 function syncTaskWizardFromDom(){
   if(!state.taskWizard) return;
@@ -4756,7 +4795,15 @@ function updatePreviewLive(){
   const status=document.getElementById('firebaseStatus'); if(status) status.textContent=rosterNote;
   const prev=document.getElementById('taskPreview'); if(prev) prev.innerHTML=`<p><b>Hedef:</b> ${esc(targetLabel(task))}</p><p><b>Öğrenci sayısı:</b> ${count}</p><p><b>Tarih:</b> ${fmtDate(w.start)} - ${fmtDate(task.end)} (${w.days} gün)</p><p><b>Program toplamı:</b> ${total} soru</p><p><b>Öğrenci listesi:</b> ${esc(rosterNote)}</p><p class="muted tiny">Aynı tarihlerde aynı öğrenciye verilmiş başka program varsa kayıt engellenir.</p>`;
 }
-function bindTaskList(){document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask)); document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask); if(!t) return; state.editingTaskKey=t.key; state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),rosterClassName:t.className,rosterSelectionExplicit:true,start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)}; state.taskWizardStep=1; renderTasks(document.getElementById('mainArea'));}); document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskGeneralReport(b.dataset.reportGeneralTask,b)); document.querySelectorAll('[data-task-parent-report]').forEach(b=>b.onclick=()=>openTaskParentReportModal(b.dataset.taskParentReport)); document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));}
+function bindTaskList(){
+  document.querySelectorAll('[data-track-task]').forEach(b=>b.onclick=()=>openTaskTrackingModal(b.dataset.trackTask));
+  document.querySelectorAll('[data-del-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.delTask));
+  document.querySelectorAll('[data-edit-task]').forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.key===b.dataset.editTask);if(!t)return;state.editingTaskKey=t.key;state.taskWizard={targetType:t.targetType==='student'?'students':t.targetType,className:t.className,studentNos:studentsForTask(t),rosterClassName:t.className,rosterSelectionExplicit:true,start:t.start,days:t.days,plan:resizePlan(t.plan,t.days)};state.taskWizardStep=1;renderTasks(document.getElementById('mainArea'));});
+  document.querySelectorAll('[data-report-general-task]').forEach(b=>b.onclick=()=>downloadTaskGeneralReport(b.dataset.reportGeneralTask,b));
+  document.querySelectorAll('[data-task-parent-report]').forEach(b=>b.onclick=()=>openTaskParentReportModal(b.dataset.taskParentReport));
+  document.querySelectorAll('[data-report-students-pdf-task]').forEach(b=>b.onclick=()=>downloadTaskStudentPdfReport(b.dataset.reportStudentsPdfTask,b));
+}
+
 
 
 function lessonDesignerHtml(){
@@ -4854,15 +4901,25 @@ async function deleteProgramFirebasePaths(){
 
 async function resetStudyRecords(){
   if(!state.teacher?.isAdmin){setToast('Bu işlem için admin yetkisi gerekli.','error');return;}
-  if(!confirm('Çalışma kayıtları sıfırlansın mı?')) return;
+  if(!confirm('Tüm çalışma kayıtları kalıcı olarak sıfırlansın mı? Bu işlem geri alınamaz.')) return;
   try{
+    setToast('Çalışma kayıtları siliniyor ve Firebase doğrulaması yapılıyor...','ok');
     await deleteJson('verianalizi001/calismaKayitlari');
+    let verify=null,hasData=true;
+    for(let attempt=1;attempt<=3;attempt++){
+      await new Promise(resolve=>setTimeout(resolve,attempt*220));
+      verify=await getJson('verianalizi001/calismaKayitlari');
+      hasData=verify!==null && verify!==undefined && (!(typeof verify==='object') || Object.keys(verify||{}).length>0);
+      if(!hasData) break;
+    }
+    if(hasData) throw new Error('Firebase doğrulamasında çalışma kayıtları hâlâ görünüyor. Başarı mesajı verilmedi.');
     state.statsCache={};
-    await logAction('Çalışma kayıtları sıfırlama','verianalizi001/calismaKayitlari sıfırlandı');
-    setToast('Çalışma kayıtları sıfırlandı','ok');
+    await logAction('Çalışma kayıtları sıfırlama','verianalizi001/calismaKayitlari silindi ve Firebase üzerinden boş olduğu doğrulandı');
+    setToast('Çalışma kayıtları sıfırlandı ve Firebase üzerinden doğrulandı.','ok');
     render();
   }catch(e){setToast('Çalışma kayıtlarını sıfırlama hatası: '+e.message,'error');}
 }
+
 
 function bindAdmin(){
   document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{state.adminTab=b.dataset.adminTab; queueUiScroll('adminPanel','smooth'); renderAdmin(document.getElementById('mainArea'));});
